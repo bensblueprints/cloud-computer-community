@@ -26,20 +26,20 @@ const plans = [
     name: "Solo",
     price: 17,
     specs: { ram: "8GB", cpu: "2 vCPU", storage: "40GB NVMe" },
-    features: ["1 Cloud Desktop", "noVNC + RDP + SSH", "Pre-installed Dev Tools", "24/7 Uptime"],
+    features: ["1 User", "noVNC + RDP + SSH", "Pre-installed Dev Tools", "24/7 Uptime"],
   },
   {
     name: "Team",
     price: 79,
     specs: { ram: "16GB", cpu: "4 vCPU", storage: "80GB NVMe" },
-    features: ["5 Cloud Desktops", "noVNC + RDP + SSH", "Team Dashboard", "Priority Support"],
+    features: ["5 Users", "noVNC + RDP + SSH", "Team Dashboard", "Priority Support"],
     popular: true,
   },
   {
     name: "Army",
     price: 299,
     specs: { ram: "32GB", cpu: "8 vCPU", storage: "160GB NVMe" },
-    features: ["25 Cloud Desktops", "noVNC + RDP + SSH", "Admin Console", "Dedicated Support"],
+    features: ["25 Users", "noVNC + RDP + SSH", "Admin Console", "Dedicated Support"],
   },
 ];
 
