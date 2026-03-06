@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Square, RotateCcw, Trash2, Monitor, ExternalLink, ChevronDown, ChevronUp, Copy, Users, User } from 'lucide-react';
+import { Play, Square, RotateCcw, Trash2, Monitor, ExternalLink, ChevronDown, ChevronUp, Copy, Users, User, Pencil, X, UserPlus } from 'lucide-react';
 import RemoteAccessPanel from './RemoteAccessPanel';
 import { useAuth } from '../hooks/useAuth';
 
@@ -18,10 +18,13 @@ const userAccessColors = {
   DISABLED: 'bg-gray-50 text-gray-600 border-gray-200',
 };
 
-export default function VMCard({ vm, onAction }) {
+export default function VMCard({ vm, onAction, onRename, onManageUsers }) {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [renaming, setRenaming] = useState(false);
 
   const handleAction = async (action) => {
     setActionLoading(action);
@@ -37,32 +40,113 @@ export default function VMCard({ vm, onAction }) {
   const userAccess = vm.userAccess;
   const canManage = !isShared || user?.orgRole === 'OWNER';
 
+  const handleRename = async (e) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setRenaming(true);
+    try {
+      await onRename(vm.id, newName.trim());
+      setShowRenameModal(false);
+      setNewName('');
+    } catch (err) {
+      alert(err.message || 'Failed to rename VM');
+    } finally {
+      setRenaming(false);
+    }
+  };
+
+  // Extract display name from subdomain (before the vmid)
+  const displayName = vm.subdomain.replace(/-\d+$/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Ubuntu Desktop';
+
   return (
-    <div className={`bg-white rounded-xl border p-6 hover:shadow-md transition-shadow ${isShared ? 'border-cyan-200' : 'border-gray-200'}`}>
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isShared ? 'bg-cyan-100' : 'bg-brand-100'}`}>
-            {isShared ? <Users className="w-5 h-5 text-cyan-600" /> : <Monitor className="w-5 h-5 text-brand-600" />}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900">Ubuntu Desktop</h3>
-              {isShared && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 font-medium border border-cyan-200">
-                  Team
-                </span>
-              )}
+    <>
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowRenameModal(false)}>
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Rename Environment</h3>
+              <button onClick={() => setShowRenameModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-gray-500">VM {vm.vmid}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[vm.status]}`}>
-                {vm.status === 'PROVISIONING' && <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-1" />}
-                {vm.status}
-              </span>
-            </div>
+            <form onSubmit={handleRename}>
+              <input
+                type="text"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                placeholder="Enter new name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                maxLength={50}
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">This will change the subdomain for this VM.</p>
+              <div className="flex gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowRenameModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={renaming || !newName.trim()}
+                  className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50"
+                >
+                  {renaming ? 'Renaming...' : 'Rename'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
+
+      <div className={`bg-white rounded-xl border p-6 hover:shadow-md transition-shadow ${isShared ? 'border-cyan-200' : 'border-gray-200'}`}>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isShared ? 'bg-cyan-100' : 'bg-brand-100'}`}>
+              {isShared ? <Users className="w-5 h-5 text-cyan-600" /> : <Monitor className="w-5 h-5 text-brand-600" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900">{displayName}</h3>
+                {isShared && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 font-medium border border-cyan-200">
+                    Team
+                  </span>
+                )}
+                {canManage && (
+                  <button
+                    onClick={() => setShowRenameModal(true)}
+                    className="text-gray-400 hover:text-gray-600 p-1"
+                    title="Rename"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-gray-500">VM {vm.vmid}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[vm.status]}`}>
+                  {vm.status === 'PROVISIONING' && <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-1" />}
+                  {vm.status}
+                </span>
+              </div>
+            </div>
+          </div>
+          {/* Manage Users button for shared VMs */}
+          {isShared && canManage && onManageUsers && (
+            <button
+              onClick={() => onManageUsers(vm)}
+              className="flex items-center gap-1.5 text-cyan-600 hover:text-cyan-700 text-sm"
+              title="Manage Users"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Manage</span>
+            </button>
+          )}
+        </div>
 
       {/* User access status for shared VMs */}
       {isShared && userAccess && (
@@ -161,6 +245,7 @@ export default function VMCard({ vm, onAction }) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

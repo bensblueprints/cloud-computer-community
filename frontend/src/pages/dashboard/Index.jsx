@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import VMCard from '../../components/VMCard';
-import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap } from 'lucide-react';
+import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap, Users, UserPlus, Trash2 } from 'lucide-react';
 
 function PasswordWarning({ onDismiss }) {
   const [copied, setCopied] = useState(false);
@@ -165,6 +165,147 @@ function DebugPanel({ vms, onClose }) {
   );
 }
 
+function ManageUsersModal({ vm, onClose, api, onRefresh }) {
+  const [users, setUsers] = useState([]);
+  const [orgMembers, setOrgMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState(null);
+  const [selectedUser, setSelectedUser] = useState('');
+
+  useEffect(() => {
+    fetchData();
+  }, [vm.id]);
+
+  async function fetchData() {
+    try {
+      const [usersRes, membersRes] = await Promise.all([
+        api.get(`/vms/${vm.id}/users`),
+        api.get('/org/members')
+      ]);
+      setUsers(usersRes.data.vmUsers || []);
+      setOrgMembers(membersRes.data.members || []);
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAddUser() {
+    if (!selectedUser) return;
+    setAdding(true);
+    try {
+      await api.post(`/vms/${vm.id}/users`, { userId: selectedUser });
+      await fetchData();
+      setSelectedUser('');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to add user');
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function handleRemoveUser(userId) {
+    if (!confirm('Remove this user from the VM?')) return;
+    setRemoving(userId);
+    try {
+      await api.delete(`/vms/${vm.id}/users/${userId}`);
+      await fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to remove user');
+    } finally {
+      setRemoving(null);
+    }
+  }
+
+  // Filter out members who already have access
+  const availableMembers = orgMembers.filter(m => !users.find(u => u.userId === m.id));
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-cyan-600" />
+            <h3 className="text-lg font-bold">Manage VM Access</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-600"></div>
+          </div>
+        ) : (
+          <>
+            {/* Add User */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Add Team Member</label>
+              <div className="flex gap-2">
+                <select
+                  value={selectedUser}
+                  onChange={e => setSelectedUser(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value="">Select a member...</option>
+                  {availableMembers.map(m => (
+                    <option key={m.id} value={m.id}>{m.name} ({m.email})</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleAddUser}
+                  disabled={!selectedUser || adding}
+                  className="flex items-center gap-1 px-3 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {adding ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+            </div>
+
+            {/* Current Users */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Access ({users.length})</h4>
+              <div className="space-y-2">
+                {users.map(vmUser => (
+                  <div key={vmUser.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <div className="font-medium text-gray-900">{vmUser.user.name}</div>
+                      <div className="text-xs text-gray-500">{vmUser.user.email}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        Username: <span className="font-mono">{vmUser.linuxUsername}</span>
+                        {vmUser.status === 'PROVISIONING' && (
+                          <span className="ml-2 text-yellow-600">Setting up...</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveUser(vmUser.userId)}
+                      disabled={removing === vmUser.userId}
+                      className="text-red-500 hover:text-red-700 p-1 disabled:opacity-50"
+                      title="Remove access"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {users.length === 0 && (
+                  <div className="text-sm text-gray-500 text-center py-4">
+                    No users have access to this VM yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardIndex() {
   const { api } = useAuth();
   const [vms, setVms] = useState([]);
@@ -176,6 +317,7 @@ export default function DashboardIndex() {
   const [showPwWarning, setShowPwWarning] = useState(() => {
     return sessionStorage.getItem('cc-pw-warning-dismissed') !== 'true';
   });
+  const [managingVM, setManagingVM] = useState(null);
   const pollIntervalRef = useRef(null);
 
   async function fetchVMs() {
@@ -258,6 +400,16 @@ export default function DashboardIndex() {
     }
   }
 
+  async function handleRename(vmId, newName) {
+    const res = await api.patch(`/vms/${vmId}`, { name: newName });
+    await fetchVMs();
+    return res.data;
+  }
+
+  function handleManageUsers(vm) {
+    setManagingVM(vm);
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -304,6 +456,7 @@ export default function DashboardIndex() {
   return (
     <div>
       {showDebug && <DebugPanel vms={vms} onClose={() => setShowDebug(false)} />}
+      {managingVM && <ManageUsersModal vm={managingVM} onClose={() => setManagingVM(null)} api={api} onRefresh={fetchVMs} />}
       {showPwWarning && vms.length > 0 && <PasswordWarning onDismiss={dismissWarning} />}
       
       {/* Status Bar */}
@@ -353,7 +506,13 @@ export default function DashboardIndex() {
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {vms.map(vm => (
-          <VMCard key={vm.id} vm={vm} onAction={handleAction} />
+          <VMCard
+            key={vm.id}
+            vm={vm}
+            onAction={handleAction}
+            onRename={handleRename}
+            onManageUsers={handleManageUsers}
+          />
         ))}
       </div>
     </div>

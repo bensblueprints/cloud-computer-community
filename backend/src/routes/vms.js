@@ -206,6 +206,44 @@ router.post('/:id/restart', auth, async (req, res, next) => {
   }
 });
 
+// Rename VM
+router.patch('/:id', auth, async (req, res, next) => {
+  try {
+    const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found or access denied' });
+
+    const { name } = req.body;
+    if (!name || name.length < 1 || name.length > 50) {
+      return res.status(400).json({ error: 'Name must be between 1 and 50 characters' });
+    }
+
+    // Generate new subdomain from name
+    const newSubdomain = `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${vm.vmid}`;
+
+    // Update VM in database
+    const updatedVM = await prisma.vM.update({
+      where: { id: vm.id },
+      data: { subdomain: newSubdomain }
+    });
+
+    // Update Traefik route
+    traefikService.deleteRoute(vm.vmid);
+    traefikService.createRoute({
+      vmid: vm.vmid,
+      subdomain: newSubdomain,
+      novncPort: vm.novncPort,
+      rdpPort: vm.rdpPort
+    });
+
+    res.json({ vm: updatedVM, message: 'VM renamed successfully' });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'A VM with this name already exists' });
+    }
+    next(err);
+  }
+});
+
 router.delete('/:id', auth, async (req, res, next) => {
   try {
     const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
@@ -355,6 +393,114 @@ router.get('/:id/rdp-file', auth, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/x-rdp');
     res.setHeader('Content-Disposition', `attachment; filename="${vm.subdomain}.rdp"`);
     res.send(rdpContent);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get VM users (for shared VMs)
+router.get('/:id/users', auth, async (req, res, next) => {
+  try {
+    const vm = await prisma.vM.findUnique({ where: { id: req.params.id } });
+    if (!vm) return res.status(404).json({ error: 'VM not found' });
+
+    // Only org owners can view users on shared VMs
+    if (!vm.isShared) {
+      return res.status(400).json({ error: 'This is not a shared VM' });
+    }
+
+    if (vm.orgId !== req.user.orgId || req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can manage VM users' });
+    }
+
+    const vmUsers = await prisma.vMUser.findMany({
+      where: { vmId: vm.id, status: { not: 'DELETED' } },
+      include: {
+        user: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    res.json({ vmUsers });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Add user to shared VM
+router.post('/:id/users', auth, async (req, res, next) => {
+  try {
+    const vm = await prisma.vM.findUnique({ where: { id: req.params.id } });
+    if (!vm) return res.status(404).json({ error: 'VM not found' });
+
+    if (!vm.isShared) {
+      return res.status(400).json({ error: 'This is not a shared VM' });
+    }
+
+    if (vm.orgId !== req.user.orgId || req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can add users to shared VMs' });
+    }
+
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    // Verify user is in the same org
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.orgId !== req.user.orgId) {
+      return res.status(400).json({ error: 'User must be a member of your organization' });
+    }
+
+    // Check if user already has access
+    const existingAccess = await prisma.vMUser.findUnique({
+      where: { vmId_userId: { vmId: vm.id, userId } }
+    });
+
+    if (existingAccess && existingAccess.status !== 'DELETED') {
+      return res.status(409).json({ error: 'User already has access to this VM' });
+    }
+
+    // Create or restore VMUser record
+    const linuxUsername = user.name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'user';
+
+    const vmUser = await vmUserService.createVMUser(vm.id, userId, linuxUsername);
+
+    res.status(201).json({ vmUser, message: 'User access added - provisioning in progress' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Remove user from shared VM
+router.delete('/:id/users/:userId', auth, async (req, res, next) => {
+  try {
+    const vm = await prisma.vM.findUnique({ where: { id: req.params.id } });
+    if (!vm) return res.status(404).json({ error: 'VM not found' });
+
+    if (!vm.isShared) {
+      return res.status(400).json({ error: 'This is not a shared VM' });
+    }
+
+    if (vm.orgId !== req.user.orgId || req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can remove users from shared VMs' });
+    }
+
+    // Cannot remove yourself if you're the owner
+    if (req.params.userId === req.userId) {
+      return res.status(400).json({ error: 'Cannot remove yourself from the VM' });
+    }
+
+    const vmUser = await prisma.vMUser.findUnique({
+      where: { vmId_userId: { vmId: vm.id, userId: req.params.userId } }
+    });
+
+    if (!vmUser || vmUser.status === 'DELETED') {
+      return res.status(404).json({ error: 'User access not found' });
+    }
+
+    await vmUserService.deleteVMUser(vmUser.id);
+
+    res.json({ message: 'User access removed' });
   } catch (err) {
     next(err);
   }
