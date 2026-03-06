@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id           String        @id @default(uuid())
+  name         String
+  ownerId      String        @unique
+  owner        User          @relation("OrgOwner", fields: [ownerId], references: [id])
+  plan         Plan          @default(SOLO)
+  seatLimit    Int           @default(1)
+  members      User[]        @relation("OrgMember")
+  subscription Subscription?
+  createdAt    DateTime      @default(now())
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  siteRole     SiteRole      @default(MEMBER)
+  orgRole      OrgRole       @default(MEMBER)
+  orgId        String?
+  org          Organization? @relation("OrgMember", fields: [orgId], references: [id])
+  ownedOrg     Organization? @relation("OrgOwner")
+  vms          VM[]
+  invites      Invite[]
+  auditLogs    AuditLog[]
+  suspended    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  lastLoginAt  DateTime?
+}
+
+model VM {
+  id              String    @id @default(uuid())
+  vmid            Int       @unique
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  templateType    String    @default("ubuntu-desktop")
+  status          VMStatus  @default(PROVISIONING)
+  internalIp      String?
+  subdomain       String    @unique
+  novncPort       Int       @default(6080)
+  vncPort         Int       @default(5900)
+  rdpPort         Int       @default(3389)
+  rdpPasswordEnc  String?
+  vncPasswordEnc  String?
+  rdpUsername      String    @default("cloudcomputer")
+  lastActiveAt    DateTime?
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime?
+}
+
+model Subscription {
+  id        String       @id @default(uuid())
+  orgId     String       @unique
+  org       Organization @relation(fields: [orgId], references: [id])
+  plan      Plan
+  stripeId  String
+  status    String
+  renewsAt  DateTime?
+  createdAt DateTime     @default(now())
+}
+
+model Invite {
+  id        String   @id @default(uuid())
+  email     String
+  orgId     String
+  invitedBy String
+  inviter   User     @relation(fields: [invitedBy], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  target    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model AppSettings {
+  id                   String  @id @default("singleton")
+  maintenanceMode      Boolean @default(false)
+  autoSuspendMinutes   Int     @default(120)
+  proxmoxTemplateId    Int     @default(100)
+  smtpHost             String?
+  smtpPort             Int?
+}
+
+enum Plan {
+  SOLO
+  TEAM
+  ARMY
+}
+
+enum SiteRole {
+  MEMBER
+  ADMIN
+}
+
+enum OrgRole {
+  OWNER
+  MEMBER
+}
+
+enum VMStatus {
+  PROVISIONING
+  RUNNING
+  STOPPED
+  ERROR
+  DELETED
+}

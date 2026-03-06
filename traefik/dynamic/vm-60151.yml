@@ -1,0 +1,9 @@
+http:
+  routers:
+    vm-60151-ws:
+      rule: "Host(`ben-60151.cloudcode.space`)"
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt

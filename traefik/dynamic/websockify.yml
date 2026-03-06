@@ -1,0 +1,6 @@
+http:
+  services:
+    websockify-proxy:
+      loadBalancer:
+        servers:
+          - url: "http://backend:6080"

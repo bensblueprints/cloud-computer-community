@@ -1,0 +1,9 @@
+http:
+  routers:
+    vm-65004-ws:
+      rule: "Host(`davidnass-65004.cloudcode.space`)"
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt

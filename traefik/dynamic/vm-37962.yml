@@ -1,0 +1,9 @@
+http:
+  routers:
+    vm-37962-ws:
+      rule: "Host(`ben-37962.cloudcode.space`)"
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt

@@ -1,0 +1,9 @@
+http:
+  routers:
+    vm-13815-ws:
+      rule: "Host(`dave-13815.cloudcode.space`)"
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt
