@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, Star, ArrowRight, Play, Mail } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 const features = [
   { icon: Monitor, title: "Ubuntu Desktop", desc: "Full XFCE desktop accessible from your browser. No installs, no VPN required." },
@@ -59,8 +60,16 @@ const faqs = [
 export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
   const [billingPeriod, setBillingPeriod] = useState("monthly");
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleCheckout = async (planName) => {
+    // If not logged in, go to register first
+    if (!user) {
+      navigate("/register");
+      return;
+    }
+    // If logged in, go directly to checkout
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -99,13 +108,18 @@ export default function Home() {
             <a href="#faq" className="text-sm text-slate-400 hover:text-white transition">FAQ</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm text-slate-300 hover:text-white px-4 py-2 transition">Login</Link>
-            <button
-              onClick={scrollToPricing}
-              className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
-            >
-              Get Started
-            </button>
+            {user ? (
+              <Link to="/dashboard" className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition shadow-lg shadow-cyan-500/25">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm text-slate-300 hover:text-white px-4 py-2 transition">Login</Link>
+                <Link to="/register" className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition shadow-lg shadow-cyan-500/25">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -133,13 +147,13 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <button
-              onClick={scrollToPricing}
+            <Link
+              to={user ? "/dashboard" : "/register"}
               className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
             >
-              Start Building
+              {user ? "Go to Dashboard" : "Start Building"}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-            </button>
+            </Link>
             <a href="#pricing" className="inline-flex items-center justify-center gap-2 bg-slate-800/50 border border-slate-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-slate-800 transition">
               <Play className="w-5 h-5" />
               View Pricing
@@ -400,13 +414,13 @@ export default function Home() {
               <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
                 Get your cloud desktop running in under 2 minutes. Start your 3-day free trial today.
               </p>
-              <button
-                onClick={scrollToPricing}
+              <Link
+                to={user ? "/dashboard" : "/register"}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
               >
-                Choose Your Plan
+                {user ? "Go to Dashboard" : "Get Started Free"}
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>

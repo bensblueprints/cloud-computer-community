@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import VMCard from '../../components/VMCard';
-import { Plus, AlertTriangle, X, Bug, RefreshCw } from 'lucide-react';
+import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap } from 'lucide-react';
 
 function PasswordWarning({ onDismiss }) {
   return (
@@ -17,6 +17,93 @@ function PasswordWarning({ onDismiss }) {
       <button onClick={onDismiss} className="text-amber-400 hover:text-amber-600 shrink-0">
         <X className="w-4 h-4" />
       </button>
+    </div>
+  );
+}
+
+const plans = [
+  {
+    name: "Solo",
+    price: 17,
+    specs: { ram: "8GB", cpu: "2 vCPU", storage: "40GB NVMe" },
+    features: ["1 Cloud Desktop", "noVNC + RDP + SSH", "Pre-installed Dev Tools", "24/7 Uptime"],
+  },
+  {
+    name: "Team",
+    price: 79,
+    specs: { ram: "16GB", cpu: "4 vCPU", storage: "80GB NVMe" },
+    features: ["5 Cloud Desktops", "noVNC + RDP + SSH", "Team Dashboard", "Priority Support"],
+    popular: true,
+  },
+  {
+    name: "Army",
+    price: 299,
+    specs: { ram: "32GB", cpu: "8 vCPU", storage: "160GB NVMe" },
+    features: ["25 Cloud Desktops", "noVNC + RDP + SSH", "Admin Console", "Dedicated Support"],
+  },
+];
+
+function SelectPlanPrompt({ onSelectPlan, loading }) {
+  return (
+    <div className="py-8">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Zap className="w-8 h-8 text-cyan-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Plan</h2>
+        <p className="text-gray-600">Select a plan to create your cloud environment</p>
+        <p className="text-sm text-emerald-600 mt-2">3-day free trial on all plans</p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        {plans.map((plan) => (
+          <div
+            key={plan.name}
+            className={`relative rounded-2xl p-6 border-2 transition-all ${
+              plan.popular
+                ? "border-cyan-500 bg-cyan-50/50"
+                : "border-gray-200 bg-white hover:border-gray-300"
+            }`}
+          >
+            {plan.popular && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                POPULAR
+              </div>
+            )}
+            <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+            <div className="flex items-center gap-2 mt-2 text-gray-500 text-xs">
+              <Cpu className="w-3 h-3" /> {plan.specs.cpu}
+              <span>·</span>
+              <Server className="w-3 h-3" /> {plan.specs.ram}
+              <span>·</span>
+              <HardDrive className="w-3 h-3" /> {plan.specs.storage}
+            </div>
+            <div className="mt-4 mb-4">
+              <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
+              <span className="text-gray-500">/mo</span>
+            </div>
+            <ul className="space-y-2 mb-6">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-cyan-500 flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => onSelectPlan(plan.name)}
+              disabled={loading}
+              className={`w-full py-3 rounded-xl font-semibold transition disabled:opacity-50 ${
+                plan.popular
+                  ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                  : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+              }`}
+            >
+              {loading ? "Loading..." : "Start 3-Day Trial"}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -56,11 +143,13 @@ function DebugPanel({ vms, onClose }) {
 export default function DashboardIndex() {
   const { api } = useAuth();
   const [vms, setVms] = useState([]);
+  const [org, setOrg] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showPwWarning, setShowPwWarning] = useState(() => {
-    return localStorage.getItem('cc-pw-warning-dismissed') !== 'true';
+    return sessionStorage.getItem('cc-pw-warning-dismissed') !== 'true';
   });
   const pollIntervalRef = useRef(null);
 
@@ -76,9 +165,34 @@ export default function DashboardIndex() {
     }
   }
 
+  async function fetchOrg() {
+    try {
+      const res = await api.get('/org');
+      setOrg(res.data.org);
+    } catch (err) {
+      // User might not have an org yet, that's ok
+      setOrg(null);
+    }
+  }
+
+  async function handleSelectPlan(planName) {
+    setCheckoutLoading(true);
+    try {
+      const res = await api.post('/billing/checkout', { plan: planName });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to start checkout');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }
+
   // Initial fetch
   useEffect(() => {
     fetchVMs();
+    fetchOrg();
   }, []);
 
   // Real-time polling for PROVISIONING VMs
@@ -127,6 +241,12 @@ export default function DashboardIndex() {
     );
   }
 
+  // Show plan selection if user has no subscription
+  const hasSubscription = org?.subscription && ['active', 'trialing'].includes(org.subscription.status);
+  if (!hasSubscription && vms.length === 0) {
+    return <SelectPlanPrompt onSelectPlan={handleSelectPlan} loading={checkoutLoading} />;
+  }
+
   if (vms.length === 0) {
     return (
       <div className="text-center py-20">
@@ -148,7 +268,7 @@ export default function DashboardIndex() {
 
   const dismissWarning = () => {
     setShowPwWarning(false);
-    localStorage.setItem('cc-pw-warning-dismissed', 'true');
+    sessionStorage.setItem('cc-pw-warning-dismissed', 'true');
   };
 
   const hasProvisioning = vms.some(vm => vm.status === 'PROVISIONING');
