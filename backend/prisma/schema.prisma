@@ -17,6 +17,7 @@ model Organization {
   members      User[]        @relation("OrgMember")
   subscription Subscription?
   sharedVMs    VM[]          @relation("OrgSharedVM")
+  invites      Invite[]
   createdAt    DateTime      @default(now())
 }
 
@@ -78,15 +79,16 @@ model Subscription {
 }
 
 model Invite {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   email     String
   orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
   invitedBy String
-  inviter   User     @relation(fields: [invitedBy], references: [id])
-  token     String   @unique
+  inviter   User         @relation(fields: [invitedBy], references: [id])
+  token     String       @unique
   expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  used      Boolean      @default(false)
+  createdAt DateTime     @default(now())
 }
 
 model AuditLog {
