@@ -17,7 +17,39 @@ class ProxmoxService {
       `/api2/json/nodes/${this.node}/qemu/${templateVmid}/clone`,
       { newid: newVmid, name, full: 1 }
     );
+    // Wait for clone task to complete
+    const upid = res.data.data;
+    if (upid) {
+      await this.waitForTask(upid);
+    }
     return res.data;
+  }
+
+  async waitForTask(upid, timeout = 300000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      try {
+        const res = await this.client.get(
+          `/api2/json/nodes/${this.node}/tasks/${encodeURIComponent(upid)}/status`
+        );
+        const task = res.data.data;
+        if (task.status === "stopped") {
+          if (task.exitstatus === "OK") {
+            return task;
+          } else {
+            throw new Error(`Task failed: ${task.exitstatus}`);
+          }
+        }
+      } catch (e) {
+        if (!e.message.includes("Task failed")) {
+          // Task status check error, continue polling
+        } else {
+          throw e;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    throw new Error(`Task ${upid} did not complete within ${timeout}ms`);
   }
 
   async startVM(vmid) {
@@ -88,21 +120,51 @@ class ProxmoxService {
 
   async waitForVMReady(vmid, timeout = 300000) {
     const start = Date.now();
-    while (Date.now() - start < timeout) {
+    console.log(`Waiting for VM ${vmid} to become ready (timeout: ${timeout}ms)`);
+    
+    // First, wait for VM to be in running state
+    let vmRunning = false;
+    while (Date.now() - start < timeout && !vmRunning) {
       try {
         const status = await this.getVMStatus(vmid);
-        if (status.status === "running" && status.agent === 1) {
-          const ip = await this.getVMNetworkInfo(vmid);
-          if (ip) {
-            return { ...status, ip };
-          }
+        if (status.status === "running") {
+          vmRunning = true;
+          console.log(`VM ${vmid} is now running`);
         }
       } catch (e) {
-        // VM not ready yet
+        console.log(`VM ${vmid} status check error:`, e.message);
       }
-      await new Promise((r) => setTimeout(r, 3000));
+      if (!vmRunning) {
+        await new Promise((r) => setTimeout(r, 3000));
+      }
     }
-    throw new Error(`VM ${vmid} did not become ready within ${timeout}ms`);
+
+    if (!vmRunning) {
+      throw new Error(`VM ${vmid} did not start within ${timeout}ms`);
+    }
+
+    // Now wait for guest agent to report IP (with remaining time)
+    const remainingTime = timeout - (Date.now() - start);
+    const ipStart = Date.now();
+    
+    while (Date.now() - ipStart < remainingTime) {
+      try {
+        const ip = await this.getVMNetworkInfo(vmid);
+        if (ip) {
+          console.log(`VM ${vmid} has IP: ${ip}`);
+          const status = await this.getVMStatus(vmid);
+          return { ...status, ip };
+        }
+      } catch (e) {
+        // Guest agent not ready yet
+      }
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+
+    // VM is running but no IP yet - return anyway and let provisioning continue
+    console.log(`VM ${vmid} running but no IP after ${timeout}ms - continuing anyway`);
+    const status = await this.getVMStatus(vmid);
+    return { ...status, ip: null };
   }
 
   async execInVM(vmid, command) {
@@ -114,7 +176,12 @@ class ProxmoxService {
   }
 
   async setRDPPassword(vmid, password) {
-    return this.execInVM(vmid, `echo "cloudcomputer:${password}" | chpasswd`);
+    try {
+      return await this.execInVM(vmid, `echo "cloudcomputer:${password}" | chpasswd`);
+    } catch (e) {
+      console.log(`Could not set RDP password for VM ${vmid}:`, e.message);
+      return null;
+    }
   }
 
   async getVNCProxy(vmid) {
@@ -126,7 +193,12 @@ class ProxmoxService {
   }
 
   async setVNCPassword(vmid, password) {
-    return this.execInVM(vmid, `x11vnc -storepasswd ${password} ~/.vnc/passwd`);
+    try {
+      return await this.execInVM(vmid, `x11vnc -storepasswd ${password} ~/.vnc/passwd`);
+    } catch (e) {
+      console.log(`Could not set VNC password for VM ${vmid}:`, e.message);
+      return null;
+    }
   }
 }
 
