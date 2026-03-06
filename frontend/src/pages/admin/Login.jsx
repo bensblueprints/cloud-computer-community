@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { refetch } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,6 +17,7 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await axios.post('/api/admin/auth/login', { email, password }, { withCredentials: true });
+      await refetch(); // Update auth state after login
       navigate('/admin/overview');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
