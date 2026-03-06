@@ -107,9 +107,8 @@ router.post("/checkout", async (req, res, next) => {
       sessionConfig.metadata.userId = userId;
       sessionConfig.metadata.userName = user.name;
     } else {
-      // Guest checkout - collect email and name at Stripe
+      // Guest checkout - collect email at Stripe (customer auto-created in subscription mode)
       sessionConfig.billing_address_collection = "auto";
-      sessionConfig.customer_creation = "always";
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
