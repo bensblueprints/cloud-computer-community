@@ -4,6 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const proxmoxService = require("../services/ProxmoxService");
 const traefikService = require("../services/TraefikService");
 const credentialService = require("../services/CredentialService");
+const vmUserService = require("../services/VMUserService");
 const { Resend } = require("resend");
 
 const prisma = new PrismaClient();
@@ -23,14 +24,14 @@ function emit(userId, vmId, step, status) {
 }
 
 const worker = new Worker("vm-provisioning", async (job) => {
-  const { userId, vmId, vmid, templateVmid, subdomain, username } = job.data;
-  console.log(`Starting provisioning for VM ${vmid} (job ${job.id})`);
+  const { userId, orgId, vmId, vmid, templateVmid, subdomain, username, isShared, plan } = job.data;
+  console.log(`Starting provisioning for ${isShared ? "shared" : "personal"} VM ${vmid} (job ${job.id})`);
 
   try {
     // Step 1: Clone template
     emit(userId, vmId, "Cloning template...", "in_progress");
     console.log(`Cloning template ${templateVmid} to VM ${vmid}`);
-    const vmName = `cloudcomputer-${userId}-${vmid}`;
+    const vmName = isShared ? `cloudcomputer-org-${orgId}-${vmid}` : `cloudcomputer-${userId}-${vmid}`;
     await proxmoxService.cloneTemplate(templateVmid, vmid, vmName);
     console.log(`Clone complete for VM ${vmid}`);
 
@@ -49,14 +50,34 @@ const worker = new Worker("vm-provisioning", async (job) => {
     // Step 4: Set credentials (optional - may fail if guest agent not ready)
     let rdpPassword = null;
     let vncPassword = null;
-    
+    let ownerVmUser = null;
+
     if (internalIp) {
       emit(userId, vmId, "Setting access credentials...", "in_progress");
       try {
-        rdpPassword = credentialService.generatePassword(16);
         vncPassword = credentialService.generateVNCPassword();
-        await proxmoxService.setRDPPassword(vmid, rdpPassword);
         await proxmoxService.setVNCPassword(vmid, vncPassword);
+
+        if (isShared) {
+          // For shared VMs: Create VMUser for owner with their own Linux account
+          console.log(`Creating owner VMUser for shared VM ${vmid}`);
+          const user = await prisma.user.findUnique({ where: { id: userId } });
+          const { vmUser, linuxUsername, rdpPassword: ownerPassword } = await vmUserService.createVMUser(vmId, userId, user.name);
+
+          // Create Linux user on VM
+          await proxmoxService.createLinuxUser(vmid, linuxUsername, ownerPassword, ["sudo", "users"]);
+
+          // Update VMUser status to ACTIVE
+          await prisma.vMUser.update({ where: { id: vmUser.id }, data: { status: "ACTIVE" } });
+
+          ownerVmUser = vmUser;
+          rdpPassword = ownerPassword;
+          console.log(`Owner VMUser created: ${linuxUsername}`);
+        } else {
+          // For personal VMs: Set the default cloudcomputer user password
+          rdpPassword = credentialService.generatePassword(16);
+          await proxmoxService.setRDPPassword(vmid, rdpPassword);
+        }
         console.log(`Credentials set for VM ${vmid}`);
       } catch (e) {
         console.log(`Could not set credentials for VM ${vmid}:`, e.message);
@@ -73,15 +94,16 @@ const worker = new Worker("vm-provisioning", async (job) => {
       status: "RUNNING",
       lastActiveAt: new Date()
     };
-    
+
     if (internalIp) {
       updateData.internalIp = internalIp;
     }
-    if (rdpPassword) {
-      updateData.rdpPasswordEnc = credentialService.encrypt(rdpPassword);
-    }
     if (vncPassword) {
       updateData.vncPasswordEnc = credentialService.encrypt(vncPassword);
+    }
+    // Only store rdpPasswordEnc for personal VMs (shared VMs use VMUser records)
+    if (rdpPassword && !isShared) {
+      updateData.rdpPasswordEnc = credentialService.encrypt(rdpPassword);
     }
 
     await prisma.vM.update({

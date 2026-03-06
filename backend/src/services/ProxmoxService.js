@@ -200,6 +200,86 @@ class ProxmoxService {
       return null;
     }
   }
+
+  // Linux user management for shared VMs
+  async createLinuxUser(vmid, username, password, groups = ["sudo", "rdp"]) {
+    try {
+      // Sanitize username - only allow alphanumeric and underscores
+      const safeUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
+      if (!safeUsername || safeUsername.length < 2) {
+        throw new Error("Invalid username");
+      }
+
+      // Create user with home directory
+      await this.execInVM(vmid, `useradd -m -s /bin/bash ${safeUsername}`);
+
+      // Set password
+      await this.execInVM(vmid, `echo "${safeUsername}:${password}" | chpasswd`);
+
+      // Add to groups (sudo for admin, xrdp-related groups for RDP access)
+      for (const group of groups) {
+        try {
+          await this.execInVM(vmid, `usermod -aG ${group} ${safeUsername}`);
+        } catch (e) {
+          console.log(`Could not add ${safeUsername} to group ${group}:`, e.message);
+        }
+      }
+
+      // Ensure xrdp directories exist for the user
+      await this.execInVM(vmid, `mkdir -p /home/${safeUsername}/.config`);
+      await this.execInVM(vmid, `chown -R ${safeUsername}:${safeUsername} /home/${safeUsername}`);
+
+      console.log(`Created Linux user ${safeUsername} on VM ${vmid}`);
+      return { success: true, username: safeUsername };
+    } catch (e) {
+      console.error(`Failed to create Linux user on VM ${vmid}:`, e.message);
+      throw e;
+    }
+  }
+
+  async deleteLinuxUser(vmid, username) {
+    try {
+      const safeUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
+
+      // Kill user processes first
+      try {
+        await this.execInVM(vmid, `pkill -u ${safeUsername}`);
+      } catch (e) {
+        // User might not have processes running
+      }
+
+      // Remove user and home directory
+      await this.execInVM(vmid, `userdel -r ${safeUsername}`);
+
+      console.log(`Deleted Linux user ${safeUsername} from VM ${vmid}`);
+      return { success: true };
+    } catch (e) {
+      console.error(`Failed to delete Linux user on VM ${vmid}:`, e.message);
+      throw e;
+    }
+  }
+
+  async setLinuxUserPassword(vmid, username, password) {
+    try {
+      const safeUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
+      await this.execInVM(vmid, `echo "${safeUsername}:${password}" | chpasswd`);
+      console.log(`Reset password for ${safeUsername} on VM ${vmid}`);
+      return { success: true };
+    } catch (e) {
+      console.error(`Failed to set password for user on VM ${vmid}:`, e.message);
+      throw e;
+    }
+  }
+
+  async checkLinuxUserExists(vmid, username) {
+    try {
+      const safeUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "");
+      await this.execInVM(vmid, `id ${safeUsername}`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 module.exports = new ProxmoxService();

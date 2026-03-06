@@ -362,23 +362,33 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
         ]);
       }
 
-      if (userId) {
-        const existingVMs = await prisma.vM.count({
+      if (userId && orgId) {
+        // Check if org already has a VM (for upgrades/re-subscriptions)
+        const existingOrgVM = await prisma.vM.findFirst({
+          where: { orgId, status: { not: "DELETED" } }
+        });
+
+        const existingUserVM = await prisma.vM.findFirst({
           where: { userId, status: { not: "DELETED" } }
         });
 
-        if (existingVMs === 0) {
-          console.log(`Auto-provisioning VM for new subscriber ${userId}`);
-
+        if (!existingOrgVM && !existingUserVM) {
           const templateVmid = PLANS[plan].templateVmid;
           const newVmid = Date.now() % 100000 + 1000;
           const username = (userName || "user").toLowerCase().replace(/[^a-z0-9]/g, "");
           const subdomain = `${username}-${newVmid}`;
 
+          // SOLO = personal VM (userId), TEAM/ARMY = shared VM (orgId)
+          const isShared = plan !== "SOLO";
+
+          console.log(`Auto-provisioning ${isShared ? "shared" : "personal"} VM for ${isShared ? `org ${orgId}` : `user ${userId}`}`);
+
           const vm = await prisma.vM.create({
             data: {
               vmid: newVmid,
-              userId,
+              userId: isShared ? null : userId,
+              orgId: isShared ? orgId : null,
+              isShared,
               subdomain,
               templateType: `ubuntu-${plan.toLowerCase()}`,
               status: "PROVISIONING"
@@ -392,10 +402,12 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
             vmid: newVmid,
             templateVmid,
             subdomain,
-            username
+            username,
+            isShared,
+            plan
           });
 
-          console.log(`Queued VM ${newVmid} for provisioning`);
+          console.log(`Queued ${isShared ? "shared" : "personal"} VM ${newVmid} for provisioning`);
         }
       }
       break;
@@ -423,6 +435,13 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
       });
 
       if (subscription?.org) {
+        // Suspend shared org VMs
+        await prisma.vM.updateMany({
+          where: { orgId: subscription.org.id, status: "RUNNING" },
+          data: { status: "SUSPENDED" }
+        });
+
+        // Suspend personal user VMs
         const userIds = subscription.org.members.map(m => m.id);
         await prisma.vM.updateMany({
           where: { userId: { in: userIds }, status: "RUNNING" },

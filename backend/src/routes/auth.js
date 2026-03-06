@@ -6,6 +6,7 @@ const { PrismaClient } = require("@prisma/client");
 const rateLimit = require("express-rate-limit");
 const { Resend } = require("resend");
 const auth = require("../middleware/auth");
+const { addVMUserQueue } = require("../jobs/addVMUser");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -292,6 +293,22 @@ router.post("/accept-invite/:token", async (req, res, next) => {
 
       return newUser;
     });
+
+    // Check for org's shared VM and add user access
+    const sharedVM = await prisma.vM.findFirst({
+      where: { orgId: invite.orgId, isShared: true, status: { not: "DELETED" } }
+    });
+
+    if (sharedVM) {
+      // Queue job to add user to shared VM
+      await addVMUserQueue.add("addVMUser", {
+        vmId: sharedVM.id,
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email
+      });
+      console.log(`Queued addVMUser job for user ${user.id} on VM ${sharedVM.id}`);
+    }
 
     setTokenCookie(res, user.id);
     res.status(201).json({ user: { id: user.id, name: user.name, email: user.email } });

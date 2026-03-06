@@ -8,6 +8,7 @@ const seatGuard = require('../middleware/seatGuard');
 const credentialService = require('../services/CredentialService');
 const proxmoxService = require('../services/ProxmoxService');
 const traefikService = require('../services/TraefikService');
+const vmUserService = require('../services/VMUserService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -25,11 +26,44 @@ const sseClients = new Map();
 
 router.get('/', auth, async (req, res, next) => {
   try {
-    const vms = await prisma.vM.findMany({
+    // Get personal VMs
+    const personalVMs = await prisma.vM.findMany({
       where: { userId: req.userId, status: { not: 'DELETED' } },
       orderBy: { createdAt: 'desc' }
     });
-    res.json({ vms });
+
+    // Get org's shared VMs if user is part of an org
+    let sharedVMs = [];
+    if (req.user.orgId) {
+      sharedVMs = await prisma.vM.findMany({
+        where: {
+          orgId: req.user.orgId,
+          isShared: true,
+          status: { not: 'DELETED' }
+        },
+        include: {
+          org: { select: { name: true, plan: true } },
+          vmUsers: {
+            where: { userId: req.userId, status: { not: 'DELETED' } },
+            select: { id: true, linuxUsername: true, status: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // Add user's VMUser info to each shared VM
+      sharedVMs = sharedVMs.map(vm => ({
+        ...vm,
+        userAccess: vm.vmUsers[0] || null,
+        vmUsers: undefined // Don't expose all vmUsers
+      }));
+    }
+
+    // Combine and dedupe (in case a personal VM is somehow also marked as shared)
+    const allVMs = [...personalVMs, ...sharedVMs];
+    const uniqueVMs = Array.from(new Map(allVMs.map(vm => [vm.id, vm])).values());
+
+    res.json({ vms: uniqueVMs });
   } catch (err) {
     next(err);
   }
@@ -76,22 +110,67 @@ router.post('/', auth, seatGuard, provisionLimiter, async (req, res, next) => {
   }
 });
 
+// Helper to check if user has access to a VM
+async function userHasVMAccess(userId, userOrgId, vmId) {
+  const vm = await prisma.vM.findUnique({
+    where: { id: vmId },
+    include: { vmUsers: { where: { userId, status: { not: 'DELETED' } } } }
+  });
+
+  if (!vm) return null;
+
+  // Personal VM - must be owner
+  if (vm.userId === userId) return vm;
+
+  // Shared VM - must be in same org and have VMUser access
+  if (vm.isShared && vm.orgId === userOrgId) {
+    return vm;
+  }
+
+  return null;
+}
+
 router.get('/:id', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({
-      where: { id: req.params.id, userId: req.userId }
-    });
+    const vm = await userHasVMAccess(req.userId, req.user.orgId, req.params.id);
     if (!vm) return res.status(404).json({ error: 'VM not found' });
+
+    // Add user's VMUser info if shared
+    if (vm.isShared) {
+      const vmUser = await prisma.vMUser.findUnique({
+        where: { vmId_userId: { vmId: vm.id, userId: req.userId } }
+      });
+      vm.userAccess = vmUser ? {
+        id: vmUser.id,
+        linuxUsername: vmUser.linuxUsername,
+        status: vmUser.status
+      } : null;
+    }
+
     res.json({ vm });
   } catch (err) {
     next(err);
   }
 });
 
+// Helper to check if user can manage (start/stop/delete) a VM
+async function userCanManageVM(userId, userOrgRole, vmId) {
+  const vm = await prisma.vM.findUnique({ where: { id: vmId } });
+  if (!vm) return null;
+
+  // Personal VM - must be owner
+  if (vm.userId === userId) return vm;
+
+  // Shared VM - only org OWNER can manage
+  if (vm.isShared && userOrgRole === 'OWNER') return vm;
+
+  return null;
+}
+
 router.post('/:id/start', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
-    if (!vm) return res.status(404).json({ error: 'VM not found' });
+    const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found or access denied' });
 
     await proxmoxService.startVM(vm.vmid);
     await prisma.vM.update({ where: { id: vm.id }, data: { status: 'RUNNING', lastActiveAt: new Date() } });
@@ -103,8 +182,8 @@ router.post('/:id/start', auth, async (req, res, next) => {
 
 router.post('/:id/stop', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
-    if (!vm) return res.status(404).json({ error: 'VM not found' });
+    const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found or access denied' });
 
     await proxmoxService.stopVM(vm.vmid);
     await prisma.vM.update({ where: { id: vm.id }, data: { status: 'STOPPED' } });
@@ -116,8 +195,8 @@ router.post('/:id/stop', auth, async (req, res, next) => {
 
 router.post('/:id/restart', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
-    if (!vm) return res.status(404).json({ error: 'VM not found' });
+    const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found or access denied' });
 
     await proxmoxService.restartVM(vm.vmid);
     await prisma.vM.update({ where: { id: vm.id }, data: { lastActiveAt: new Date() } });
@@ -129,8 +208,16 @@ router.post('/:id/restart', auth, async (req, res, next) => {
 
 router.delete('/:id', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
-    if (!vm) return res.status(404).json({ error: 'VM not found' });
+    const vm = await userCanManageVM(req.userId, req.user.orgRole, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found or access denied' });
+
+    // For shared VMs, also delete all VMUser records
+    if (vm.isShared) {
+      await prisma.vMUser.updateMany({
+        where: { vmId: vm.id },
+        data: { status: 'DELETED' }
+      });
+    }
 
     try { await proxmoxService.deleteVM(vm.vmid); } catch (e) { /* may already be gone */ }
     traefikService.deleteRoute(vm.vmid);
@@ -143,25 +230,57 @@ router.delete('/:id', auth, async (req, res, next) => {
 
 router.get('/:id/credentials', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
+    const vm = await userHasVMAccess(req.userId, req.user.orgId, req.params.id);
     if (!vm) return res.status(404).json({ error: 'VM not found' });
 
-    const rdpPassword = vm.rdpPasswordEnc ? credentialService.decrypt(vm.rdpPasswordEnc) : null;
     const vncPassword = vm.vncPasswordEnc ? credentialService.decrypt(vm.vncPasswordEnc) : null;
 
+    // For shared VMs, get user-specific credentials
+    if (vm.isShared) {
+      const vmUser = await prisma.vMUser.findUnique({
+        where: { vmId_userId: { vmId: vm.id, userId: req.userId } }
+      });
+
+      if (!vmUser || vmUser.status !== 'ACTIVE') {
+        return res.status(403).json({
+          error: 'Your access is being set up. Please wait a moment.',
+          status: vmUser?.status || 'NOT_FOUND'
+        });
+      }
+
+      const rdpPassword = vmUser.rdpPasswordEnc ? credentialService.decrypt(vmUser.rdpPasswordEnc) : null;
+
+      return res.json({
+        isShared: true,
+        sshHost: vm.internalIp || `${vm.subdomain}.cloudcode.space`,
+        sshPort: 22,
+        sshUsername: vmUser.linuxUsername,
+        sshPassword: rdpPassword,
+        sshCommand: `ssh ${vmUser.linuxUsername}@${vm.internalIp || vm.subdomain + '.cloudcode.space'}`,
+        rdpHost: `${vm.subdomain}.cloudcode.space`,
+        rdpPort: vm.rdpPort,
+        rdpUsername: vmUser.linuxUsername,
+        rdpPassword,
+        vncHost: `${vm.subdomain}.cloudcode.space`,
+        vncPort: vm.vncPort,
+        vncPassword
+      });
+    }
+
+    // Personal VM credentials
+    const rdpPassword = vm.rdpPasswordEnc ? credentialService.decrypt(vm.rdpPasswordEnc) : null;
+
     res.json({
-      // SSH credentials (uses same password as RDP)
+      isShared: false,
       sshHost: vm.internalIp || `${vm.subdomain}.cloudcode.space`,
       sshPort: 22,
       sshUsername: vm.rdpUsername,
       sshPassword: rdpPassword,
       sshCommand: `ssh ${vm.rdpUsername}@${vm.internalIp || vm.subdomain + '.cloudcode.space'}`,
-      // RDP credentials
       rdpHost: `${vm.subdomain}.cloudcode.space`,
       rdpPort: vm.rdpPort,
       rdpUsername: vm.rdpUsername,
       rdpPassword,
-      // VNC credentials
       vncHost: `${vm.subdomain}.cloudcode.space`,
       vncPort: vm.vncPort,
       vncPassword
@@ -173,10 +292,25 @@ router.get('/:id/credentials', auth, async (req, res, next) => {
 
 router.post('/:id/reset-password', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
+    const vm = await userHasVMAccess(req.userId, req.user.orgId, req.params.id);
     if (!vm) return res.status(404).json({ error: 'VM not found' });
     if (vm.status !== 'RUNNING') return res.status(400).json({ error: 'VM must be running to reset passwords' });
 
+    // For shared VMs, reset user's VMUser password
+    if (vm.isShared) {
+      const vmUser = await prisma.vMUser.findUnique({
+        where: { vmId_userId: { vmId: vm.id, userId: req.userId } }
+      });
+
+      if (!vmUser) {
+        return res.status(404).json({ error: 'User access not found' });
+      }
+
+      const result = await vmUserService.resetPassword(vmUser.id);
+      return res.json({ message: 'Password reset successfully', password: result.password });
+    }
+
+    // Personal VM - reset VM credentials
     const rdpPassword = credentialService.generatePassword(16);
     const vncPassword = credentialService.generateVNCPassword();
 
@@ -199,11 +333,23 @@ router.post('/:id/reset-password', auth, async (req, res, next) => {
 
 router.get('/:id/rdp-file', auth, async (req, res, next) => {
   try {
-    const vm = await prisma.vM.findFirst({ where: { id: req.params.id, userId: req.userId } });
+    const vm = await userHasVMAccess(req.userId, req.user.orgId, req.params.id);
     if (!vm) return res.status(404).json({ error: 'VM not found' });
 
+    let username = vm.rdpUsername;
+
+    // For shared VMs, use the user's linux username
+    if (vm.isShared) {
+      const vmUser = await prisma.vMUser.findUnique({
+        where: { vmId_userId: { vmId: vm.id, userId: req.userId } }
+      });
+      if (vmUser) {
+        username = vmUser.linuxUsername;
+      }
+    }
+
     const rdpContent = credentialService.generateRDPFile(
-      `${vm.subdomain}.cloudcode.space`, vm.rdpPort, vm.rdpUsername
+      `${vm.subdomain}.cloudcode.space`, vm.rdpPort, username
     );
 
     res.setHeader('Content-Type', 'application/x-rdp');

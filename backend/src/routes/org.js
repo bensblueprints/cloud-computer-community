@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { Resend } = require('resend');
 const auth = require('../middleware/auth');
 const seatService = require('../services/SeatService');
+const vmUserService = require('../services/VMUserService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -88,7 +89,10 @@ router.delete('/members/:userId', auth, async (req, res, next) => {
 
     const member = await prisma.user.findFirst({
       where: { id: req.params.userId, orgId: req.user.orgId },
-      include: { vms: { where: { status: { not: 'DELETED' } } } }
+      include: {
+        vms: { where: { status: { not: 'DELETED' } } },
+        vmUsers: { where: { status: { not: 'DELETED' } } }
+      }
     });
 
     if (!member) return res.status(404).json({ error: 'Member not found' });
@@ -97,10 +101,20 @@ router.delete('/members/:userId', auth, async (req, res, next) => {
     const proxmoxService = require('../services/ProxmoxService');
     const traefikService = require('../services/TraefikService');
 
+    // Remove personal VMs
     for (const vm of member.vms) {
       try { await proxmoxService.stopVM(vm.vmid); } catch (e) { /* ignore */ }
       traefikService.deleteRoute(vm.vmid);
       await prisma.vM.update({ where: { id: vm.id }, data: { status: 'DELETED' } });
+    }
+
+    // Remove VMUser access from shared VMs
+    for (const vmUser of member.vmUsers) {
+      try {
+        await vmUserService.deleteVMUser(vmUser.id);
+      } catch (e) {
+        console.error(`Failed to remove VMUser ${vmUser.id}:`, e.message);
+      }
     }
 
     await prisma.user.update({
