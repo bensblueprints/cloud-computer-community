@@ -453,12 +453,16 @@ export default function DashboardIndex() {
 
   const hasProvisioning = vms.some(vm => vm.status === 'PROVISIONING');
 
+  // Separate personal VMs from shared/team VMs
+  const personalVMs = vms.filter(vm => !vm.isShared);
+  const sharedVMs = vms.filter(vm => vm.isShared);
+
   return (
     <div>
       {showDebug && <DebugPanel vms={vms} onClose={() => setShowDebug(false)} />}
       {managingVM && <ManageUsersModal vm={managingVM} onClose={() => setManagingVM(null)} api={api} onRefresh={fetchVMs} />}
       {showPwWarning && vms.length > 0 && <PasswordWarning onDismiss={dismissWarning} />}
-      
+
       {/* Status Bar */}
       {hasProvisioning && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 mb-4 flex items-center gap-2">
@@ -468,10 +472,11 @@ export default function DashboardIndex() {
           </span>
         </div>
       )}
-      
+
+      {/* Header with refresh */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold">My Environments</h2>
+          <h2 className="text-2xl font-bold">Dashboard</h2>
           <button
             onClick={() => setShowDebug(true)}
             className="text-gray-400 hover:text-gray-600 p-1"
@@ -493,28 +498,82 @@ export default function DashboardIndex() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          {hasSubscription && !isSharedPlan && (
-            <Link
-              to="/dashboard/new"
-              className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-            >
-              <Plus className="w-4 h-4" />
-              New Environment
-            </Link>
-          )}
         </div>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vms.map(vm => (
-          <VMCard
-            key={vm.id}
-            vm={vm}
-            onAction={handleAction}
-            onRename={handleRename}
-            onManageUsers={handleManageUsers}
-          />
-        ))}
-      </div>
+
+      {/* Team Environments Section */}
+      {sharedVMs.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <Users className="w-5 h-5 text-cyan-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Team Environments</h3>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 font-medium border border-cyan-200">
+              {plan}
+            </span>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sharedVMs.map(vm => (
+              <VMCard
+                key={vm.id}
+                vm={vm}
+                onAction={handleAction}
+                onRename={handleRename}
+                onManageUsers={handleManageUsers}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Personal Environments Section */}
+      {personalVMs.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Server className="w-5 h-5 text-brand-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Personal Environments</h3>
+            </div>
+            {hasSubscription && !isSharedPlan && (
+              <Link
+                to="/dashboard/new"
+                className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
+              >
+                <Plus className="w-4 h-4" />
+                New Environment
+              </Link>
+            )}
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {personalVMs.map(vm => (
+              <VMCard
+                key={vm.id}
+                vm={vm}
+                onAction={handleAction}
+                onRename={handleRename}
+                onManageUsers={handleManageUsers}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Show empty state only if both sections are empty */}
+      {personalVMs.length === 0 && sharedVMs.length === 0 && (
+        <div className="text-center py-20">
+          <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-brand-600" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">No environments yet</h2>
+          <p className="text-gray-600 mb-6">Create your first cloud environment to get started</p>
+          <Link
+            to="/dashboard/new"
+            className="inline-flex items-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700"
+          >
+            <Plus className="w-5 h-5" />
+            Create Your First Environment
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
