@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { AlertTriangle, Trash2, CreditCard } from 'lucide-react';
+import { AlertTriangle, Trash2, CreditCard, Lock } from 'lucide-react';
 
 export default function Profile() {
   const { user, api, logout } = useAuth();
@@ -14,6 +14,13 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -22,6 +29,32 @@ export default function Profile() {
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save');
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      await api.put('/auth/change-password', { currentPassword, newPassword });
+      setPasswordSaved(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSaved(false), 3000);
+    } catch (err) {
+      setPasswordError(err.response?.data?.error || 'Failed to change password');
     }
   };
 
@@ -105,6 +138,56 @@ export default function Profile() {
           </div>
           <button type="submit" className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700 text-sm font-medium">
             {saved ? 'Saved!' : 'Save Changes'}
+          </button>
+        </form>
+      </div>
+
+      {/* Change Password */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+          <Lock className="w-5 h-5" />
+          Change Password
+        </h3>
+        {passwordError && (
+          <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">{passwordError}</div>
+        )}
+        {passwordSaved && (
+          <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm mb-4">Password changed successfully!</div>
+        )}
+        <form onSubmit={handleChangePassword}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              placeholder="At least 8 characters"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              required
+            />
+          </div>
+          <button type="submit" className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700 text-sm font-medium">
+            Change Password
           </button>
         </form>
       </div>

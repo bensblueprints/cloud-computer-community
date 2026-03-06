@@ -1,12 +1,15 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 const rateLimit = require("express-rate-limit");
+const { Resend } = require("resend");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const authLimiter = rateLimit({
@@ -292,6 +295,132 @@ router.post("/accept-invite/:token", async (req, res, next) => {
 
     setTokenCookie(res, user.id);
     res.status(201).json({ user: { id: user.id, name: user.name, email: user.email } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Forgot password - send reset email
+router.post("/forgot-password", authLimiter, async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.json({ message: "If an account exists, a password reset email has been sent" });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetToken,
+        passwordResetExpires: resetExpires
+      }
+    });
+
+    // Send reset email
+    const resetUrl = `https://cloudcode.space/reset-password?token=${resetToken}`;
+
+    await resend.emails.send({
+      from: "Cloud Computer <noreply@cloudcode.space>",
+      to: email,
+      subject: "Reset your password",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>You requested to reset your password for Cloud Computer.</p>
+          <p>Click the button below to set a new password. This link expires in 1 hour.</p>
+          <a href="${resetUrl}" style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
+          <p>If you didn't request this, you can safely ignore this email.</p>
+          <p style="color: #666; font-size: 12px;">Cloud Computer - Your cloud desktop platform</p>
+        </div>
+      `
+    });
+
+    res.json({ message: "If an account exists, a password reset email has been sent" });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Reset password with token
+router.post("/reset-password", async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: { gt: new Date() }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpires: null
+      }
+    });
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Change password (for logged-in users)
+router.put("/change-password", auth, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current password and new password are required" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+
+    if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash }
+    });
+
+    res.json({ message: "Password changed successfully" });
   } catch (err) {
     next(err);
   }
