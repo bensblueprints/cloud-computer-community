@@ -46,8 +46,8 @@ class TraefikService {
   middlewares:
     vm-${vmid}-redirect:
       redirectRegex:
-        regex: "^https://${fullSubdomain.replace('.', '\\.')}/?$"
-        replacement: "https://cloudcode.space/console/${vmid}"
+        regex: '^https://${fullSubdomain.replace(/\./g, '\\\\.')}/?$$'
+        replacement: 'https://cloudcode.space/console/${vmid}'
         permanent: false
 `;
 
