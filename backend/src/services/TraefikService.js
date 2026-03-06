@@ -24,11 +24,20 @@ class TraefikService {
       const configPath = path.join(TRAEFIK_DYNAMIC_DIR, `vm-${vmid}.yml`);
       const fullSubdomain = subdomain.includes('.') ? subdomain : `${subdomain}.cloudcode.space`;
 
-      // Route subdomain root to frontend console page, websockify path to backend proxy
+      // Route subdomain: /websockify to proxy, everything else redirects to console
+      // Using unquoted backticks in YAML rule syntax (Traefik requires backticks for Host/PathPrefix)
       const config = `http:
   routers:
+    vm-${vmid}-ws:
+      rule: Host(\`${fullSubdomain}\`) && PathPrefix(\`/websockify\`)
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt
+      priority: 100
     vm-${vmid}:
-      rule: "Host(\`${fullSubdomain}\`) && !PathPrefix(\`/websockify\`)"
+      rule: Host(\`${fullSubdomain}\`)
       entryPoints:
         - websecure
       middlewares:
@@ -36,18 +45,12 @@ class TraefikService {
       service: frontend
       tls:
         certResolver: letsencrypt
-    vm-${vmid}-ws:
-      rule: "Host(\`${fullSubdomain}\`) && PathPrefix(\`/websockify\`)"
-      entryPoints:
-        - websecure
-      service: websockify-proxy
-      tls:
-        certResolver: letsencrypt
+      priority: 1
   middlewares:
     vm-${vmid}-redirect:
       redirectRegex:
-        regex: '^https://${fullSubdomain.replace(/\./g, '\\\\.')}/?$$'
-        replacement: 'https://cloudcode.space/console/${vmid}'
+        regex: .*
+        replacement: https://cloudcode.space/console/${vmid}
         permanent: false
 `;
 
