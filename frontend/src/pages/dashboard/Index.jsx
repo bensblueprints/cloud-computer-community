@@ -268,6 +268,9 @@ export default function DashboardIndex() {
 
   // Show plan selection if user has no subscription
   const hasSubscription = org?.subscription && ['active', 'trialing'].includes(org.subscription.status);
+  const plan = org?.plan || 'SOLO';
+  const isSharedPlan = plan === 'TEAM' || plan === 'ARMY';
+
   if (!hasSubscription && vms.length === 0) {
     return <SelectPlanPrompt onSelectPlan={handleSelectPlan} loading={checkoutLoading} />;
   }
@@ -337,7 +340,7 @@ export default function DashboardIndex() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          {hasSubscription && (
+          {hasSubscription && !isSharedPlan && (
             <Link
               to="/dashboard/new"
               className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"

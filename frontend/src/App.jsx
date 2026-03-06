@@ -8,6 +8,7 @@ const Register = lazy(() => import('./pages/Register'));
 const SetupPassword = lazy(() => import('./pages/SetupPassword'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const DashboardIndex = lazy(() => import('./pages/dashboard/Index'));
 const DashboardNew = lazy(() => import('./pages/dashboard/New'));
 const Team = lazy(() => import('./pages/dashboard/Team'));
@@ -124,6 +125,7 @@ export default function App() {
           <Route path="/setup-password" element={<SetupPassword />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/accept-invite/:token" element={<AcceptInvite />} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardIndex /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/new" element={<ProtectedRoute><DashboardLayout><DashboardNew /></DashboardLayout></ProtectedRoute>} />

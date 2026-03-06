@@ -81,6 +81,38 @@ router.post('/invite', auth, async (req, res, next) => {
   }
 });
 
+// Get invite details by token (public, no auth required)
+router.get('/invite/:token', async (req, res, next) => {
+  try {
+    const invite = await prisma.invite.findUnique({
+      where: { token: req.params.token },
+      include: { org: { select: { name: true } } }
+    });
+
+    if (!invite) {
+      return res.status(404).json({ error: 'Invite not found' });
+    }
+
+    if (invite.used) {
+      return res.status(400).json({ error: 'This invite has already been used' });
+    }
+
+    if (invite.expiresAt < new Date()) {
+      return res.status(400).json({ error: 'This invite has expired' });
+    }
+
+    res.json({
+      invite: {
+        email: invite.email,
+        orgName: invite.org.name,
+        expiresAt: invite.expiresAt
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.delete('/members/:userId', auth, async (req, res, next) => {
   try {
     if (req.user.orgRole !== 'OWNER') {
