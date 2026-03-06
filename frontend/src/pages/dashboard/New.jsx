@@ -1,21 +1,60 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useSSE } from '../../hooks/useSSE';
 import ProvisioningProgress from '../../components/ProvisioningProgress';
 import SeatUsageBar from '../../components/SeatUsageBar';
-import { Monitor, Cpu, HardDrive, Wifi } from 'lucide-react';
+import { Monitor, Cpu, HardDrive, Wifi, AlertTriangle } from 'lucide-react';
 
 export default function DashboardNew() {
   const { api, user } = useAuth();
+  const navigate = useNavigate();
   const [provisioning, setProvisioning] = useState(false);
   const [vmId, setVmId] = useState(null);
   const [seatUsage, setSeatUsage] = useState(null);
+  const [org, setOrg] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { steps, status } = useSSE(vmId);
 
   useEffect(() => {
-    api.get('/org').then(res => setSeatUsage(res.data.seatUsage)).catch(() => {});
+    api.get('/org').then(res => {
+      setSeatUsage(res.data.seatUsage);
+      setOrg(res.data.org);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
+
+  // Check for valid subscription
+  const hasValidSubscription = org?.subscription && ['active', 'trialing'].includes(org.subscription.status);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+      </div>
+    );
+  }
+
+  if (!hasValidSubscription) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-20">
+        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-8 h-8 text-amber-600" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Subscription Required</h2>
+        <p className="text-gray-600 mb-6">You need an active subscription to provision a cloud environment.</p>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="inline-flex items-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700"
+        >
+          Choose a Plan
+        </button>
+      </div>
+    );
+  }
 
   const handleProvision = async () => {
     setError('');

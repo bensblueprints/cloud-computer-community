@@ -312,13 +312,15 @@ export default function DashboardIndex() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          <Link
-            to="/dashboard/new"
-            className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-          >
-            <Plus className="w-4 h-4" />
-            New Environment
-          </Link>
+          {hasSubscription && (
+            <Link
+              to="/dashboard/new"
+              className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
+            >
+              <Plus className="w-4 h-4" />
+              New Environment
+            </Link>
+          )}
         </div>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

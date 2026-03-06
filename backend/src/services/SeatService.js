@@ -29,6 +29,20 @@ class SeatService {
   }
 
   async canProvisionVM(orgId) {
+    // Check if org has active subscription first
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      include: { subscription: true }
+    });
+
+    if (!org) return false;
+
+    // Must have an active or trialing subscription
+    const validStatuses = ['active', 'trialing'];
+    if (!org.subscription || !validStatuses.includes(org.subscription.status)) {
+      return false;
+    }
+
     const { used, limit } = await this.getSeatUsage(orgId);
     return used < limit;
   }
