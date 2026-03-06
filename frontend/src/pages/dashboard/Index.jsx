@@ -5,18 +5,43 @@ import VMCard from '../../components/VMCard';
 import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap } from 'lucide-react';
 
 function PasswordWarning({ onDismiss }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyPassword = () => {
+    navigator.clipboard.writeText('SErver777');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-6 flex items-start gap-3">
-      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-      <div className="flex-1">
-        <h3 className="font-semibold text-amber-800">Update your VM password</h3>
-        <p className="text-sm text-amber-700 mt-1">
-          Your cloud environment was created with a default password. For security, open a terminal in your VM and run <code className="bg-amber-100 px-1.5 py-0.5 rounded text-xs font-mono">passwd</code> to change it.
-        </p>
+    <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-6">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <h3 className="font-semibold text-amber-800">Update your VM password</h3>
+          <p className="text-sm text-amber-700 mt-1 mb-3">
+            Your cloud environment was created with a default password. For security, please change it.
+          </p>
+          <div className="flex items-center gap-3 bg-amber-100 rounded-lg px-3 py-2">
+            <div>
+              <span className="text-xs text-amber-600">Default Password:</span>
+              <span className="ml-2 font-mono font-semibold text-amber-900">SErver777</span>
+            </div>
+            <button
+              onClick={copyPassword}
+              className="text-xs text-amber-700 hover:text-amber-900 underline"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <p className="text-xs text-amber-600 mt-2">
+            To change: Open terminal &rarr; Run <code className="bg-amber-100 px-1 rounded">passwd</code>
+          </p>
+        </div>
+        <button onClick={onDismiss} className="text-amber-400 hover:text-amber-600 shrink-0">
+          <X className="w-4 h-4" />
+        </button>
       </div>
-      <button onClick={onDismiss} className="text-amber-400 hover:text-amber-600 shrink-0">
-        <X className="w-4 h-4" />
-      </button>
     </div>
   );
 }

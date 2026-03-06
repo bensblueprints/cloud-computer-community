@@ -53,12 +53,54 @@ export default function SetupPassword() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+        <div className="max-w-lg w-full">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Welcome to Cloud Computer!</h1>
+            <p className="text-slate-400">Your cloud environment is being set up. Here's what you need to know:</p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">You're all set!</h1>
-          <p className="text-slate-400">Redirecting to your dashboard...</p>
+
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-amber-400" />
+              Important: Your VM Password
+            </h2>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
+              <p className="text-amber-200 text-sm mb-3">
+                Your Ubuntu desktop has a default password. For security, please change it after logging in.
+              </p>
+              <div className="bg-slate-800 rounded-lg p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-xs">Default Password</p>
+                  <p className="text-white font-mono text-lg">SErver777</p>
+                </div>
+                <button
+                  onClick={() => navigator.clipboard.writeText('SErver777')}
+                  className="text-cyan-400 hover:text-cyan-300 text-sm"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            <div className="text-slate-400 text-sm space-y-2">
+              <p><strong className="text-white">To change your password:</strong></p>
+              <ol className="list-decimal list-inside space-y-1 ml-2">
+                <li>Launch your cloud computer from the dashboard</li>
+                <li>Open a terminal (Applications &gt; Terminal)</li>
+                <li>Type <code className="bg-slate-800 px-1 rounded">passwd</code> and press Enter</li>
+                <li>Follow the prompts to set a new password</li>
+              </ol>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+          >
+            Go to Dashboard
+          </button>
         </div>
       </div>
     );
