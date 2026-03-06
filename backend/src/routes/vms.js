@@ -150,10 +150,18 @@ router.get('/:id/credentials', auth, async (req, res, next) => {
     const vncPassword = vm.vncPasswordEnc ? credentialService.decrypt(vm.vncPasswordEnc) : null;
 
     res.json({
+      // SSH credentials (uses same password as RDP)
+      sshHost: vm.internalIp || `${vm.subdomain}.cloudcode.space`,
+      sshPort: 22,
+      sshUsername: vm.rdpUsername,
+      sshPassword: rdpPassword,
+      sshCommand: `ssh ${vm.rdpUsername}@${vm.internalIp || vm.subdomain + '.cloudcode.space'}`,
+      // RDP credentials
       rdpHost: `${vm.subdomain}.cloudcode.space`,
       rdpPort: vm.rdpPort,
       rdpUsername: vm.rdpUsername,
       rdpPassword,
+      // VNC credentials
       vncHost: `${vm.subdomain}.cloudcode.space`,
       vncPort: vm.vncPort,
       vncPassword

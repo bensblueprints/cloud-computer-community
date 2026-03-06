@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const SetupPassword = lazy(() => import('./pages/SetupPassword'));
 const DashboardIndex = lazy(() => import('./pages/dashboard/Index'));
 const DashboardNew = lazy(() => import('./pages/dashboard/New'));
 const Team = lazy(() => import('./pages/dashboard/Team'));
@@ -104,6 +105,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/setup-password" element={<SetupPassword />} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardIndex /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/new" element={<ProtectedRoute><DashboardLayout><DashboardNew /></DashboardLayout></ProtectedRoute>} />

@@ -220,6 +220,45 @@ router.delete("/account", auth, async (req, res, next) => {
   }
 });
 
+// Set password for new users created via Stripe checkout
+router.post("/setup-password", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { org: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash }
+    });
+
+    setTokenCookie(res, user.id);
+
+    res.json({
+      message: "Password set successfully",
+      user: { id: user.id, name: user.name, email: user.email, org: user.org }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/accept-invite/:token", async (req, res, next) => {
   try {
     const { token } = req.params;

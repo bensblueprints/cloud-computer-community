@@ -24,13 +24,16 @@ class TraefikService {
       const configPath = path.join(TRAEFIK_DYNAMIC_DIR, `vm-${vmid}.yml`);
       const fullSubdomain = subdomain.includes('.') ? subdomain : `${subdomain}.cloudcode.space`;
 
+      // Route subdomain root to frontend console page, websockify path to backend proxy
       const config = `http:
   routers:
     vm-${vmid}:
-      rule: "Host(\`${fullSubdomain}\`)"
+      rule: "Host(\`${fullSubdomain}\`) && !PathPrefix(\`/websockify\`)"
       entryPoints:
         - websecure
-      service: vm-${vmid}
+      middlewares:
+        - vm-${vmid}-redirect
+      service: frontend
       tls:
         certResolver: letsencrypt
     vm-${vmid}-ws:
@@ -40,11 +43,12 @@ class TraefikService {
       service: websockify-proxy
       tls:
         certResolver: letsencrypt
-  services:
-    vm-${vmid}:
-      loadBalancer:
-        servers:
-          - url: "http://${internalIp}:${novncPort}"
+  middlewares:
+    vm-${vmid}-redirect:
+      redirectRegex:
+        regex: "^https://${fullSubdomain.replace('.', '\\.')}/?$"
+        replacement: "https://cloudcode.space/console/${vmid}"
+        permanent: false
 `;
 
       fs.writeFileSync(configPath, config);

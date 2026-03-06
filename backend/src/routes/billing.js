@@ -20,16 +20,18 @@ const PLANS = {
 
 router.get("/plans", (req, res) => {
   res.json({
+    trialDays: 3,
     plans: Object.entries(PLANS).map(([name, plan]) => ({
       name,
       seats: plan.seats,
       price: plan.price,
-      priceId: plan.priceId
+      priceId: plan.priceId,
+      trialDays: 3
     }))
   });
 });
 
-// Public checkout endpoint
+// Public checkout endpoint - works with or without account
 router.post("/checkout", async (req, res, next) => {
   try {
     const { plan } = req.body;
@@ -40,56 +42,77 @@ router.post("/checkout", async (req, res, next) => {
     }
 
     const token = req.cookies?.token;
-    if (!token) {
-      return res.json({
-        redirect: "/register?plan=" + planKey,
-        message: "Please create an account first"
-      });
-    }
+    let userId = null;
+    let user = null;
+    let org = null;
 
-    let userId;
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      userId = decoded.userId;
-    } catch (err) {
-      return res.json({
-        redirect: "/register?plan=" + planKey,
-        message: "Please login or create an account"
-      });
-    }
+    // If user is already logged in, use their account
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.userId;
+        user = await prisma.user.findUnique({ where: { id: userId } });
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (user) {
+          org = await prisma.organization.findFirst({
+            where: { ownerId: userId },
+            include: { subscription: true }
+          });
 
-    let org = await prisma.organization.findFirst({
-      where: { ownerId: userId },
-      include: { subscription: true }
-    });
-
-    if (!org) {
-      org = await prisma.organization.create({
-        data: {
-          name: (user.name || user.email) + " Organization",
-          ownerId: userId,
-          plan: "FREE",
-          seatLimit: 1
+          if (!org) {
+            org = await prisma.organization.create({
+              data: {
+                name: (user.name || user.email) + " Organization",
+                ownerId: userId,
+                plan: "FREE",
+                seatLimit: 1
+              }
+            });
+            await prisma.user.update({
+              where: { id: userId },
+              data: { orgId: org.id }
+            });
+          }
         }
-      });
-      await prisma.user.update({
-        where: { id: userId },
-        data: { orgId: org.id }
-      });
+      } catch (err) {
+        // Invalid token, continue as guest
+        userId = null;
+      }
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // Create Stripe checkout session
+    const isNewUser = !user;
+    const successUrl = isNewUser
+      ? process.env.FRONTEND_URL + "/setup-password?plan=" + planKey
+      : process.env.FRONTEND_URL + "/dashboard?success=true&plan=" + planKey;
+
+    const sessionConfig = {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: PLANS[planKey].priceId, quantity: 1 }],
-      success_url: process.env.FRONTEND_URL + "/dashboard?success=true&plan=" + planKey,
+      subscription_data: {
+        trial_period_days: 3,
+        metadata: { plan: planKey, ...(userId && { userId }) }
+      },
+      success_url: successUrl,
       cancel_url: process.env.FRONTEND_URL + "/?canceled=true",
-      client_reference_id: org.id,
-      customer_email: user.email,
-      metadata: { orgId: org.id, plan: planKey, userId: userId, userName: user.name }
-    });
+      metadata: { plan: planKey, isNewUser: isNewUser ? "true" : "false" }
+    };
+
+    // If logged in, use their info
+    if (user && org) {
+      sessionConfig.customer_email = user.email;
+      sessionConfig.client_reference_id = org.id;
+      sessionConfig.metadata.orgId = org.id;
+      sessionConfig.metadata.userId = userId;
+      sessionConfig.metadata.userName = user.name;
+    } else {
+      // Guest checkout - collect email and name at Stripe
+      sessionConfig.billing_address_collection = "auto";
+      sessionConfig.customer_creation = "always";
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.json({ url: session.url });
   } catch (err) {
@@ -113,6 +136,10 @@ router.post("/subscribe", auth, async (req, res, next) => {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 3,
+        metadata: { orgId: org.id, plan, userId: req.userId }
+      },
       success_url: process.env.FRONTEND_URL + "/dashboard/billing?success=true",
       cancel_url: process.env.FRONTEND_URL + "/dashboard/billing?canceled=true",
       client_reference_id: org.id,
@@ -230,7 +257,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
-      const { orgId, plan, userId, userName } = session.metadata;
+      let { orgId, plan, userId, userName, isNewUser } = session.metadata;
 
       if (!session.subscription) {
         console.log("No subscription in session, skipping");
@@ -238,30 +265,82 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
       }
 
       const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      const customer = await stripe.customers.retrieve(session.customer);
 
-      await prisma.$transaction([
-        prisma.subscription.upsert({
-          where: { orgId },
-          create: {
-            orgId,
-            plan,
-            stripeId: subscription.id,
-            status: subscription.status,
-            renewsAt: new Date(subscription.current_period_end * 1000)
-          },
-          update: {
-            plan,
-            stripeId: subscription.id,
-            status: subscription.status,
-            renewsAt: new Date(subscription.current_period_end * 1000),
-            cancelAt: null
-          }
-        }),
-        prisma.organization.update({
-          where: { id: orgId },
-          data: { plan, seatLimit: PLANS[plan].seats }
-        })
-      ]);
+      // If this is a new user (guest checkout), create their account
+      if (isNewUser === "true" || !userId) {
+        const email = customer.email || session.customer_details?.email;
+        const name = customer.name || session.customer_details?.name || email.split("@")[0];
+
+        console.log(`Creating new account for guest checkout: ${email}`);
+
+        // Check if user already exists
+        let existingUser = await prisma.user.findUnique({ where: { email } });
+
+        if (!existingUser) {
+          // Generate random password (user will need to reset it)
+          const bcrypt = require("bcryptjs");
+          const tempPassword = require("crypto").randomBytes(16).toString("hex");
+          const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+          // Create user and org in transaction
+          const result = await prisma.$transaction(async (tx) => {
+            const newUser = await tx.user.create({
+              data: { name, email, passwordHash, orgRole: "OWNER" }
+            });
+
+            const newOrg = await tx.organization.create({
+              data: {
+                name: `${name}'s Organization`,
+                ownerId: newUser.id,
+                plan: plan,
+                seatLimit: PLANS[plan].seats,
+                members: { connect: { id: newUser.id } }
+              }
+            });
+
+            return { user: newUser, org: newOrg };
+          });
+
+          userId = result.user.id;
+          userName = result.user.name;
+          orgId = result.org.id;
+
+          console.log(`Created new user ${userId} and org ${orgId}`);
+        } else {
+          userId = existingUser.id;
+          userName = existingUser.name;
+          const existingOrg = await prisma.organization.findFirst({ where: { ownerId: userId } });
+          if (existingOrg) orgId = existingOrg.id;
+        }
+      }
+
+      // Create/update subscription
+      if (orgId) {
+        await prisma.$transaction([
+          prisma.subscription.upsert({
+            where: { orgId },
+            create: {
+              orgId,
+              plan,
+              stripeId: subscription.id,
+              status: subscription.status,
+              renewsAt: new Date(subscription.current_period_end * 1000)
+            },
+            update: {
+              plan,
+              stripeId: subscription.id,
+              status: subscription.status,
+              renewsAt: new Date(subscription.current_period_end * 1000),
+              cancelAt: null
+            }
+          }),
+          prisma.organization.update({
+            where: { id: orgId },
+            data: { plan, seatLimit: PLANS[plan].seats }
+          })
+        ]);
+      }
 
       if (userId) {
         const existingVMs = await prisma.vM.count({

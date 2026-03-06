@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Copy, Download, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, Copy, Download, RefreshCw, Terminal } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function RemoteAccessPanel({ vmId, subdomain }) {
   const { api } = useAuth();
   const [credentials, setCredentials] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSsh, setShowSsh] = useState(false);
   const [showRdp, setShowRdp] = useState(false);
   const [showVnc, setShowVnc] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [copiedSsh, setCopiedSsh] = useState(false);
 
   useEffect(() => {
     fetchCredentials();
@@ -48,13 +50,63 @@ export default function RemoteAccessPanel({ vmId, subdomain }) {
 
   const copyText = (text) => navigator.clipboard.writeText(text);
 
+  const copySshCommand = () => {
+    copyText(credentials.sshCommand);
+    setCopiedSsh(true);
+    setTimeout(() => setCopiedSsh(false), 2000);
+  };
+
   if (loading) return <div className="text-sm text-gray-500 mt-3">Loading credentials...</div>;
   if (!credentials) return <div className="text-sm text-red-500 mt-3">Failed to load credentials</div>;
 
   const host = `${subdomain}.cloudcode.space`;
 
   return (
-    <div className="mt-3 space-y-3 text-sm">
+    <div className="mt-3 space-y-4 text-sm">
+      {/* SSH Section - Highlighted */}
+      <div className="bg-gray-900 rounded-lg p-3 border border-gray-700">
+        <div className="flex items-center gap-2 mb-2">
+          <Terminal className="w-4 h-4 text-green-400" />
+          <span className="text-green-400 font-semibold text-xs uppercase tracking-wide">SSH Access</span>
+        </div>
+        <div className="bg-black/50 rounded p-2 font-mono text-xs text-gray-300 flex items-center justify-between">
+          <code>{credentials.sshCommand}</code>
+          <button
+            onClick={copySshCommand}
+            className="ml-2 text-gray-400 hover:text-green-400 transition-colors"
+          >
+            {copiedSsh ? <span className="text-green-400 text-xs">Copied!</span> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+          <div>
+            <span className="text-gray-500">Host:</span>
+            <span className="text-gray-300 ml-1 font-mono">{credentials.sshHost}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Port:</span>
+            <span className="text-gray-300 ml-1 font-mono">{credentials.sshPort}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">User:</span>
+            <span className="text-gray-300 ml-1 font-mono">{credentials.sshUsername}</span>
+          </div>
+        </div>
+        <div className="mt-2 text-xs">
+          <span className="text-gray-500">Password:</span>
+          <span className="text-gray-300 ml-1 font-mono">
+            {showSsh ? credentials.sshPassword : '********'}
+          </span>
+          <button onClick={() => setShowSsh(!showSsh)} className="ml-1 text-gray-400 hover:text-gray-200">
+            {showSsh ? <EyeOff className="w-3 h-3 inline" /> : <Eye className="w-3 h-3 inline" />}
+          </button>
+          <button onClick={() => copyText(credentials.sshPassword)} className="ml-1 text-gray-400 hover:text-gray-200">
+            <Copy className="w-3 h-3 inline" />
+          </button>
+        </div>
+      </div>
+
+      {/* RDP & VNC Section */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="text-gray-500 text-xs font-medium mb-1">RDP Host</p>
