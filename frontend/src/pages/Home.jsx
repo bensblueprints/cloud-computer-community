@@ -12,33 +12,33 @@ const features = [
 ];
 
 const plans = [
-  { 
-    name: "Solo", 
-    price: 17, 
+  {
+    name: "Solo",
+    price: 17,
     priceId: "price_solo",
-    seats: 1, 
+    seats: 1,
     specs: { ram: "8GB", cpu: "2 vCPU", storage: "40GB NVMe" },
-    features: ["1 Cloud Desktop", "noVNC + RDP Access", "Pre-installed Dev Tools", "24/7 Uptime", "Email Support"],
-    cta: "Start Solo"
+    features: ["1 Cloud Desktop", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "24/7 Uptime", "Email Support"],
+    cta: "Start 3-Day Trial"
   },
-  { 
-    name: "Team", 
-    price: 79, 
+  {
+    name: "Team",
+    price: 79,
     priceId: "price_team",
-    seats: 5, 
+    seats: 5,
     specs: { ram: "16GB", cpu: "4 vCPU", storage: "80GB NVMe" },
-    features: ["5 Cloud Desktops", "noVNC + RDP Access", "Pre-installed Dev Tools", "Team Dashboard", "Priority Support", "SSO Integration"],
+    features: ["5 Cloud Desktops", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Team Dashboard", "Priority Support", "SSO Integration"],
     popular: true,
-    cta: "Start Team"
+    cta: "Start 3-Day Trial"
   },
-  { 
-    name: "Army", 
-    price: 299, 
+  {
+    name: "Army",
+    price: 299,
     priceId: "price_army",
-    seats: 25, 
+    seats: 25,
     specs: { ram: "32GB", cpu: "8 vCPU", storage: "160GB NVMe" },
-    features: ["25 Cloud Desktops", "noVNC + RDP Access", "Pre-installed Dev Tools", "Admin Console", "Dedicated Support", "Custom Branding", "API Access"],
-    cta: "Start Army"
+    features: ["25 Cloud Desktops", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Admin Console", "Dedicated Support", "Custom Branding", "API Access"],
+    cta: "Start 3-Day Trial"
   },
 ];
 
@@ -52,14 +52,15 @@ const faqs = [
   { q: "What tools come pre-installed?", a: "Every environment includes Claude Code, VS Code, Cursor, Node.js 20, Python 3.12, Docker, Git, and more. You can install anything else you need." },
   { q: "Can I access my desktop from any device?", a: "Yes! CloudCode works in any modern browser. Access from Windows, Mac, Linux, iPad, or even your phone." },
   { q: "How secure is my data?", a: "Your VM is completely isolated. All connections are encrypted. We never access your code or data." },
-  { q: "Can I cancel anytime?", a: "Absolutely. No contracts, no commitments. Cancel anytime and your data is yours to export." },
+  { q: "How does the 3-day trial work?", a: "Start your trial by choosing a plan. Your card is saved but you won't be charged for 3 days. Cancel anytime before the trial ends to avoid charges." },
+  { q: "Can I cancel anytime?", a: "Absolutely. No contracts, no commitments. Cancel anytime from your dashboard." },
 ];
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
   const [billingPeriod, setBillingPeriod] = useState("monthly");
 
-  const handleCheckout = async (priceId, planName) => {
+  const handleCheckout = async (planName) => {
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -70,12 +71,15 @@ export default function Home() {
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
-      } else if (data.redirect) {
-        window.location.href = data.redirect;
       }
     } catch (err) {
-      window.location.href = "/register";
+      console.error("Checkout error:", err);
+      alert("Failed to start checkout. Please try again.");
     }
+  };
+
+  const scrollToPricing = () => {
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -96,9 +100,12 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm text-slate-300 hover:text-white px-4 py-2 transition">Login</Link>
-            <Link to="/register" className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition shadow-lg shadow-cyan-500/25">
+            <button
+              onClick={scrollToPricing}
+              className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
+            >
               Get Started
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -108,33 +115,38 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent"></div>
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
         <div className="absolute top-40 right-1/4 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl"></div>
-        
+
         <div className="max-w-5xl mx-auto text-center px-4 relative">
           <div className="inline-flex items-center gap-2 bg-slate-800/50 border border-slate-700/50 rounded-full px-4 py-1.5 text-sm mb-8">
             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
             <span className="text-slate-300">Now with Claude Code & Cursor pre-installed</span>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Your Dev Machine</span>
             <br />
             <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">In The Cloud</span>
           </h1>
-          
+
           <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Spin up a powerful Ubuntu desktop in seconds. Code from anywhere with VS Code, Claude Code, and all your tools pre-configured.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link to="/register" className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25">
-              Start Free Trial
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            <button
+              onClick={scrollToPricing}
+              className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
+            >
+              Start Building
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-            </Link>
+            </button>
             <a href="#pricing" className="inline-flex items-center justify-center gap-2 bg-slate-800/50 border border-slate-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-slate-800 transition">
               <Play className="w-5 h-5" />
               View Pricing
             </a>
           </div>
+
+          <p className="text-sm text-emerald-400 mb-16">3-day free trial • Cancel anytime • No commitment</p>
 
           {/* Terminal Preview */}
           <div className="relative max-w-4xl mx-auto">
@@ -213,17 +225,18 @@ export default function Home() {
       <section id="pricing" className="py-24 bg-slate-900/30">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-slate-400 text-lg mb-8">Start free. Scale as you grow. Cancel anytime.</p>
-            
+            <h2 className="text-4xl font-bold mb-4">Choose Your Plan</h2>
+            <p className="text-slate-400 text-lg mb-2">Start with a 3-day free trial. Cancel anytime.</p>
+            <p className="text-emerald-400 text-sm mb-8">Your card won't be charged until after the trial ends</p>
+
             <div className="inline-flex items-center bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
-              <button 
+              <button
                 onClick={() => setBillingPeriod("monthly")}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingPeriod === "monthly" ? "bg-cyan-500 text-white" : "text-slate-400 hover:text-white"}`}
               >
                 Monthly
               </button>
-              <button 
+              <button
                 onClick={() => setBillingPeriod("yearly")}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingPeriod === "yearly" ? "bg-cyan-500 text-white" : "text-slate-400 hover:text-white"}`}
               >
@@ -231,7 +244,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan) => (
               <div key={plan.name} className={`relative rounded-2xl p-6 ${plan.popular ? "bg-gradient-to-b from-cyan-500/10 to-blue-600/10 border-2 border-cyan-500/50" : "bg-slate-900/50 border border-slate-800/50"}`}>
@@ -262,7 +275,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => handleCheckout(plan.priceId, plan.name)}
+                  onClick={() => handleCheckout(plan.name)}
                   className={`w-full text-center py-3 rounded-xl font-semibold transition ${
                     plan.popular
                       ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:opacity-90 shadow-lg shadow-cyan-500/25"
@@ -271,9 +284,10 @@ export default function Home() {
                 >
                   {plan.cta}
                 </button>
+                <p className="text-center text-xs text-slate-500 mt-2">3 days free, then ${billingPeriod === "yearly" ? Math.round(plan.price * 0.8) : plan.price}/mo</p>
               </div>
             ))}
-            
+
             {/* Enterprise Card */}
             <div className="relative rounded-2xl p-6 bg-gradient-to-b from-purple-500/10 to-pink-600/10 border border-purple-500/30">
               <h3 className="text-2xl font-bold">Enterprise</h3>
@@ -384,12 +398,15 @@ export default function Home() {
             <div className="relative bg-slate-900/90 rounded-3xl border border-slate-800/50 p-12">
               <h2 className="text-4xl font-bold mb-4">Ready to Code From Anywhere?</h2>
               <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
-                Get your cloud desktop running in under 2 minutes. No credit card required for trial.
+                Get your cloud desktop running in under 2 minutes. Start your 3-day free trial today.
               </p>
-              <Link to="/register" className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25">
-                Start Your Free Trial
+              <button
+                onClick={scrollToPricing}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
+              >
+                Choose Your Plan
                 <ArrowRight className="w-5 h-5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
