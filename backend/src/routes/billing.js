@@ -31,6 +31,26 @@ router.get("/plans", (req, res) => {
   });
 });
 
+// Get customer email from checkout session (for setup-password page)
+router.get("/session/:sessionId", async (req, res, next) => {
+  try {
+    const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    const email = session.customer_details?.email || session.customer_email;
+    if (!email) {
+      return res.status(404).json({ error: "Email not found in session" });
+    }
+
+    res.json({ email, plan: session.metadata?.plan });
+  } catch (err) {
+    console.error("Failed to get session:", err.message);
+    res.status(404).json({ error: "Session not found" });
+  }
+});
+
 // Public checkout endpoint - works with or without account
 router.post("/checkout", async (req, res, next) => {
   try {
@@ -82,8 +102,9 @@ router.post("/checkout", async (req, res, next) => {
 
     // Create Stripe checkout session
     const isNewUser = !user;
+    // Use {CHECKOUT_SESSION_ID} placeholder - Stripe replaces it with actual session ID
     const successUrl = isNewUser
-      ? process.env.FRONTEND_URL + "/setup-password?plan=" + planKey
+      ? process.env.FRONTEND_URL + "/setup-password?plan=" + planKey + "&session_id={CHECKOUT_SESSION_ID}"
       : process.env.FRONTEND_URL + "/dashboard?success=true&plan=" + planKey;
 
     const sessionConfig = {

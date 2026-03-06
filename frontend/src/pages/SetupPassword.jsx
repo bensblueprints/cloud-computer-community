@@ -15,14 +15,34 @@ export default function SetupPassword() {
   const [success, setSuccess] = useState(false);
 
   const plan = searchParams.get('plan') || 'SOLO';
+  const sessionId = searchParams.get('session_id');
+  const [fetchingEmail, setFetchingEmail] = useState(false);
 
   useEffect(() => {
     // Check if email was passed from Stripe checkout
     const stripeEmail = searchParams.get('email');
     if (stripeEmail) {
       setEmail(stripeEmail);
+      return;
     }
-  }, [searchParams]);
+
+    // If we have a session ID, fetch the email from Stripe
+    if (sessionId && !email) {
+      setFetchingEmail(true);
+      axios.get(`/api/billing/session/${sessionId}`)
+        .then(res => {
+          if (res.data.email) {
+            setEmail(res.data.email);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch email from session:', err);
+        })
+        .finally(() => {
+          setFetchingEmail(false);
+        });
+    }
+  }, [searchParams, sessionId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,14 +155,25 @@ export default function SetupPassword() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                placeholder="Enter the email you used at checkout"
-                required
-              />
+              {fetchingEmail ? (
+                <div className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-slate-500 border-t-cyan-400 rounded-full animate-spin"></div>
+                  Loading your email...
+                </div>
+              ) : (
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${sessionId && email ? 'bg-slate-700' : ''}`}
+                  placeholder="Enter the email you used at checkout"
+                  required
+                  readOnly={!!(sessionId && email)}
+                />
+              )}
+              {sessionId && email && (
+                <p className="text-xs text-slate-500 mt-1">Email from your checkout session</p>
+              )}
             </div>
 
             <div>
