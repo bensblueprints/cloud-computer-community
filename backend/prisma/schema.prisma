@@ -16,6 +16,7 @@ model Organization {
   seatLimit    Int           @default(1)
   members      User[]        @relation("OrgMember")
   subscription Subscription?
+  sharedVMs    VM[]          @relation("OrgSharedVM")
   createdAt    DateTime      @default(now())
 }
 
@@ -29,7 +30,8 @@ model User {
   orgId                String?
   org                  Organization? @relation("OrgMember", fields: [orgId], references: [id])
   ownedOrg             Organization? @relation("OrgOwner")
-  vms                  VM[]
+  vms                  VM[]          @relation("UserOwnedVM")
+  vmUsers              VMUser[]
   invites              Invite[]
   auditLogs            AuditLog[]
   suspended            Boolean       @default(false)
@@ -40,22 +42,26 @@ model User {
 }
 
 model VM {
-  id              String    @id @default(uuid())
-  vmid            Int       @unique
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  templateType    String    @default("ubuntu-desktop")
-  status          VMStatus  @default(PROVISIONING)
+  id              String        @id @default(uuid())
+  vmid            Int           @unique
+  userId          String?
+  user            User?         @relation("UserOwnedVM", fields: [userId], references: [id])
+  orgId           String?
+  org             Organization? @relation("OrgSharedVM", fields: [orgId], references: [id])
+  isShared        Boolean       @default(false)
+  vmUsers         VMUser[]
+  templateType    String        @default("ubuntu-desktop")
+  status          VMStatus      @default(PROVISIONING)
   internalIp      String?
-  subdomain       String    @unique
-  novncPort       Int       @default(6080)
-  vncPort         Int       @default(5900)
-  rdpPort         Int       @default(3389)
+  subdomain       String        @unique
+  novncPort       Int           @default(6080)
+  vncPort         Int           @default(5900)
+  rdpPort         Int           @default(3389)
   rdpPasswordEnc  String?
   vncPasswordEnc  String?
-  rdpUsername      String    @default("cloudcomputer")
+  rdpUsername     String        @default("cloudcomputer")
   lastActiveAt    DateTime?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime      @default(now())
   expiresAt       DateTime?
 }
 
@@ -67,6 +73,7 @@ model Subscription {
   stripeId  String
   status    String
   renewsAt  DateTime?
+  cancelAt  DateTime?
   createdAt DateTime     @default(now())
 }
 
@@ -121,6 +128,28 @@ enum VMStatus {
   PROVISIONING
   RUNNING
   STOPPED
+  SUSPENDED
   ERROR
   DELETED
+}
+
+enum VMUserStatus {
+  PROVISIONING
+  ACTIVE
+  DISABLED
+  DELETED
+}
+
+model VMUser {
+  id              String       @id @default(uuid())
+  vmId            String
+  vm              VM           @relation(fields: [vmId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  linuxUsername   String
+  rdpPasswordEnc  String?
+  status          VMUserStatus @default(PROVISIONING)
+  createdAt       DateTime     @default(now())
+
+  @@unique([vmId, userId])
 }
