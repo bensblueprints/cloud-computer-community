@@ -80,6 +80,10 @@ class TraefikService {
       loadBalancer:
         servers:
           - url: "http://backend:6080"
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"
 `;
       fs.writeFileSync(configPath, config);
       console.log('Created websockify proxy service config');
