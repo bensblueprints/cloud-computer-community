@@ -12,6 +12,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.get('/', auth, async (req, res, next) => {
   try {
+    if (!req.user.orgId) {
+      return res.status(404).json({ error: 'No organization found' });
+    }
+
     const org = await prisma.organization.findFirst({
       where: { id: req.user.orgId },
       include: { subscription: true }
