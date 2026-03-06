@@ -48,19 +48,25 @@ function AdminRoute({ children }) {
 function DashboardLayout({ children }) {
   const { user, logout, api } = useAuth();
   const location = useLocation();
-  const [hasSubscription, setHasSubscription] = React.useState(false);
+  const [org, setOrg] = React.useState(null);
 
   React.useEffect(() => {
     api.get('/org').then(res => {
-      const sub = res.data.org?.subscription;
-      setHasSubscription(sub && ['active', 'trialing'].includes(sub.status));
+      setOrg(res.data.org);
     }).catch(() => {});
   }, []);
 
+  const hasSubscription = org?.subscription && ['active', 'trialing'].includes(org.subscription.status);
+  const plan = org?.plan || 'SOLO';
+  const isSharedPlan = plan === 'TEAM' || plan === 'ARMY';
+  const isOwner = user?.orgRole === 'OWNER';
+
   const navItems = [
     { path: '/dashboard', label: 'My Environments' },
-    ...(hasSubscription ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
-    { path: '/dashboard/team', label: 'Team' },
+    // Only show New Environment for SOLO plans, or TEAM/ARMY owners (but they share one VM)
+    ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
+    // Only show Team for TEAM/ARMY plans
+    ...(isSharedPlan ? [{ path: '/dashboard/team', label: 'Team' }] : []),
     { path: '/dashboard/billing', label: 'Billing' },
     { path: '/dashboard/profile', label: 'Profile' },
   ];
