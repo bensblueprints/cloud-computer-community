@@ -80,6 +80,13 @@ router.post('/', auth, seatGuard, provisionLimiter, async (req, res, next) => {
   try {
     const org = await prisma.organization.findUnique({ where: { id: req.user.orgId } });
     const plan = org?.plan || 'SOLO';
+
+    // Only org owners can create VMs on shared plans (TEAM/ARMY)
+    const isSharedPlan = plan === 'TEAM' || plan === 'ARMY';
+    if (isSharedPlan && req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only team owners can create environments. Contact your team owner.' });
+    }
+
     const templateVmid = PLAN_TEMPLATES[plan] || 101;
     const newVmid = Date.now() % 100000 + 1000;
     const subdomain = `${req.user.name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${newVmid}`;

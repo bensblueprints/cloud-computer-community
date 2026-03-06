@@ -29,11 +29,32 @@ export default function DashboardNew() {
 
   // Check for valid subscription
   const hasValidSubscription = org?.subscription && ['active', 'trialing'].includes(org.subscription.status);
+  const isOwner = user?.orgRole === 'OWNER';
+  const isSharedPlan = org?.plan === 'TEAM' || org?.plan === 'ARMY';
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+      </div>
+    );
+  }
+
+  // Team members on shared plans can't create environments
+  if (isSharedPlan && !isOwner) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-20">
+        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-8 h-8 text-amber-600" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Owner Access Required</h2>
+        <p className="text-gray-600 mb-6">Only team owners can create new environments. Contact your team owner if you need a new environment.</p>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="inline-flex items-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700"
+        >
+          Back to Dashboard
+        </button>
       </div>
     );
   }
