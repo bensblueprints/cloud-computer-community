@@ -1,0 +1,9 @@
+http:
+  routers:
+    vm-57499-ws:
+      rule: "Host(`jack-57499.cloudcode.space`)"
+      entryPoints:
+        - websecure
+      service: websockify-proxy
+      tls:
+        certResolver: letsencrypt

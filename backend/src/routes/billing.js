@@ -145,6 +145,75 @@ router.get("/portal", auth, async (req, res, next) => {
   }
 });
 
+// Cancel subscription - gives 3 day grace period
+router.post("/cancel", auth, async (req, res, next) => {
+  try {
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: req.userId },
+      include: { subscription: true }
+    });
+
+    if (!org?.subscription) {
+      return res.status(404).json({ error: "No active subscription" });
+    }
+
+    // Cancel in Stripe at period end
+    await stripe.subscriptions.update(org.subscription.stripeId, {
+      cancel_at_period_end: true
+    });
+
+    // Set cancel date to 3 days from now
+    const cancelAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+    await prisma.subscription.update({
+      where: { id: org.subscription.id },
+      data: {
+        status: "canceling",
+        cancelAt
+      }
+    });
+
+    res.json({
+      message: "Subscription cancelled",
+      cancelAt: cancelAt.toISOString(),
+      gracePeriodDays: 3
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Reactivate cancelled subscription
+router.post("/reactivate", auth, async (req, res, next) => {
+  try {
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: req.userId },
+      include: { subscription: true }
+    });
+
+    if (!org?.subscription) {
+      return res.status(404).json({ error: "No subscription found" });
+    }
+
+    // Reactivate in Stripe
+    await stripe.subscriptions.update(org.subscription.stripeId, {
+      cancel_at_period_end: false
+    });
+
+    await prisma.subscription.update({
+      where: { id: org.subscription.id },
+      data: {
+        status: "active",
+        cancelAt: null
+      }
+    });
+
+    res.json({ message: "Subscription reactivated" });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
@@ -170,7 +239,6 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
 
       const subscription = await stripe.subscriptions.retrieve(session.subscription);
 
-      // Update subscription and org
       await prisma.$transaction([
         prisma.subscription.upsert({
           where: { orgId },
@@ -185,7 +253,8 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
             plan,
             stripeId: subscription.id,
             status: subscription.status,
-            renewsAt: new Date(subscription.current_period_end * 1000)
+            renewsAt: new Date(subscription.current_period_end * 1000),
+            cancelAt: null
           }
         }),
         prisma.organization.update({
@@ -194,7 +263,6 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
         })
       ]);
 
-      // Auto-provision VM for new subscribers
       if (userId) {
         const existingVMs = await prisma.vM.count({
           where: { userId, status: { not: "DELETED" } }
@@ -248,6 +316,21 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
 
     case "customer.subscription.deleted": {
       const sub = event.data.object;
+
+      // Find and suspend all VMs for this subscription
+      const subscription = await prisma.subscription.findFirst({
+        where: { stripeId: sub.id },
+        include: { org: { include: { members: true } } }
+      });
+
+      if (subscription?.org) {
+        const userIds = subscription.org.members.map(m => m.id);
+        await prisma.vM.updateMany({
+          where: { userId: { in: userIds }, status: "RUNNING" },
+          data: { status: "SUSPENDED" }
+        });
+      }
+
       await prisma.subscription.updateMany({
         where: { stripeId: sub.id },
         data: { status: "canceled" }
