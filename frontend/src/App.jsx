@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
@@ -44,12 +44,20 @@ function AdminRoute({ children }) {
 }
 
 function DashboardLayout({ children }) {
-  const { user, logout } = useAuth();
+  const { user, logout, api } = useAuth();
   const location = useLocation();
+  const [hasSubscription, setHasSubscription] = React.useState(false);
+
+  React.useEffect(() => {
+    api.get('/org').then(res => {
+      const sub = res.data.org?.subscription;
+      setHasSubscription(sub && ['active', 'trialing'].includes(sub.status));
+    }).catch(() => {});
+  }, []);
 
   const navItems = [
     { path: '/dashboard', label: 'My Environments' },
-    { path: '/dashboard/new', label: 'New Environment' },
+    ...(hasSubscription ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
     { path: '/dashboard/team', label: 'Team' },
     { path: '/dashboard/billing', label: 'Billing' },
     { path: '/dashboard/profile', label: 'Profile' },
