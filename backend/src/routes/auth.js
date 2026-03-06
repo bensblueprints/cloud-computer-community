@@ -330,22 +330,31 @@ router.post("/forgot-password", authLimiter, async (req, res, next) => {
 
     // Send reset email
     const resetUrl = `https://cloudcode.space/reset-password?token=${resetToken}`;
+    const emailFrom = process.env.EMAIL_FROM || "noreply@cloudcode.space";
 
-    await resend.emails.send({
-      from: "Cloud Computer <noreply@cloudcode.space>",
-      to: email,
-      subject: "Reset your password",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Reset Your Password</h2>
-          <p>You requested to reset your password for Cloud Computer.</p>
-          <p>Click the button below to set a new password. This link expires in 1 hour.</p>
-          <a href="${resetUrl}" style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
-          <p>If you didn't request this, you can safely ignore this email.</p>
-          <p style="color: #666; font-size: 12px;">Cloud Computer - Your cloud desktop platform</p>
-        </div>
-      `
-    });
+    console.log(`Sending password reset email to ${email} from ${emailFrom}`);
+
+    try {
+      const result = await resend.emails.send({
+        from: `Cloud Computer <${emailFrom}>`,
+        to: email,
+        subject: "Reset your password",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Reset Your Password</h2>
+            <p>You requested to reset your password for Cloud Computer.</p>
+            <p>Click the button below to set a new password. This link expires in 1 hour.</p>
+            <a href="${resetUrl}" style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <p style="color: #666; font-size: 12px;">Cloud Computer - Your cloud desktop platform</p>
+          </div>
+        `
+      });
+      console.log("Password reset email sent:", result);
+    } catch (emailErr) {
+      console.error("Failed to send password reset email:", emailErr);
+      // Still return success to prevent email enumeration
+    }
 
     res.json({ message: "If an account exists, a password reset email has been sent" });
   } catch (err) {
