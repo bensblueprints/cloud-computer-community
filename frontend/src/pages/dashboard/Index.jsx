@@ -8,7 +8,7 @@ function PasswordWarning({ onDismiss }) {
   const [copied, setCopied] = useState(false);
 
   const copyPassword = () => {
-    navigator.clipboard.writeText('SErver777$$!');
+    navigator.clipboard.writeText('cloudcode123');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -25,7 +25,7 @@ function PasswordWarning({ onDismiss }) {
           <div className="flex items-center gap-3 bg-amber-100 rounded-lg px-3 py-2">
             <div>
               <span className="text-xs text-amber-600">Default Password:</span>
-              <span className="ml-2 font-mono font-semibold text-amber-900">SErver777$$!</span>
+              <span className="ml-2 font-mono font-semibold text-amber-900">cloudcode123</span>
             </div>
             <button
               onClick={copyPassword}

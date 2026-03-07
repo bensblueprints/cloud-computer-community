@@ -94,10 +94,10 @@ export default function SetupPassword() {
               <div className="bg-slate-800 rounded-lg p-3 flex items-center justify-between">
                 <div>
                   <p className="text-slate-400 text-xs">Default Password</p>
-                  <p className="text-white font-mono text-lg">SErver777</p>
+                  <p className="text-white font-mono text-lg">cloudcode123</p>
                 </div>
                 <button
-                  onClick={() => navigator.clipboard.writeText('SErver777')}
+                  onClick={() => navigator.clipboard.writeText('cloudcode123')}
                   className="text-cyan-400 hover:text-cyan-300 text-sm"
                 >
                   Copy
