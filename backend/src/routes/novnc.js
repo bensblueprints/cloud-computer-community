@@ -11,9 +11,32 @@ const prisma = new PrismaClient();
 router.get('/:vmid/token', auth, async (req, res, next) => {
   try {
     const vmid = parseInt(req.params.vmid);
-    const vm = await prisma.vM.findFirst({
+
+    // First try to find personal VM
+    let vm = await prisma.vM.findFirst({
       where: { vmid, userId: req.userId }
     });
+
+    // If not found, check for shared VM in user's org
+    if (!vm && req.user.orgId) {
+      vm = await prisma.vM.findFirst({
+        where: {
+          vmid,
+          orgId: req.user.orgId,
+          isShared: true
+        },
+        include: {
+          vmUsers: {
+            where: { userId: req.userId, status: 'ACTIVE' }
+          }
+        }
+      });
+
+      // For shared VMs, user must have active VMUser access
+      if (vm && vm.vmUsers.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this VM' });
+      }
+    }
 
     if (!vm) return res.status(404).json({ error: 'VM not found' });
     if (vm.status !== 'RUNNING') return res.status(400).json({ error: 'VM is not running' });
