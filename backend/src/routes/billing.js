@@ -1,3 +1,20 @@
+/**
+ * ============================================================
+ * 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+ * ============================================================
+ * This file handles Stripe checkout and webhooks.
+ * Changes here will break payments and VM provisioning.
+ *
+ * To switch Stripe accounts: Only update .env variables
+ * - STRIPE_SECRET_KEY
+ * - STRIPE_PUBLISHABLE_KEY
+ * - STRIPE_WEBHOOK_SECRET
+ * - STRIPE_PRICE_SOLO/TEAM/ARMY
+ *
+ * Last verified working: 2026-03-07
+ * ============================================================
+ */
+
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const Stripe = require("stripe");

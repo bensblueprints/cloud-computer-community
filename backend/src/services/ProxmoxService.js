@@ -1,3 +1,14 @@
+/**
+ * ============================================================
+ * 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+ * ============================================================
+ * This file handles all Proxmox API calls for VM operations.
+ * Changes here will break VM creation, start, stop, and VNC.
+ *
+ * Last verified working: 2026-03-07
+ * ============================================================
+ */
+
 const axios = require("axios");
 
 class ProxmoxService {

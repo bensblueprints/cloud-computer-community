@@ -1,3 +1,12 @@
+# ============================================================
+# 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+# ============================================================
+# This file orchestrates all Docker services.
+# Changes here can bring down the entire platform.
+#
+# Last verified working: 2026-03-07
+# ============================================================
+
 version: "3.9"
 
 services:

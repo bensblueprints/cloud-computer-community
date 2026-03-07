@@ -1,3 +1,12 @@
+// ============================================================
+// 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+// ============================================================
+// This file defines the database schema.
+// Changes require migrations and can break the entire app.
+//
+// Last verified working: 2026-03-07
+// ============================================================
+
 generator client {
   provider = "prisma-client-js"
 }

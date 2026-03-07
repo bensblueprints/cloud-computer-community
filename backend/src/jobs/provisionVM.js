@@ -1,3 +1,14 @@
+/**
+ * ============================================================
+ * 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+ * ============================================================
+ * This file handles core VM provisioning logic.
+ * Changes here will break VM creation for all customers.
+ *
+ * Last verified working: 2026-03-07
+ * ============================================================
+ */
+
 const { Worker, Queue } = require("bullmq");
 const IORedis = require("ioredis");
 const { PrismaClient } = require("@prisma/client");

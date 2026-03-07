@@ -1,3 +1,12 @@
+# ============================================================
+# 🔒 FREEZE IT - DO NOT MODIFY THIS FILE 🔒
+# ============================================================
+# This file configures Traefik reverse proxy and SSL.
+# Changes here will break routing and HTTPS for all domains.
+#
+# Last verified working: 2026-03-07
+# ============================================================
+
 global:
   checkNewVersion: false
   sendAnonymousUsage: false
