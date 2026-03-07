@@ -87,6 +87,19 @@ const worker = new Worker("vm-provisioning", async (job) => {
     const internalIp = vmStatus.ip;
     console.log(`VM ${vmid} ready, IP: ${internalIp || "pending"}`);
 
+    // Step 3.5: Configure networking (DNS) so the VM has internet access
+    emit(userId, vmId, "Configuring internet access...", "in_progress");
+    console.log(`Configuring networking for VM ${vmid}`);
+    try {
+      await withRetry(
+        () => proxmoxService.configureNetworking(vmid),
+        3, 5000, `configureNetworking(${vmid})`
+      );
+      console.log(`Networking configured for VM ${vmid}`);
+    } catch (e) {
+      console.log(`Networking config warning for VM ${vmid}: ${e.message} (continuing...)`);
+    }
+
     // Step 4: Set credentials (with retries - guest agent may not be ready immediately)
     let rdpPassword = null;
     let vncPassword = null;

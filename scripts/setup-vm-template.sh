@@ -89,6 +89,92 @@ npm install -g openclaw 2>/dev/null || {
   # Placeholder — install from GitHub or other source when available
 }
 
+# Configure DNS and networking (CRITICAL for internet access)
+echo "Configuring DNS and networking..."
+
+# Disable systemd-resolved stub listener (causes DNS resolution failures in cloned VMs)
+mkdir -p /etc/systemd/resolved.conf.d
+cat > /etc/systemd/resolved.conf.d/dns.conf << 'DNSCONF'
+[Resolve]
+DNS=1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4
+FallbackDNS=9.9.9.9
+DNSStubListener=no
+DNSCONF
+
+# Ensure resolv.conf points to systemd-resolved output (not the stub)
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+# Create a netplan config that ensures DHCP + DNS on the default interface
+cat > /etc/netplan/99-cloudcomputer.yaml << 'NETPLAN'
+network:
+  version: 2
+  ethernets:
+    ens18:
+      dhcp4: true
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8, 1.0.0.1, 8.8.4.4]
+      dhcp4-overrides:
+        use-dns: true
+    eth0:
+      dhcp4: true
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8, 1.0.0.1, 8.8.4.4]
+      dhcp4-overrides:
+        use-dns: true
+NETPLAN
+
+# Apply netplan (ignore errors since interfaces may not exist yet in template)
+netplan apply 2>/dev/null || true
+
+# Create a boot-time DNS fix script that runs on every startup
+cat > /usr/local/bin/fix-dns.sh << 'FIXDNS'
+#!/bin/bash
+# Ensure DNS resolution works on every boot
+# This is a safety net for cloned VMs where DNS can break
+
+# Wait for network
+sleep 5
+
+# Check if DNS works
+if ! host google.com > /dev/null 2>&1; then
+  echo "DNS not working, applying fix..."
+
+  # Direct resolv.conf fallback
+  cat > /etc/resolv.conf << 'EOF'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+nameserver 1.0.0.1
+nameserver 8.8.4.4
+EOF
+
+  # Restart systemd-resolved
+  systemctl restart systemd-resolved 2>/dev/null || true
+
+  # Re-apply netplan
+  netplan apply 2>/dev/null || true
+
+  echo "DNS fix applied"
+fi
+FIXDNS
+chmod +x /usr/local/bin/fix-dns.sh
+
+# Create systemd service for boot-time DNS fix
+cat > /etc/systemd/system/fix-dns.service << 'UNIT'
+[Unit]
+Description=Fix DNS Resolution on Boot
+After=network-online.target systemd-resolved.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fix-dns.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl enable fix-dns.service
+
 # Additional dev tools
 echo "Installing additional dev tools..."
 apt install -y git curl wget unzip htop nano vim build-essential

@@ -262,6 +262,44 @@ class ProxmoxService {
     }
   }
 
+  // Configure DNS and networking on a freshly provisioned VM
+  // This ensures every VM can reach the internet regardless of template state
+  async configureNetworking(vmid) {
+    console.log(`Configuring networking for VM ${vmid}`);
+    try {
+      // Set DNS resolvers directly in resolv.conf as immediate fix
+      await this.execInVM(vmid,
+        'bash -c \'echo -e "nameserver 1.1.1.1\\nnameserver 8.8.8.8\\nnameserver 1.0.0.1\\nnameserver 8.8.4.4" > /etc/resolv.conf\''
+      );
+
+      // Configure systemd-resolved with proper DNS servers
+      await this.execInVM(vmid,
+        'bash -c \'mkdir -p /etc/systemd/resolved.conf.d && echo -e "[Resolve]\\nDNS=1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4\\nFallbackDNS=9.9.9.9\\nDNSStubListener=no" > /etc/systemd/resolved.conf.d/dns.conf\''
+      );
+
+      // Restart systemd-resolved to pick up new config
+      await this.execInVM(vmid, 'systemctl restart systemd-resolved').catch(() => {});
+
+      // Install the boot-time DNS fix script (persists across reboots)
+      await this.execInVM(vmid,
+        'bash -c \'cat > /usr/local/bin/fix-dns.sh << "SCRIPT"\n#!/bin/bash\nsleep 5\nif ! host google.com > /dev/null 2>&1; then\n  echo "nameserver 1.1.1.1" > /etc/resolv.conf\n  echo "nameserver 8.8.8.8" >> /etc/resolv.conf\n  systemctl restart systemd-resolved 2>/dev/null || true\nfi\nSCRIPT\nchmod +x /usr/local/bin/fix-dns.sh\''
+      );
+
+      // Create systemd service for the fix script
+      await this.execInVM(vmid,
+        'bash -c \'cat > /etc/systemd/system/fix-dns.service << "SVC"\n[Unit]\nDescription=Fix DNS on Boot\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/fix-dns.sh\nRemainAfterExit=yes\n[Install]\nWantedBy=multi-user.target\nSVC\nsystemctl daemon-reload && systemctl enable fix-dns.service\''
+      );
+
+      console.log(`Networking configured for VM ${vmid}`);
+      return { success: true };
+    } catch (e) {
+      console.error(`Failed to configure networking for VM ${vmid}:`, e.message);
+      // Don't throw - networking config failure shouldn't block provisioning
+      // The template-level fix should handle most cases
+      return { success: false, error: e.message };
+    }
+  }
+
   // Linux user management for shared VMs
   async createLinuxUser(vmid, username, password, groups = ["sudo", "rdp"]) {
     try {
