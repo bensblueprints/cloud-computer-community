@@ -18,6 +18,7 @@ model Organization {
   subscription Subscription?
   sharedVMs    VM[]          @relation("OrgSharedVM")
   invites      Invite[]
+  ghlLocationId String?      // Go High Level sub-account ID
   createdAt    DateTime      @default(now())
 }
 

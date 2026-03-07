@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { Queue } = require("bullmq");
 const IORedis = require("ioredis");
 const auth = require("../middleware/auth");
+const ghlService = require("../services/GHLService");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -368,6 +369,25 @@ router.post("/test-account", async (req, res, next) => {
 
     console.log(`[TEST] Created test account: user=${result.user.id}, org=${result.org.id}, vm=${vm.id}`);
 
+    // Create Go High Level sub-account (free CRM for all customers)
+    let ghlLocationId = null;
+    if (ghlService.isConfigured()) {
+      const ghlResult = await ghlService.createSubAccount({
+        name: `${name}'s Business`,
+        email: email,
+        timezone: "America/New_York"
+      });
+
+      if (ghlResult.success) {
+        ghlLocationId = ghlResult.locationId;
+        await prisma.organization.update({
+          where: { id: result.org.id },
+          data: { ghlLocationId }
+        });
+        console.log(`[TEST][GHL] Sub-account created: ${ghlLocationId}`);
+      }
+    }
+
     // Return auth token so Playwright can use it
     const token = jwt.sign({ userId: result.user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
@@ -462,6 +482,25 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
           orgId = result.org.id;
 
           console.log(`Created new user ${userId} and org ${orgId}`);
+
+          // Create Go High Level sub-account (free CRM for all customers)
+          if (ghlService.isConfigured()) {
+            const ghlResult = await ghlService.createSubAccount({
+              name: `${name}'s Business`,
+              email: email,
+              timezone: "America/New_York"
+            });
+
+            if (ghlResult.success) {
+              await prisma.organization.update({
+                where: { id: orgId },
+                data: { ghlLocationId: ghlResult.locationId }
+              });
+              console.log(`[GHL] Sub-account created for org ${orgId}: ${ghlResult.locationId}`);
+            } else {
+              console.log(`[GHL] Sub-account creation failed (non-blocking): ${ghlResult.error}`);
+            }
+          }
         } else {
           userId = existingUser.id;
           userName = existingUser.name;

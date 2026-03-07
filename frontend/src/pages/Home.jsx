@@ -19,7 +19,7 @@ const plans = [
     priceId: "price_solo",
     seats: 1,
     specs: { ram: "8GB", cpu: "2 vCPU", storage: "40GB NVMe" },
-    features: ["1 User", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "24/7 Uptime", "Email Support"],
+    features: ["1 User", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Free Go High Level CRM", "24/7 Uptime", "Email Support"],
     cta: "Start 3-Day Trial"
   },
   {
@@ -28,7 +28,7 @@ const plans = [
     priceId: "price_team",
     seats: 5,
     specs: { ram: "16GB", cpu: "4 vCPU", storage: "80GB NVMe" },
-    features: ["5 Users", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Team Dashboard", "Priority Support"],
+    features: ["5 Users", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Free Go High Level CRM", "Team Dashboard", "Priority Support"],
     popular: true,
     cta: "Start 3-Day Trial"
   },
@@ -38,7 +38,7 @@ const plans = [
     priceId: "price_army",
     seats: 25,
     specs: { ram: "32GB", cpu: "8 vCPU", storage: "160GB NVMe" },
-    features: ["25 Users", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Admin Console", "Dedicated Support", "API Access"],
+    features: ["25 Users", "noVNC + RDP + SSH Access", "Pre-installed Dev Tools", "Free Go High Level CRM", "Admin Console", "Dedicated Support", "API Access"],
     cta: "Start 3-Day Trial"
   },
 ];
