@@ -127,12 +127,11 @@ const worker = new Worker("vm-provisioning", async (job) => {
         // This prevents users from being stuck in PROVISIONING forever
         await prisma.vMUser.update({
           where: { id: vmUser.id },
-          data: {
-            status: "ACTIVE",
-            // Store error for debugging if creation failed
-            ...(credentialError && { metadata: JSON.stringify({ credentialError: credentialError.message }) })
-          }
+          data: { status: "ACTIVE" }
         });
+        if (credentialError) {
+          console.log(`VMUser ${vmUser.id} set to ACTIVE despite error: ${credentialError.message}`);
+        }
 
         ownerVmUser = vmUser;
         rdpPassword = ownerPassword;
@@ -291,12 +290,9 @@ async function fixStuckVMUsers() {
         // Mark as ACTIVE regardless - user can use VNC console
         await prisma.vMUser.update({
           where: { id: vmUser.id },
-          data: {
-            status: "ACTIVE",
-            metadata: JSON.stringify({ fixedByBackgroundJob: new Date().toISOString() })
-          }
+          data: { status: "ACTIVE" }
         });
-        console.log(`[FixStuck] Marked VMUser ${vmUser.id} as ACTIVE`);
+        console.log(`[FixStuck] Marked VMUser ${vmUser.id} as ACTIVE (fixed at ${new Date().toISOString()})`);
       } catch (err) {
         console.error(`[FixStuck] Failed to fix VMUser ${vmUser.id}:`, err.message);
       }

@@ -578,11 +578,9 @@ router.post('/:id/retry-access', auth, async (req, res, next) => {
       // Mark as active
       await prisma.vMUser.update({
         where: { id: vmUser.id },
-        data: {
-          status: 'ACTIVE',
-          metadata: JSON.stringify({ retryAccessSucceeded: new Date().toISOString() })
-        }
+        data: { status: 'ACTIVE' }
       });
+      console.log(`[RetryAccess] VMUser ${vmUser.id} marked ACTIVE at ${new Date().toISOString()}`);
 
       res.json({
         message: 'Access setup completed successfully',
@@ -595,14 +593,9 @@ router.post('/:id/retry-access', auth, async (req, res, next) => {
       // Still mark as ACTIVE so user can at least use VNC
       await prisma.vMUser.update({
         where: { id: vmUser.id },
-        data: {
-          status: 'ACTIVE',
-          metadata: JSON.stringify({
-            retryAccessFailed: new Date().toISOString(),
-            error: linuxErr.message
-          })
-        }
+        data: { status: 'ACTIVE' }
       });
+      console.log(`[RetryAccess] VMUser ${vmUser.id} marked ACTIVE despite error: ${linuxErr.message}`);
 
       res.json({
         message: 'Access enabled (Linux user creation may have failed - VNC should still work)',
