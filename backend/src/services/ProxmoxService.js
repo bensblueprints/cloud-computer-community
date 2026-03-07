@@ -167,7 +167,57 @@ class ProxmoxService {
     return { ...status, ip: null };
   }
 
+  // Wait for QEMU guest agent to be ready before executing commands
+  // Returns true when ready, throws error on timeout
+  async waitForGuestAgent(vmid, timeout = 120000) {
+    const start = Date.now();
+    console.log(`Waiting for guest agent on VM ${vmid} (timeout: ${timeout}ms)`);
+
+    while (Date.now() - start < timeout) {
+      try {
+        // Try to ping the guest agent
+        const res = await this.client.post(
+          `/api2/json/nodes/${this.node}/qemu/${vmid}/agent/ping`
+        );
+        if (res.data) {
+          console.log(`Guest agent ready on VM ${vmid}`);
+          return true;
+        }
+      } catch (e) {
+        // 596 = QEMU guest agent not running
+        // 500 = VM not running or other error
+        const status = e.response?.status;
+        if (status === 596 || status === 500) {
+          // Guest agent not ready yet, keep waiting
+        } else {
+          console.log(`Guest agent check error on VM ${vmid}:`, e.message);
+        }
+      }
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+
+    throw new Error(`Guest agent on VM ${vmid} did not become ready within ${timeout}ms`);
+  }
+
+  // Check if guest agent is ready (non-blocking)
+  async isGuestAgentReady(vmid) {
+    try {
+      await this.client.post(
+        `/api2/json/nodes/${this.node}/qemu/${vmid}/agent/ping`
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async execInVM(vmid, command) {
+    // First verify guest agent is ready
+    const agentReady = await this.isGuestAgentReady(vmid);
+    if (!agentReady) {
+      throw new Error(`Guest agent not ready on VM ${vmid} - cannot execute command`);
+    }
+
     const res = await this.client.post(
       `/api2/json/nodes/${this.node}/qemu/${vmid}/agent/exec`,
       { command }

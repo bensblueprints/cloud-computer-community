@@ -1,4 +1,4 @@
-const { Worker } = require("bullmq");
+const { Worker, Queue } = require("bullmq");
 const IORedis = require("ioredis");
 const { PrismaClient } = require("@prisma/client");
 const proxmoxService = require("../services/ProxmoxService");
@@ -21,6 +21,35 @@ try {
 
 function emit(userId, vmId, step, status) {
   emitSSE(userId, vmId, { step, status, timestamp: Date.now() });
+}
+
+// Helper: Retry a function with exponential backoff
+async function withRetry(fn, maxAttempts = 3, delayMs = 5000, name = "operation") {
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      console.log(`[Retry] ${name} attempt ${attempt}/${maxAttempts} failed: ${err.message}`);
+      if (attempt < maxAttempts) {
+        const delay = delayMs * Math.pow(2, attempt - 1); // Exponential backoff
+        console.log(`[Retry] Waiting ${delay}ms before retry...`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// Helper: Create Linux user with retries (guest agent may not be ready)
+async function createLinuxUserWithRetry(vmid, username, password, groups) {
+  return withRetry(
+    () => proxmoxService.createLinuxUser(vmid, username, password, groups),
+    5, // 5 attempts
+    10000, // 10 second initial delay
+    `createLinuxUser(${vmid}, ${username})`
+  );
 }
 
 const worker = new Worker("vm-provisioning", async (job) => {
@@ -47,41 +76,91 @@ const worker = new Worker("vm-provisioning", async (job) => {
     const internalIp = vmStatus.ip;
     console.log(`VM ${vmid} ready, IP: ${internalIp || "pending"}`);
 
-    // Step 4: Set credentials (optional - may fail if guest agent not ready)
+    // Step 4: Set credentials (with retries - guest agent may not be ready immediately)
     let rdpPassword = null;
     let vncPassword = null;
     let ownerVmUser = null;
+    let credentialError = null;
 
-    if (internalIp) {
-      emit(userId, vmId, "Setting access credentials...", "in_progress");
+    emit(userId, vmId, "Setting access credentials...", "in_progress");
+
+    // VNC password - retry with backoff
+    try {
+      vncPassword = credentialService.generateVNCPassword();
+      await withRetry(
+        () => proxmoxService.setVNCPassword(vmid, vncPassword),
+        3, 5000, `setVNCPassword(${vmid})`
+      );
+      console.log(`VNC password set for VM ${vmid}`);
+    } catch (e) {
+      console.log(`Could not set VNC password for VM ${vmid}:`, e.message);
+      credentialError = e;
+    }
+
+    if (isShared) {
+      // For shared VMs: Create VMUser for owner with their own Linux account
+      console.log(`Creating owner VMUser for shared VM ${vmid}`);
+      let vmUser;
+      let linuxUsername;
+      let ownerPassword;
+
       try {
-        vncPassword = credentialService.generateVNCPassword();
-        await proxmoxService.setVNCPassword(vmid, vncPassword);
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        const result = await vmUserService.createVMUser(vmId, userId, user.name);
+        vmUser = result.vmUser;
+        linuxUsername = result.linuxUsername;
+        ownerPassword = result.rdpPassword;
 
-        if (isShared) {
-          // For shared VMs: Create VMUser for owner with their own Linux account
-          console.log(`Creating owner VMUser for shared VM ${vmid}`);
-          const user = await prisma.user.findUnique({ where: { id: userId } });
-          const { vmUser, linuxUsername, rdpPassword: ownerPassword } = await vmUserService.createVMUser(vmId, userId, user.name);
-
-          // Create Linux user on VM
-          await proxmoxService.createLinuxUser(vmid, linuxUsername, ownerPassword, ["sudo", "users"]);
-
-          // Update VMUser status to ACTIVE
-          await prisma.vMUser.update({ where: { id: vmUser.id }, data: { status: "ACTIVE" } });
-
-          ownerVmUser = vmUser;
-          rdpPassword = ownerPassword;
-          console.log(`Owner VMUser created: ${linuxUsername}`);
-        } else {
-          // For personal VMs: Set the default cloudcomputer user password
-          rdpPassword = credentialService.generatePassword(16);
-          await proxmoxService.setRDPPassword(vmid, rdpPassword);
+        // Try to create Linux user with retries (this is where 596 errors happen)
+        try {
+          await createLinuxUserWithRetry(vmid, linuxUsername, ownerPassword, ["sudo", "users"]);
+          console.log(`Linux user ${linuxUsername} created on VM ${vmid}`);
+        } catch (linuxErr) {
+          // Linux user creation failed, but we still set VMUser to ACTIVE
+          // User can retry via dashboard or support can fix manually
+          console.error(`Failed to create Linux user ${linuxUsername} on VM ${vmid}: ${linuxErr.message}`);
+          console.log(`Setting VMUser to ACTIVE anyway - user may need to retry`);
+          credentialError = linuxErr;
         }
-        console.log(`Credentials set for VM ${vmid}`);
+
+        // ALWAYS set VMUser to ACTIVE - even if Linux user creation failed
+        // This prevents users from being stuck in PROVISIONING forever
+        await prisma.vMUser.update({
+          where: { id: vmUser.id },
+          data: {
+            status: "ACTIVE",
+            // Store error for debugging if creation failed
+            ...(credentialError && { metadata: JSON.stringify({ credentialError: credentialError.message }) })
+          }
+        });
+
+        ownerVmUser = vmUser;
+        rdpPassword = ownerPassword;
+        console.log(`Owner VMUser ${linuxUsername} marked ACTIVE`);
       } catch (e) {
-        console.log(`Could not set credentials for VM ${vmid}:`, e.message);
+        console.error(`Critical error creating VMUser for VM ${vmid}:`, e.message);
+        credentialError = e;
+        // Don't fail the whole job - VM is still usable
       }
+    } else {
+      // For personal VMs: Set the default cloudcomputer user password
+      try {
+        rdpPassword = credentialService.generatePassword(16);
+        await withRetry(
+          () => proxmoxService.setRDPPassword(vmid, rdpPassword),
+          3, 5000, `setRDPPassword(${vmid})`
+        );
+        console.log(`RDP password set for VM ${vmid}`);
+      } catch (e) {
+        console.log(`Could not set RDP password for VM ${vmid}:`, e.message);
+        credentialError = e;
+      }
+    }
+
+    if (credentialError) {
+      console.log(`Credential setup had errors for VM ${vmid}, but continuing...`);
+    } else {
+      console.log(`All credentials set successfully for VM ${vmid}`);
     }
 
     // Step 5: Create Traefik route
@@ -152,7 +231,17 @@ const worker = new Worker("vm-provisioning", async (job) => {
 }, {
   connection: redis,
   concurrency: 2,
-  limiter: { max: 3, duration: 60000 }
+  limiter: { max: 3, duration: 60000 },
+  // BullMQ job-level retries with exponential backoff
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 30000 // 30s, 60s, 120s
+    },
+    removeOnComplete: { count: 100 },
+    removeOnFail: { count: 50 }
+  }
 });
 
 worker.on("completed", (job) => {
@@ -160,9 +249,68 @@ worker.on("completed", (job) => {
 });
 
 worker.on("failed", (job, err) => {
-  console.error(`Job ${job.id} failed:`, err.message);
+  console.error(`Job ${job.id} failed after ${job.attemptsMade} attempts:`, err.message);
 });
 
-console.log("VM provisioning worker started");
+// Background fixer: Auto-fix stuck PROVISIONING VMUsers every 5 minutes
+// This catches any users who got stuck due to transient errors
+async function fixStuckVMUsers() {
+  try {
+    // Find VMUsers stuck in PROVISIONING for more than 10 minutes
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const stuckUsers = await prisma.vMUser.findMany({
+      where: {
+        status: "PROVISIONING",
+        createdAt: { lt: tenMinutesAgo }
+      },
+      include: { vm: true, user: true }
+    });
+
+    if (stuckUsers.length > 0) {
+      console.log(`[FixStuck] Found ${stuckUsers.length} stuck VMUsers, attempting to fix...`);
+    }
+
+    for (const vmUser of stuckUsers) {
+      try {
+        // If VM is running, try to create Linux user one more time
+        if (vmUser.vm?.status === "RUNNING" && vmUser.vm?.vmid) {
+          console.log(`[FixStuck] Attempting to fix VMUser ${vmUser.id} for VM ${vmUser.vm.vmid}`);
+          try {
+            await createLinuxUserWithRetry(
+              vmUser.vm.vmid,
+              vmUser.linuxUsername,
+              credentialService.decrypt(vmUser.rdpPasswordEnc),
+              ["sudo", "users"]
+            );
+            console.log(`[FixStuck] Successfully created Linux user ${vmUser.linuxUsername}`);
+          } catch (linuxErr) {
+            console.log(`[FixStuck] Linux user creation failed, but marking ACTIVE anyway: ${linuxErr.message}`);
+          }
+        }
+
+        // Mark as ACTIVE regardless - user can use VNC console
+        await prisma.vMUser.update({
+          where: { id: vmUser.id },
+          data: {
+            status: "ACTIVE",
+            metadata: JSON.stringify({ fixedByBackgroundJob: new Date().toISOString() })
+          }
+        });
+        console.log(`[FixStuck] Marked VMUser ${vmUser.id} as ACTIVE`);
+      } catch (err) {
+        console.error(`[FixStuck] Failed to fix VMUser ${vmUser.id}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error("[FixStuck] Background fixer error:", err.message);
+  }
+}
+
+// Run background fixer every 5 minutes
+setInterval(fixStuckVMUsers, 5 * 60 * 1000);
+// Run once on startup after 30 seconds
+setTimeout(fixStuckVMUsers, 30 * 1000);
+
+console.log("VM provisioning worker started with reliability improvements");
 
 module.exports = worker;

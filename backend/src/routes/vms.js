@@ -513,6 +513,109 @@ router.delete('/:id/users/:userId', auth, async (req, res, next) => {
   }
 });
 
+// Retry access - manually retry creating Linux user for stuck VMUsers
+router.post('/:id/retry-access', auth, async (req, res, next) => {
+  try {
+    const vm = await userHasVMAccess(req.userId, req.user.orgId, req.params.id);
+    if (!vm) return res.status(404).json({ error: 'VM not found' });
+
+    if (!vm.isShared) {
+      return res.status(400).json({ error: 'This endpoint is only for shared VMs' });
+    }
+
+    if (vm.status !== 'RUNNING') {
+      return res.status(400).json({ error: 'VM must be running to retry access setup' });
+    }
+
+    // Get user's VMUser record
+    const vmUser = await prisma.vMUser.findUnique({
+      where: { vmId_userId: { vmId: vm.id, userId: req.userId } }
+    });
+
+    if (!vmUser) {
+      return res.status(404).json({ error: 'No access record found. Contact your team owner.' });
+    }
+
+    // If already active and user wants to force recreate
+    const forceRecreate = req.body.force === true;
+
+    if (vmUser.status === 'ACTIVE' && !forceRecreate) {
+      return res.json({
+        message: 'Your access is already active',
+        linuxUsername: vmUser.linuxUsername,
+        status: 'ACTIVE'
+      });
+    }
+
+    console.log(`[RetryAccess] Retrying access for user ${req.userId} on VM ${vm.vmid}`);
+
+    // Check if guest agent is ready
+    const agentReady = await proxmoxService.isGuestAgentReady(vm.vmid);
+    if (!agentReady) {
+      return res.status(503).json({
+        error: 'VM guest agent not ready. Please wait a moment and try again.',
+        retryAfter: 30
+      });
+    }
+
+    // Try to create Linux user
+    const password = credentialService.decrypt(vmUser.rdpPasswordEnc);
+
+    try {
+      // Check if user already exists
+      const userExists = await proxmoxService.checkLinuxUserExists(vm.vmid, vmUser.linuxUsername);
+
+      if (userExists) {
+        // User exists, just reset password
+        await proxmoxService.setLinuxUserPassword(vm.vmid, vmUser.linuxUsername, password);
+        console.log(`[RetryAccess] Reset password for existing user ${vmUser.linuxUsername}`);
+      } else {
+        // Create new user
+        await proxmoxService.createLinuxUser(vm.vmid, vmUser.linuxUsername, password, ['sudo', 'users']);
+        console.log(`[RetryAccess] Created Linux user ${vmUser.linuxUsername}`);
+      }
+
+      // Mark as active
+      await prisma.vMUser.update({
+        where: { id: vmUser.id },
+        data: {
+          status: 'ACTIVE',
+          metadata: JSON.stringify({ retryAccessSucceeded: new Date().toISOString() })
+        }
+      });
+
+      res.json({
+        message: 'Access setup completed successfully',
+        linuxUsername: vmUser.linuxUsername,
+        status: 'ACTIVE'
+      });
+    } catch (linuxErr) {
+      console.error(`[RetryAccess] Failed to create Linux user: ${linuxErr.message}`);
+
+      // Still mark as ACTIVE so user can at least use VNC
+      await prisma.vMUser.update({
+        where: { id: vmUser.id },
+        data: {
+          status: 'ACTIVE',
+          metadata: JSON.stringify({
+            retryAccessFailed: new Date().toISOString(),
+            error: linuxErr.message
+          })
+        }
+      });
+
+      res.json({
+        message: 'Access enabled (Linux user creation may have failed - VNC should still work)',
+        linuxUsername: vmUser.linuxUsername,
+        status: 'ACTIVE',
+        warning: 'SSH/RDP may not work. Try VNC console instead.'
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/:id/sse', auth, (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');

@@ -261,6 +261,141 @@ router.post("/reactivate", auth, async (req, res, next) => {
   }
 });
 
+// Test account endpoint - bypasses Stripe for E2E testing
+// Protected by TEST_ACCOUNT_SECRET environment variable
+router.post("/test-account", async (req, res, next) => {
+  try {
+    const { plan, email, name, testCode, password } = req.body;
+    const planKey = plan?.toUpperCase();
+
+    // Validate test code
+    if (!process.env.TEST_ACCOUNT_SECRET || testCode !== process.env.TEST_ACCOUNT_SECRET) {
+      return res.status(403).json({ error: "Invalid test code" });
+    }
+
+    // Validate plan
+    if (!planKey || !PLANS[planKey]) {
+      return res.status(400).json({ error: "Invalid plan. Choose SOLO, TEAM, or ARMY" });
+    }
+
+    // Validate required fields
+    if (!email || !name) {
+      return res.status(400).json({ error: "Email and name are required" });
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: "Email already registered. Use a unique test email." });
+    }
+
+    console.log(`[TEST] Creating test account: ${email}, plan: ${planKey}`);
+
+    // Create password hash
+    const bcrypt = require("bcryptjs");
+    const userPassword = password || "TestPassword123!";
+    const passwordHash = await bcrypt.hash(userPassword, 12);
+
+    // Create user, org, subscription, and VM in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create user
+      const newUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          orgRole: "OWNER"
+        }
+      });
+
+      // 2. Create organization
+      const newOrg = await tx.organization.create({
+        data: {
+          name: `${name}'s Organization`,
+          ownerId: newUser.id,
+          plan: planKey,
+          seatLimit: PLANS[planKey].seats,
+          members: { connect: { id: newUser.id } }
+        }
+      });
+
+      // 3. Create subscription (fake Stripe ID for testing)
+      const fakeStripeId = `test_sub_${Date.now()}`;
+      const subscription = await tx.subscription.create({
+        data: {
+          orgId: newOrg.id,
+          plan: planKey,
+          stripeId: fakeStripeId,
+          status: "active",
+          renewsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        }
+      });
+
+      return { user: newUser, org: newOrg, subscription };
+    });
+
+    // 4. Create VM and queue provisioning (outside transaction for queue)
+    const templateVmid = PLANS[planKey].templateVmid;
+    const newVmid = Date.now() % 100000 + 1000;
+    const username = name.toLowerCase().replace(/[^a-z0-9]/g, "") || "testuser";
+    const subdomain = `${username}-${newVmid}`;
+    const isShared = planKey !== "SOLO";
+
+    const vm = await prisma.vM.create({
+      data: {
+        vmid: newVmid,
+        userId: isShared ? null : result.user.id,
+        orgId: isShared ? result.org.id : null,
+        isShared,
+        subdomain,
+        templateType: `ubuntu-${planKey.toLowerCase()}`,
+        status: "PROVISIONING"
+      }
+    });
+
+    // 5. Queue VM provisioning job
+    await provisionQueue.add("provision", {
+      userId: result.user.id,
+      orgId: result.org.id,
+      vmId: vm.id,
+      vmid: newVmid,
+      templateVmid,
+      subdomain,
+      username,
+      isShared,
+      plan: planKey
+    });
+
+    console.log(`[TEST] Created test account: user=${result.user.id}, org=${result.org.id}, vm=${vm.id}`);
+
+    // Return auth token so Playwright can use it
+    const token = jwt.sign({ userId: result.user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(201).json({
+      success: true,
+      userId: result.user.id,
+      orgId: result.org.id,
+      email,
+      password: userPassword,
+      subscription: {
+        id: result.subscription.id,
+        plan: planKey,
+        status: result.subscription.status
+      },
+      vm: {
+        id: vm.id,
+        vmid: vm.vmid,
+        subdomain,
+        status: vm.status
+      },
+      token
+    });
+  } catch (err) {
+    console.error("[TEST] Test account creation failed:", err);
+    next(err);
+  }
+});
+
 router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
