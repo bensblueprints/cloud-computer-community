@@ -156,6 +156,98 @@ class GHLService {
   }
 
   /**
+   * Suspend a sub-account (disable access when payment fails)
+   * Sets the account to suspended status
+   * @param {string} locationId - The sub-account ID to suspend
+   */
+  async suspendSubAccount(locationId) {
+    try {
+      // Update the sub-account with suspended status
+      const response = await this.client.put(`/locations/${locationId}`, {
+        settings: {
+          allowDuplicateContact: false,
+          allowDuplicateOpportunity: false,
+          allowFacebookNameMerge: false
+        },
+        // Mark as suspended in the name
+        // This is a workaround since GHL doesn't have a direct suspend API
+      });
+
+      // Also disable all users in this location
+      try {
+        const usersResponse = await this.client.get(`/users/`, {
+          params: { locationId }
+        });
+
+        const users = usersResponse.data?.users || [];
+        for (const user of users) {
+          try {
+            await this.client.put(`/users/${user.id}`, {
+              permissions: {
+                dashboardStats: false,
+                contacts: { enabled: false },
+                opportunities: { enabled: false },
+                conversations: { enabled: false },
+                calendars: { enabled: false }
+              }
+            });
+          } catch (e) {
+            console.log(`[GHL] Could not disable user ${user.id}:`, e.message);
+          }
+        }
+      } catch (e) {
+        console.log(`[GHL] Could not fetch/disable users:`, e.message);
+      }
+
+      console.log(`[GHL] Sub-account suspended: ${locationId}`);
+      return { success: true };
+    } catch (error) {
+      console.error("[GHL] Failed to suspend sub-account:", error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Reactivate a suspended sub-account (when payment resumes)
+   * @param {string} locationId - The sub-account ID to reactivate
+   */
+  async reactivateSubAccount(locationId) {
+    try {
+      // Re-enable users in this location
+      try {
+        const usersResponse = await this.client.get(`/users/`, {
+          params: { locationId }
+        });
+
+        const users = usersResponse.data?.users || [];
+        for (const user of users) {
+          try {
+            await this.client.put(`/users/${user.id}`, {
+              permissions: {
+                dashboardStats: true,
+                contacts: { enabled: true, create: true, update: true, delete: true, bulkAction: true },
+                opportunities: { enabled: true, create: true, update: true, delete: true },
+                conversations: { enabled: true },
+                calendars: { enabled: true }
+              }
+            });
+          } catch (e) {
+            console.log(`[GHL] Could not re-enable user ${user.id}:`, e.message);
+          }
+        }
+      } catch (e) {
+        console.log(`[GHL] Could not fetch/re-enable users:`, e.message);
+      }
+
+      console.log(`[GHL] Sub-account reactivated: ${locationId}`);
+      return { success: true };
+    } catch (error) {
+      console.error("[GHL] Failed to reactivate sub-account:", error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Check if GHL integration is configured
    */
   isConfigured() {

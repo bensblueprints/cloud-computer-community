@@ -256,6 +256,18 @@ router.post("/reactivate", auth, async (req, res, next) => {
       }
     });
 
+    // Reactivate Go High Level sub-account
+    if (org.ghlLocationId && ghlService.isConfigured()) {
+      console.log(`[GHL] Reactivating sub-account: ${org.ghlLocationId}`);
+      await ghlService.reactivateSubAccount(org.ghlLocationId);
+    }
+
+    // Also unsuspend VMs
+    await prisma.vM.updateMany({
+      where: { orgId: org.id, status: "SUSPENDED" },
+      data: { status: "RUNNING" }
+    });
+
     res.json({ message: "Subscription reactivated" });
   } catch (err) {
     next(err);
@@ -596,6 +608,32 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
           renewsAt: new Date(sub.current_period_end * 1000)
         }
       });
+
+      // If subscription became past_due or unpaid, suspend GHL access
+      if (sub.status === "past_due" || sub.status === "unpaid") {
+        const subscription = await prisma.subscription.findFirst({
+          where: { stripeId: sub.id },
+          include: { org: true }
+        });
+
+        if (subscription?.org?.ghlLocationId && ghlService.isConfigured()) {
+          console.log(`[GHL] Suspending sub-account due to ${sub.status}: ${subscription.org.ghlLocationId}`);
+          await ghlService.suspendSubAccount(subscription.org.ghlLocationId);
+        }
+      }
+
+      // If subscription became active again, reactivate GHL
+      if (sub.status === "active" || sub.status === "trialing") {
+        const subscription = await prisma.subscription.findFirst({
+          where: { stripeId: sub.id },
+          include: { org: true }
+        });
+
+        if (subscription?.org?.ghlLocationId && ghlService.isConfigured()) {
+          console.log(`[GHL] Reactivating sub-account: ${subscription.org.ghlLocationId}`);
+          await ghlService.reactivateSubAccount(subscription.org.ghlLocationId);
+        }
+      }
       break;
     }
 
@@ -621,6 +659,12 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
           where: { userId: { in: userIds }, status: "RUNNING" },
           data: { status: "SUSPENDED" }
         });
+
+        // Suspend Go High Level sub-account
+        if (subscription.org.ghlLocationId && ghlService.isConfigured()) {
+          console.log(`[GHL] Suspending sub-account for canceled subscription: ${subscription.org.ghlLocationId}`);
+          await ghlService.suspendSubAccount(subscription.org.ghlLocationId);
+        }
       }
 
       await prisma.subscription.updateMany({
