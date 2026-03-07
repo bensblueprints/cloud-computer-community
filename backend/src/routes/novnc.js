@@ -63,11 +63,15 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
       // Use backend's websocket proxy
       const wsUrl = `wss://api.cloudcode.space/websockify`;
 
+      // VNC password for LXC containers (standard password set during provisioning)
+      const vncPassword = 'clawdbot123';
+
       return res.json({
         token,
         wsUrl,
         vmid,
-        type: 'lxc'
+        type: 'lxc',
+        vncPassword
       });
     }
 

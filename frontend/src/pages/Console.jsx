@@ -18,13 +18,15 @@ export default function Console() {
     async function connect() {
       try {
         const res = await api.get(`/novnc/${vmid}/token`);
-        const { token, wsUrl, proxmox } = res.data;
+        const { token, wsUrl, proxmox, type, vncPassword } = res.data;
 
         const RFB = (await import('@novnc/novnc/lib/rfb')).default;
 
-        // Use the Proxmox VNC ticket as the password
+        // Use the appropriate password based on VM type
+        const password = type === 'lxc' ? (vncPassword || 'clawdbot123') : (proxmox?.ticket || '');
+
         rfb = new RFB(canvasRef.current, `${wsUrl}?token=${token}`, {
-          credentials: { password: proxmox?.ticket || '' },
+          credentials: { password },
           wsProtocols: ['binary'],
         });
 
@@ -36,8 +38,8 @@ export default function Console() {
         rfb.addEventListener('connect', () => setStatus('connected'));
         rfb.addEventListener('disconnect', () => setStatus('disconnected'));
         rfb.addEventListener('credentialsrequired', (e) => {
-          console.log('Credentials required, using ticket');
-          rfb.sendCredentials({ password: proxmox?.ticket || '' });
+          console.log('Credentials required, sending password');
+          rfb.sendCredentials({ password });
         });
 
         setVmName(`VM ${vmid}`);
