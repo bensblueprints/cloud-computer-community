@@ -95,9 +95,55 @@ wss.on('connection', async (ws, req) => {
       return;
     }
 
-    const { vmid, proxmoxTicket, proxmoxPort } = decoded;
+    const { vmid, internalIp } = decoded;
 
-    // Use the ticket from the JWT token (same one frontend received)
+    // For LXC containers with their own VNC, connect directly to container's websockify
+    if (internalIp) {
+      const containerWsUrl = `ws://${internalIp}:6080/websockify`;
+      console.log(`WebSocket: Connecting to LXC container VNC at ${containerWsUrl}`);
+
+      const containerWs = new WebSocket(containerWsUrl);
+
+      containerWs.on('open', () => {
+        console.log(`WebSocket: Connected to LXC VNC for VM ${vmid}`);
+      });
+
+      containerWs.on('message', (data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(data);
+        }
+      });
+
+      containerWs.on('error', (err) => {
+        console.error(`WebSocket: LXC VNC error for VM ${vmid}:`, err.message);
+        ws.close(1011, 'VNC error');
+      });
+
+      containerWs.on('close', () => {
+        console.log(`WebSocket: LXC VNC closed for VM ${vmid}`);
+        ws.close();
+      });
+
+      ws.on('message', (data) => {
+        if (containerWs.readyState === WebSocket.OPEN) {
+          containerWs.send(data);
+        }
+      });
+
+      ws.on('close', () => {
+        console.log(`WebSocket: Client disconnected for VM ${vmid}`);
+        containerWs.close();
+      });
+
+      ws.on('error', (err) => {
+        console.error(`WebSocket: Client error for VM ${vmid}:`, err.message);
+        containerWs.close();
+      });
+      return;
+    }
+
+    // Fallback to Proxmox VNC for QEMU VMs
+    const { proxmoxTicket, proxmoxPort } = decoded;
     if (!proxmoxTicket || !proxmoxPort) {
       console.error('WebSocket: Missing proxmox ticket/port in token');
       ws.close(1011, 'Invalid token data');
@@ -109,7 +155,6 @@ wss.on('connection', async (ws, req) => {
 
     console.log(`WebSocket: Connecting to Proxmox VNC for VM ${vmid}`);
 
-    // Connect to Proxmox VNC websocket with API token auth
     const proxmoxWs = new WebSocket(vncUrl, {
       rejectUnauthorized: false,
       headers: {
@@ -168,7 +213,7 @@ const wsServer = http.createServer((req, res) => {
 const wss2 = new WebSocket.Server({ server: wsServer });
 
 wss2.on('connection', async (ws, req) => {
-  // Same logic as above
+  // Same logic as wss - handles both LXC and QEMU VMs
   try {
     const parsedUrl = url.parse(req.url, true);
     const token = parsedUrl.query.token;
@@ -186,8 +231,28 @@ wss2.on('connection', async (ws, req) => {
       return;
     }
 
-    const { vmid, proxmoxTicket, proxmoxPort } = decoded;
+    const { vmid, internalIp } = decoded;
 
+    // For LXC containers with their own VNC
+    if (internalIp) {
+      const containerWsUrl = `ws://${internalIp}:6080/websockify`;
+      console.log(`WS2: Connecting to LXC VNC at ${containerWsUrl}`);
+
+      const containerWs = new WebSocket(containerWsUrl);
+
+      containerWs.on('open', () => console.log(`WS2: Connected to LXC VNC for VM ${vmid}`));
+      containerWs.on('message', (data) => ws.readyState === WebSocket.OPEN && ws.send(data));
+      containerWs.on('error', (err) => { console.error(`WS2: LXC VNC error:`, err.message); ws.close(1011); });
+      containerWs.on('close', () => ws.close());
+
+      ws.on('message', (data) => containerWs.readyState === WebSocket.OPEN && containerWs.send(data));
+      ws.on('close', () => containerWs.close());
+      ws.on('error', () => containerWs.close());
+      return;
+    }
+
+    // Fallback to Proxmox VNC
+    const { proxmoxTicket, proxmoxPort } = decoded;
     if (!proxmoxTicket || !proxmoxPort) {
       console.error('WS2: Missing proxmox ticket/port in token');
       ws.close(1011, 'Invalid token data');

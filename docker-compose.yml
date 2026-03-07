@@ -17,23 +17,15 @@ services:
   backend:
     build: ./backend
     env_file: .env
-    ports:
-      - "6080:6080"
+    network_mode: host
+    extra_hosts:
+      - "postgres:127.0.0.1"
+      - "redis:127.0.0.1"
     volumes:
       - ./traefik/dynamic:/etc/traefik/dynamic
     depends_on:
       - postgres
       - redis
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`api.cloudcode.space`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api.loadbalancer.server.port=3001"
-      - "traefik.http.routers.api-path.rule=(Host(`cloudcode.space`) || Host(`app.cloudcode.space`)) && PathPrefix(`/api`)"
-      - "traefik.http.routers.api-path.entrypoints=websecure"
-      - "traefik.http.routers.api-path.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.api-path.service=api"
     restart: unless-stopped
 
   frontend:
@@ -52,6 +44,8 @@ services:
       POSTGRES_DB: cloudcomputer
       POSTGRES_USER: cloudcomputer
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -59,6 +53,8 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - redisdata:/data
     restart: unless-stopped

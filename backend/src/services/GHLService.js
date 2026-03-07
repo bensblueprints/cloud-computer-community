@@ -3,6 +3,7 @@ const axios = require("axios");
 class GHLService {
   constructor() {
     this.apiKey = process.env.GHL_API_KEY;
+    this.companyId = process.env.GHL_COMPANY_ID;
     this.baseUrl = "https://services.leadconnectorhq.com";
     this.client = axios.create({
       baseURL: this.baseUrl,
@@ -31,6 +32,7 @@ class GHLService {
   async createSubAccount(params) {
     try {
       const payload = {
+        companyId: this.companyId,
         name: params.name,
         email: params.email,
         phone: params.phone || "",
@@ -92,6 +94,7 @@ class GHLService {
   async createUser(locationId, user) {
     try {
       const payload = {
+        companyId: this.companyId,
         firstName: user.firstName,
         lastName: user.lastName || "",
         email: user.email,
@@ -251,7 +254,7 @@ class GHLService {
    * Check if GHL integration is configured
    */
   isConfigured() {
-    return !!this.apiKey;
+    return !!this.apiKey && !!this.companyId;
   }
 }
 

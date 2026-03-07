@@ -41,10 +41,39 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
     if (!vm) return res.status(404).json({ error: 'VM not found' });
     if (vm.status !== 'RUNNING') return res.status(400).json({ error: 'VM is not running' });
 
-    // Get VNC proxy ticket from Proxmox
+    // Update last active
+    await prisma.vM.update({
+      where: { id: vm.id },
+      data: { lastActiveAt: new Date() }
+    });
+
+    // For LXC containers with internalIp, use direct VNC connection
+    if (vm.internalIp) {
+      const token = jwt.sign(
+        {
+          vmid,
+          userId: req.userId,
+          internalIp: vm.internalIp,
+          iat: Math.floor(Date.now() / 1000)
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Use backend's websocket proxy
+      const wsUrl = `wss://api.cloudcode.space/websockify`;
+
+      return res.json({
+        token,
+        wsUrl,
+        vmid,
+        type: 'lxc'
+      });
+    }
+
+    // Fallback to Proxmox VNC for QEMU VMs
     const vncInfo = await proxmoxService.getVNCProxy(vmid);
 
-    // Create our own token that includes the Proxmox ticket
     const token = jwt.sign(
       {
         vmid,
@@ -57,20 +86,13 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
-    // Update last active
-    await prisma.vM.update({
-      where: { id: vm.id },
-      data: { lastActiveAt: new Date() }
-    });
-
-    // Return websocket URL for our proxy
     const wsUrl = `wss://${vm.subdomain}.cloudcode.space/websockify`;
 
     res.json({
       token,
       wsUrl,
       vmid,
-      // Also return direct Proxmox info as fallback
+      type: 'qemu',
       proxmox: {
         host: process.env.PROXMOX_HOST.replace('https://', ''),
         port: vncInfo.port,
