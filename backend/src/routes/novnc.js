@@ -90,7 +90,8 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
-    const wsUrl = `wss://${vm.subdomain}.cloudcode.space/websockify`;
+    // Use the central API websocket proxy
+    const wsUrl = `wss://api.cloudcode.space/websockify`;
 
     res.json({
       token,
