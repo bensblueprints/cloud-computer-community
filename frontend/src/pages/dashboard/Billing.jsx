@@ -69,14 +69,18 @@ export default function Billing() {
                 <p className="text-xs text-gray-400 mt-1">Renews {new Date(org.subscription.renewsAt).toLocaleDateString()}</p>
               )}
             </div>
-            <div className="flex items-center gap-3">
-              <button onClick={handlePortal} className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200">
-                Manage Billing
-              </button>
-              <button onClick={() => setShowCancelConfirm(true)} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-100">
-                Cancel Plan
-              </button>
-            </div>
+            {user?.orgRole === 'OWNER' ? (
+              <div className="flex items-center gap-3">
+                <button onClick={handlePortal} className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200">
+                  Manage Billing
+                </button>
+                <button onClick={() => setShowCancelConfirm(true)} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-100">
+                  Cancel Plan
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">Only the account owner can manage billing</p>
+            )}
           </div>
         </div>
       )}
@@ -116,7 +120,10 @@ export default function Billing() {
 
       {(!hasSubscription || !org?.plan || org.plan === 'FREE') && (
         <>
-          <h3 className="text-lg font-semibold mb-4">Choose a Plan</h3>
+          <h3 className="text-lg font-semibold mb-4">{user?.orgRole === 'OWNER' ? 'Choose a Plan' : 'Current Plans'}</h3>
+          {user?.orgRole !== 'OWNER' && (
+            <p className="text-sm text-gray-500 mb-4">Contact your account owner to manage the subscription.</p>
+          )}
           <div className="grid md:grid-cols-3 gap-6">
             {plans.map(plan => (
               <div key={plan.name} className={`bg-white rounded-xl p-6 border-2 ${plan.popular ? 'border-brand-500' : 'border-gray-200'}`}>
@@ -134,14 +141,16 @@ export default function Billing() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  onClick={() => handleSubscribe(plan.name)}
-                  className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
-                    plan.popular ? 'bg-brand-600 text-white hover:bg-brand-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Select Plan
-                </button>
+                {user?.orgRole === 'OWNER' && (
+                  <button
+                    onClick={() => handleSubscribe(plan.name)}
+                    className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
+                      plan.popular ? 'bg-brand-600 text-white hover:bg-brand-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Select Plan
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -170,15 +179,19 @@ export default function Billing() {
                       </li>
                     ))}
                   </ul>
-                  <button
-                    disabled={isCurrent}
-                    onClick={() => !isCurrent && handleSubscribe(plan.name)}
-                    className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
-                      isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {isCurrent ? 'Current Plan' : 'Switch Plan'}
-                  </button>
+                  {user?.orgRole === 'OWNER' ? (
+                    <button
+                      disabled={isCurrent}
+                      onClick={() => !isCurrent && handleSubscribe(plan.name)}
+                      className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
+                        isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {isCurrent ? 'Current Plan' : 'Switch Plan'}
+                    </button>
+                  ) : (
+                    isCurrent && <p className="mt-6 text-center text-xs text-brand-600 font-medium">Current Plan</p>
+                  )}
                 </div>
               );
             })}
