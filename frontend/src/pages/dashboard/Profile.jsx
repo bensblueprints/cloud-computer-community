@@ -201,42 +201,46 @@ export default function Profile() {
         </form>
       </div>
 
-      {/* Subscription Management */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-          <CreditCard className="w-5 h-5" />
-          Subscription
-        </h3>
-        <div className="mb-4">
-          <p className="text-sm text-gray-600">
-            Current Plan: <span className="font-semibold text-gray-900">{user?.org?.plan || 'Free'}</span>
-          </p>
+      {/* Subscription Management - Owner only */}
+      {user?.orgRole === 'OWNER' && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            Subscription
+          </h3>
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">
+              Current Plan: <span className="font-semibold text-gray-900">{user?.org?.plan || 'Free'}</span>
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="text-amber-600 hover:text-amber-700 text-sm font-medium"
+          >
+            Cancel Subscription
+          </button>
         </div>
-        <button
-          onClick={() => setShowCancelModal(true)}
-          className="text-amber-600 hover:text-amber-700 text-sm font-medium"
-        >
-          Cancel Subscription
-        </button>
-      </div>
+      )}
 
-      {/* Danger Zone */}
-      <div className="bg-red-50 rounded-xl border border-red-200 p-6">
-        <h3 className="font-semibold text-lg mb-2 text-red-700 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          Danger Zone
-        </h3>
-        <p className="text-sm text-red-600 mb-4">
-          Once you delete your account, there is no going back. All your VMs and data will be permanently deleted.
-        </p>
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium"
-        >
-          <Trash2 className="w-4 h-4" />
-          Delete Account
-        </button>
-      </div>
+      {/* Danger Zone - Owner only */}
+      {user?.orgRole === 'OWNER' && (
+        <div className="bg-red-50 rounded-xl border border-red-200 p-6">
+          <h3 className="font-semibold text-lg mb-2 text-red-700 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Danger Zone
+          </h3>
+          <p className="text-sm text-red-600 mb-4">
+            Once you delete your account, there is no going back. All your VMs and data will be permanently deleted.
+          </p>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Account
+          </button>
+        </div>
+      )}
 
       {/* Cancel Subscription Modal */}
       {showCancelModal && (
