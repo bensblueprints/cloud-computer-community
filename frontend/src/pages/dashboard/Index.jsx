@@ -609,6 +609,74 @@ export default function DashboardIndex() {
       {/* AI Setup Guide */}
       {hasSubscription && <AiSetupGuide />}
 
+      {/* Development Partners */}
+      {hasSubscription && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4 text-indigo-500" />
+            Development Partners
+          </h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <a
+              href="https://upvotethat.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-orange-300 transition group"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition">
+                  <ArrowUpCircle className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">UpvoteThat.com</p>
+                  <p className="text-xs text-orange-600 font-medium">Reddit Marketing</p>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 text-gray-300 ml-auto group-hover:text-orange-400 transition" />
+              </div>
+              <p className="text-xs text-gray-500">Buy upvotes and accounts for Reddit marketing campaigns. Boost your content visibility.</p>
+            </a>
+
+            <a
+              href="https://leadripper.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition group"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">LeadRipper.com</p>
+                  <p className="text-xs text-blue-600 font-medium">Google Places Scraper</p>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 text-gray-300 ml-auto group-hover:text-blue-400 transition" />
+              </div>
+              <p className="text-xs text-gray-500">Scrape Google Places and export leads directly to Go High Level. Build your pipeline fast.</p>
+            </a>
+
+            <a
+              href="https://advancedmarketing.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-purple-300 transition group"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition">
+                  <BookOpen className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">AdvancedMarketing.co</p>
+                  <p className="text-xs text-purple-600 font-medium">20% Off for Cloud Code</p>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 text-gray-300 ml-auto group-hover:text-purple-400 transition" />
+              </div>
+              <p className="text-xs text-gray-500">20% off any coaching or project quote. Mention you're a Cloud Code customer.</p>
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Provisioning VMs */}
       {provisioningVMs.length > 0 && (
         <div className="mb-8">

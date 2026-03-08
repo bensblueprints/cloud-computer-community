@@ -38,6 +38,7 @@ const LandingSaasSavings = lazy(() => import('./pages/landing/SaasSavings'));
 const LandingLightweight = lazy(() => import('./pages/landing/Lightweight'));
 const LandingAgencies = lazy(() => import('./pages/landing/Agencies'));
 const LandingRemoteWork = lazy(() => import('./pages/landing/RemoteWork'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Loading() {
   return (
@@ -233,6 +234,8 @@ export default function App() {
           <Route path="/admin/proxmox" element={<AdminRoute><AdminProxmox /></AdminRoute>} />
           <Route path="/admin/billing" element={<AdminRoute><AdminBilling /></AdminRoute>} />
           <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </AuthProvider>
