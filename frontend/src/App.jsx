@@ -33,6 +33,11 @@ const MagicLogin = lazy(() => import('./pages/MagicLogin'));
 const Blog = lazy(() => import('./pages/blog/Blog'));
 const BlogIndex = lazy(() => import('./pages/blog/BlogIndex'));
 const BlogPost = lazy(() => import('./pages/blog/BlogPost'));
+const LandingDevelopers = lazy(() => import('./pages/landing/Developers'));
+const LandingSaasSavings = lazy(() => import('./pages/landing/SaasSavings'));
+const LandingLightweight = lazy(() => import('./pages/landing/Lightweight'));
+const LandingAgencies = lazy(() => import('./pages/landing/Agencies'));
+const LandingRemoteWork = lazy(() => import('./pages/landing/RemoteWork'));
 
 function Loading() {
   return (
@@ -200,6 +205,12 @@ export default function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/claude" element={<BlogIndex />} />
           <Route path="/blog/claude/:skillSlug" element={<BlogPost />} />
+
+          <Route path="/for/developers" element={<LandingDevelopers />} />
+          <Route path="/for/save" element={<LandingSaasSavings />} />
+          <Route path="/for/power" element={<LandingLightweight />} />
+          <Route path="/for/agencies" element={<LandingAgencies />} />
+          <Route path="/for/remote" element={<LandingRemoteWork />} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardIndex /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/new" element={<ProtectedRoute><DashboardLayout><DashboardNew /></DashboardLayout></ProtectedRoute>} />
