@@ -198,7 +198,7 @@ export default function AdminUsers() {
               <button onClick={async () => {
                 try {
                   const res = await api.post(`/admin/impersonate/${selectedUser.id}`);
-                  window.location.href = 'https://cloudcode.space/dashboard';
+                  window.location.href = 'https://app.cloudcode.space/dashboard';
                 } catch (err) {
                   alert(err.response?.data?.error || 'Failed to impersonate user');
                 }
