@@ -27,8 +27,10 @@ router.post('/auth/login', async (req, res, next) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
+      domain: '.cloudcode.space',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     res.json({ user: { id: user.id, name: user.name, siteRole: user.siteRole } });
