@@ -98,7 +98,7 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden" style={{ zIndex: 9999 }}>
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-semibold text-gray-900">Background Theme</p>
             <p className="text-xs text-gray-500">Choose your vibe</p>
@@ -200,7 +200,7 @@ function DashboardLayout({ children }) {
           <MatrixBackground theme={matrixTheme} />
         </Suspense>
       )}
-      <header className={`${headerBg} border-b relative z-10 ${isMatrix ? 'backdrop-blur-md' : ''}`}>
+      <header className={`${headerBg} border-b relative z-50 ${isMatrix ? 'backdrop-blur-md' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-8">
@@ -281,7 +281,7 @@ function DashboardLayout({ children }) {
           </div>
         )}
       </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-0">
         {children}
       </main>
     </div>
