@@ -75,6 +75,51 @@ app.get('/api/skills/download', async (req, res) => {
   }
 });
 
+// Support ticket - sends email to Tawk.to ticketing
+const { Resend } = require('resend');
+const supportResend = new Resend(process.env.RESEND_API_KEY);
+
+app.post('/api/support/ticket', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: 'Not authenticated' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+
+    const { subject, message, category } = req.body;
+    if (!subject || !message) return res.status(400).json({ error: 'Subject and message are required' });
+
+    const categoryLabel = {
+      general: 'General Question',
+      billing: 'Billing Issue',
+      technical: 'Technical Problem',
+      vm: 'Server / VM Issue',
+      feature: 'Feature Request',
+    }[category] || 'General';
+
+    await supportResend.emails.send({
+      from: 'Cloud Code Support <support@advancedmarketing.co>',
+      to: 'tickets@cloud-code-by-advanced.p.tawk.email',
+      replyTo: user.email,
+      subject: `[${categoryLabel}] ${subject}`,
+      html: `
+        <h3>Support Ticket from ${user.name || user.email}</h3>
+        <p><strong>From:</strong> ${user.name} &lt;${user.email}&gt;</p>
+        <p><strong>Category:</strong> ${categoryLabel}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <hr />
+        <div style="white-space: pre-wrap;">${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      `,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Support ticket error:', err);
+    res.status(500).json({ error: 'Failed to submit ticket' });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({

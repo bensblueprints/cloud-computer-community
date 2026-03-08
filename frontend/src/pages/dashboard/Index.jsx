@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Copy, Check, Download, BookOpen } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Copy, Check, Download, BookOpen, MessageSquare, Send } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -366,6 +366,117 @@ function AiSetupGuide() {
   );
 }
 
+function SupportTicketForm({ api, user }) {
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [category, setCategory] = useState('general');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!subject.trim() || !message.trim()) return;
+    setSending(true);
+    try {
+      await api.post('/support/ticket', { subject, message, category });
+      setSent(true);
+      setSubject('');
+      setMessage('');
+      setCategory('general');
+      setTimeout(() => setSent(false), 5000);
+    } catch {
+      alert('Failed to submit ticket. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <MessageSquare className="w-4 h-4 text-teal-500" />
+        Support
+      </h2>
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        {sent ? (
+          <div className="text-center py-6">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Check className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">Ticket Submitted</h3>
+            <p className="text-sm text-gray-500">We'll get back to you as soon as possible.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <p className="text-sm text-gray-500">Have an issue or question? Open a support ticket and we'll get back to you.</p>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="general">General Question</option>
+                  <option value="billing">Billing Issue</option>
+                  <option value="technical">Technical Problem</option>
+                  <option value="vm">Server / VM Issue</option>
+                  <option value="feature">Feature Request</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Brief description of your issue"
+                  required
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Message</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Describe your issue in detail..."
+                required
+                rows={4}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">Tickets are sent to our support team and typically answered within 24 hours.</p>
+              <button
+                type="submit"
+                disabled={sending || !subject.trim() || !message.trim()}
+                className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-teal-700 disabled:opacity-50 transition"
+              >
+                {sending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Submit Ticket
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardIndex() {
   const { api, user } = useAuth();
   const [vms, setVms] = useState([]);
@@ -572,6 +683,71 @@ export default function DashboardIndex() {
         </Link>
       </div>
 
+      {/* Provisioning VMs */}
+      {provisioningVMs.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-yellow-500 animate-spin" />
+            Setting Up
+          </h2>
+          <div className="space-y-4">
+            {provisioningVMs.map(vm => (
+              <ProvisioningCard key={vm.id} vm={vm} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active Servers */}
+      {activeVMs.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Server className="w-4 h-4 text-gray-500" />
+            My Servers
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {activeVMs.map(vm => (
+              <ServerCard key={vm.id} vm={vm} onAction={handleAction} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State - No VMs at all */}
+      {vms.length === 0 && hasSubscription && (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+          <div className="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Server className="w-8 h-8 text-cyan-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Your server is being set up</h2>
+          <p className="text-gray-500 mb-4">It should appear here shortly. Try refreshing in a moment.</p>
+          <button
+            onClick={fetchVMs}
+            className="inline-flex items-center gap-2 bg-cyan-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-cyan-600 transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        </div>
+      )}
+
+      {/* No subscription */}
+      {vms.length === 0 && !hasSubscription && (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Server className="w-8 h-8 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Plan</h2>
+          <p className="text-gray-500 mb-6">Choose a plan to get your cloud server running.</p>
+          <Link
+            to="/dashboard/billing"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
+          >
+            Choose a Plan
+          </Link>
+        </div>
+      )}
+
       {/* Skills Download Card */}
       {hasSubscription && (
         <div className="mb-8 bg-gradient-to-r from-purple-50 to-cyan-50 border border-purple-200 rounded-2xl p-6">
@@ -677,70 +853,8 @@ export default function DashboardIndex() {
         </div>
       )}
 
-      {/* Provisioning VMs */}
-      {provisioningVMs.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <RefreshCw className="w-4 h-4 text-yellow-500 animate-spin" />
-            Setting Up
-          </h2>
-          <div className="space-y-4">
-            {provisioningVMs.map(vm => (
-              <ProvisioningCard key={vm.id} vm={vm} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Active Servers */}
-      {activeVMs.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Server className="w-4 h-4 text-gray-500" />
-            My Servers
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {activeVMs.map(vm => (
-              <ServerCard key={vm.id} vm={vm} onAction={handleAction} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State - No VMs at all */}
-      {vms.length === 0 && hasSubscription && (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
-          <div className="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Server className="w-8 h-8 text-cyan-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Your server is being set up</h2>
-          <p className="text-gray-500 mb-4">It should appear here shortly. Try refreshing in a moment.</p>
-          <button
-            onClick={fetchVMs}
-            className="inline-flex items-center gap-2 bg-cyan-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-cyan-600 transition"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
-        </div>
-      )}
-
-      {/* No subscription */}
-      {vms.length === 0 && !hasSubscription && (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Server className="w-8 h-8 text-gray-400" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Plan</h2>
-          <p className="text-gray-500 mb-6">Choose a plan to get your cloud server running.</p>
-          <Link
-            to="/dashboard/billing"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
-          >
-            Choose a Plan
-          </Link>
-        </div>
-      )}
+      {/* Support Ticket */}
+      {hasSubscription && <SupportTicketForm api={api} user={user} />}
 
     </div>
   );
