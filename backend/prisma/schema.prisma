@@ -121,6 +121,7 @@ model AppSettings {
 }
 
 enum Plan {
+  FREE
   SOLO
   TEAM
   ARMY
