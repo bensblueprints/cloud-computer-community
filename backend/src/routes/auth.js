@@ -58,7 +58,7 @@ router.post("/register", authLimiter, async (req, res, next) => {
         data: {
           name: `${name}'s Organization`,
           ownerId: newUser.id,
-          plan: "SOLO",
+          plan: "FREE",
           seatLimit: 1,
           members: { connect: { id: newUser.id } }
         }
@@ -69,6 +69,26 @@ router.post("/register", authLimiter, async (req, res, next) => {
         include: { org: true }
       });
     });
+
+    // Send welcome email
+    const emailFrom = process.env.EMAIL_FROM || "noreply@cloudcode.space";
+    resend.emails.send({
+      from: `Cloud Computer <${emailFrom}>`,
+      to: email,
+      subject: "Welcome to Cloud Computer!",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #0891b2;">Welcome to Cloud Computer!</h1>
+          <p>Hi ${name},</p>
+          <p>Your account has been created. Choose a plan to get your cloud server running in minutes:</p>
+          <div style="margin: 24px 0;">
+            <a href="https://app.cloudcode.space/dashboard/billing" style="background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Choose Your Plan</a>
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">Every plan includes a free Go High Level CRM account with unlimited users.</p>
+          <p style="color: #6b7280; font-size: 14px;">3-day free trial on all plans. Cancel anytime.</p>
+        </div>
+      `
+    }).catch(err => console.error("Welcome email error:", err));
 
     setTokenCookie(res, user.id);
     res.status(201).json({ user: { id: user.id, name: user.name, email: user.email, org: user.org } });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Cloud } from 'lucide-react';
 
@@ -9,8 +9,10 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, api } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get('plan');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +24,21 @@ export default function Register() {
     setLoading(true);
     try {
       await register(name, email, password);
+
+      // If a plan was selected, go straight to Stripe checkout
+      if (plan) {
+        try {
+          const res = await api.post('/billing/checkout', { plan });
+          if (res.data.url) {
+            window.location.href = res.data.url;
+            return;
+          }
+        } catch (checkoutErr) {
+          console.error('Checkout redirect failed:', checkoutErr);
+          // Fall through to dashboard if checkout fails
+        }
+      }
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
@@ -38,7 +55,9 @@ export default function Register() {
             <Cloud className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
-          <p className="text-slate-400 mt-2">Start building in the cloud</p>
+          <p className="text-slate-400 mt-2">
+            {plan ? `Sign up to start your ${plan} plan` : 'Start building in the cloud'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-slate-900 rounded-2xl border border-slate-800 p-8">
@@ -87,7 +106,7 @@ export default function Register() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 transition"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? (plan ? 'Setting up...' : 'Creating account...') : (plan ? 'Create Account & Continue' : 'Create Account')}
           </button>
 
           <p className="text-center text-sm text-slate-500 mt-6">
