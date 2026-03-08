@@ -64,12 +64,8 @@ export default function Home() {
   const navigate = useNavigate();
 
   const handleCheckout = async (planName) => {
-    // If not logged in, go to register first
-    if (!user) {
-      navigate("/register");
-      return;
-    }
-    // If logged in, go directly to checkout
+    // Always go to Stripe checkout - works for both logged in and guest users
+    // Guest users will set up their password after checkout via /setup-password
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
