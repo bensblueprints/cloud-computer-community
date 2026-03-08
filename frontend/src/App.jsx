@@ -100,11 +100,13 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden" style={{ zIndex: 9999 }}>
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-900">Background Theme</p>
-            <p className="text-xs text-gray-500">Choose your vibe</p>
+      {open && (() => {
+        const dark = matrixTheme !== 'off';
+        return (
+        <div className={`absolute right-0 top-full mt-2 w-64 rounded-xl border shadow-xl overflow-hidden ${dark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`} style={{ zIndex: 9999 }}>
+          <div className={`px-4 py-3 border-b ${dark ? 'border-gray-700' : 'border-gray-100'}`}>
+            <p className={`text-sm font-semibold ${dark ? 'text-gray-100' : 'text-gray-900'}`}>Background Theme</p>
+            <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Choose your vibe</p>
           </div>
           <div className="p-2 space-y-1">
             {THEME_OPTIONS.map(opt => (
@@ -113,8 +115,8 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
                 onClick={() => { setMatrixTheme(opt.id); setOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
                   matrixTheme === opt.id
-                    ? 'bg-purple-50 border border-purple-200'
-                    : 'hover:bg-gray-50 border border-transparent'
+                    ? (dark ? 'bg-purple-900/50 border border-purple-500/50' : 'bg-purple-50 border border-purple-200')
+                    : (dark ? 'hover:bg-white/10 border border-transparent' : 'hover:bg-gray-50 border border-transparent')
                 }`}
               >
                 <div className={`w-8 h-8 rounded-lg flex-shrink-0 ${opt.preview} ${
@@ -135,11 +137,11 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{opt.label}</p>
-                  <p className="text-xs text-gray-500">{opt.desc}</p>
+                  <p className={`text-sm font-medium ${dark ? 'text-gray-100' : 'text-gray-900'}`}>{opt.label}</p>
+                  <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{opt.desc}</p>
                 </div>
                 {matrixTheme === opt.id && (
-                  <svg className="w-4 h-4 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 text-purple-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -147,7 +149,8 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
