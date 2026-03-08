@@ -1,0 +1,21 @@
+http:
+  routers:
+    api:
+      rule: Host(`api.cloudcode.space`)
+      entryPoints:
+        - websecure
+      service: backend
+      tls:
+        certResolver: letsencrypt
+    api-path:
+      rule: (Host(`cloudcode.space`) || Host(`app.cloudcode.space`)) && PathPrefix(`/api`)
+      entryPoints:
+        - websecure
+      service: backend
+      tls:
+        certResolver: letsencrypt
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://51.161.172.76:3001
