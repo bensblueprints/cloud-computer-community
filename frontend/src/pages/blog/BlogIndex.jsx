@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Cloud, Search, ChevronRight, Zap, ArrowRight } from "lucide-react";
+import { Search, ChevronRight, Zap, ArrowRight } from "lucide-react";
 import skills, { categories } from "../../data/skills";
+import { BlogNav, DevEnvironmentAd, BlogFooter } from "./BlogHeader";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -33,27 +34,10 @@ export default function BlogIndex() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center">
-              <Cloud className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">CloudCode</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/blog/claude" className="text-sm text-cyan-400 font-medium">Skills Library</Link>
-            <Link to="/" className="text-sm text-slate-400 hover:text-white transition">Home</Link>
-            <Link to="/register" className="text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition">
-              Get Free Skills
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <BlogNav />
 
       {/* Hero */}
-      <section className="pt-28 pb-12 relative overflow-hidden">
+      <section className="pt-36 pb-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
@@ -157,6 +141,13 @@ export default function BlogIndex() {
         )}
       </section>
 
+      {/* Dev Environment Ad */}
+      <section className="py-12 border-t border-slate-800/50">
+        <div className="max-w-xl mx-auto px-4">
+          <DevEnvironmentAd />
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20 border-t border-slate-800/50">
         <div className="max-w-3xl mx-auto text-center px-4">
@@ -177,20 +168,7 @@ export default function BlogIndex() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/50 py-8">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Cloud className="w-5 h-5 text-cyan-400" />
-            <span className="text-sm text-slate-500">CloudCode Skills Library</span>
-          </div>
-          <div className="flex gap-6 text-sm text-slate-500">
-            <Link to="/" className="hover:text-white transition">Home</Link>
-            <Link to="/blog/claude" className="hover:text-white transition">All Skills</Link>
-            <Link to="/register" className="hover:text-white transition">Sign Up</Link>
-          </div>
-        </div>
-      </footer>
+      <BlogFooter />
     </div>
   );
 }

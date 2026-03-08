@@ -1,10 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// All skill slugs
-const allSlugs = [
-  "ab-test-plan","abandoned-cart-email","about-page","accessibility-policy","ad-creative-brief","ad-performance-report","ad-spend-calculator","affiliate-program","affiliate-recruitment","affiliate-terms","agency-onboarding","ai-content-policy","ai-ethics-policy","ai-use-case-finder","ambassador-program","analytics-setup-guide","annual-planning","annual-report-writer","annual-review","api-documentation","article-rewriter","attribution-model","author-platform-plan","authority-content-strategy","automation-workflow","award-application","batch-processing-system","benchmarking-report","benefits-guide","beta-launch-plan","black-friday-emails","blog-post","book-outline","book-proposal","bookkeeping-setup","brand-architecture","brand-audit","brand-identity-guide","brand-photography-brief","brand-positioning-statement","brand-refresh","brand-story","brand-tagline","brand-voice-guide","breakeven-analysis","budget-planner","bundle-creator","business-continuity-plan","business-plan","caption-writer","cart-recovery-sms","case-study","cash-flow-forecast","catering-proposal","cause-marketing-campaign","cease-and-desist","certification-program","change-management-plan","chatbot-script","checkout-optimizer","churn-analysis","churn-prevention-playbook","class-schedule-planner","client-agreement","client-crm","client-feedback-system","client-intake-form","client-report-template","client-transformation-story","co-marketing-plan","coaching-framework","cohort-analysis","cohort-program","cold-outreach","collaboration-agreement","collection-page-copy","color-palette-generator","commission-structure","community-launch","community-moderation","comparison-article","compensation-plan","competitor-analysis","complaint-resolution","compliance-checklist","conference-planner","consulting-framework","consulting-proposal-template","content-audit","content-brief","content-calendar","content-cluster-plan","content-gap-finder","content-pillar-strategy","content-repurpose","content-style-guide","continuing-education","contract-writer","contractor-brief","conversion-funnel-analysis","cookie-policy","copyright-notice","cost-analysis","course-outline","crisis-comms","cross-border-selling","cross-sell-strategy","culture-document","curriculum-review","customer-advisory-board","customer-health-score","customer-journey-map","customer-lifetime-value","customer-persona","customer-review-strategy","customer-segmentation","customer-success-playbook","customer-support-kb","customer-win-story","data-collection-plan","data-dashboard-design","data-processing-agreement","decision-matrix","delegation-framework","diagnostic-assessment","digital-product-plan","disclaimer-generator","discount-strategy","discovery-call-script","diversity-policy","donation-page-copy","downsell-sequence","drip-campaign","dropshipping-supplier-brief","ebook-outline","email-ab-test-plan","email-deliverability-audit","email-design-system","email-list-cleanup","email-newsletter-template","email-preference-center","email-sequence","email-subject-line-tester","employee-handbook","employee-survey","energy-management","engagement-playbook","escalation-procedure","event-budget-planner","event-follow-up","event-marketing-plan","event-planner","event-registration-page","event-run-of-show","event-sponsorship-proposal","exchange-policy","executive-resume","exit-interview-template","expense-policy","expense-tracker","expert-positioning","expert-roundup-pitch","facebook-ad-campaign","facebook-group-plan","faq-generator","feature-announcement","feature-request-system","featured-snippet-optimizer","feedback-analysis","financial-dashboard","financial-model","financial-projection","fitness-program-outline","flash-sale-campaign","food-delivery-strategy","food-photography-brief","food-truck-business-plan","freelance-rate-card","freelancer-management","fulfillment-sop","fundraising-tracker","gdpr-compliance-checklist","ghostwriter-brief","gift-guide","google-ads-campaign","google-business-profile","grant-application","grant-report","group-program-design","guest-post-pitch","hashtag-strategy","headline-generator","health-disclaimer","help-center-article","high-ticket-sales-page","hiring-scorecard","homework-assignment","hook-generator","hybrid-event-plan","icon-set-brief","impact-report","independent-contractor-agreement","industry-association-plan","influencer-campaign-brief","influencer-outreach","instagram-carousel","intellectual-property-audit","interview-question-bank","inventory-management","investment-property-analysis","investor-update","invoice-template","job-posting","joint-venture-proposal","keyword-research","knowledge-base-builder","kpi-dashboard","landing-page-audit","landing-page-copy","launch-assets","launch-checklist","launch-email-sequence","lead-magnet","learning-path","lease-agreement-checklist","lesson-plan","letter-of-intent","licensing-agreement","link-building-plan","linkedin-ad-campaign","linkedin-article","linkedin-profile-optimizer","linkedin-strategy","listicle-generator","local-seo-plan","lookalike-audience-plan","loyalty-program","market-research","market-sizing","marketplace-fee-structure","marketplace-launch-plan","marketplace-listing","marketplace-metrics","marketplace-seo","mastermind-group","media-buy-plan","media-kit","meeting-agenda","meeting-notes","membership-site-plan","meme-content-brief","mentorship-program","menu-design-brief","merch-design-brief","meta-tag-optimizer","metric-definition-guide","micro-course","microcopy-writer","milestone-email","mission-statement","morning-routine-builder","naming-workshop","nda-template","neighborhood-guide","networking-event-plan","networking-strategy","newsletter-builder","newsletter-strategy","no-code-app-plan","non-compete-agreement","nonprofit-board-packet","nonprofit-fundraising-letter","nps-survey","nutrition-content-plan","objection-handler","offboarding-checklist","offer-letter","okr-builder","onboarding-checklist","onboarding-flow","one-on-one-template","open-house-plan","order-bump-copy","packaging-brief","partnership-agreement","partnership-proposal","payment-plan-offer","payment-terms-policy","performance-review","personal-brand-strategy","pillar-page","pinterest-strategy","pip-template","pitch-deck","platform-community-guidelines","platform-help-center","platform-migration","platform-partnership","platform-trust-system","podcast-ad-script","podcast-guest-pitch","podcast-launch","podcast-one-sheet","podcast-show-notes","portfolio-page","pr-pitch","presentation-template-guide","press-kit","press-release","price-increase-notice","pricing-analysis","pricing-calculator","pricing-page-copy","pricing-strategy","privacy-policy","process-automation-audit","product-changelog","product-comparison","product-description","product-faq","product-feedback-loop","product-hunt-launch","product-launch-email","product-launch-plan","product-listing-optimizer","product-photography-brief","product-recall-plan","product-roadmap","product-sourcing-brief","professional-bio","profit-loss-report","project-scope-change","project-tracker","prompt-library","property-listing","property-management-sop","proposal-writer","quality-assurance-checklist","quarterly-review","quiz-generator","rate-negotiation-script","re-engagement-email","real-estate-crm-setup","real-estate-newsletter","rebrand-plan","recipe-card","reddit-strategy","referral-bonus-plan","referral-program","release-notes","remote-team-handbook","remote-work-policy","renewal-campaign","rental-listing","report-automation","restaurant-marketing-plan","restaurant-review-response","restaurant-sop","retainer-agreement","retargeting-strategy","retreat-planner","retrospective","return-policy","revenue-forecast","revenue-model","review-response","risk-assessment","roi-calculator","saas-agreement","saas-cancellation-flow","saas-evaluation","saas-metrics-dashboard","saas-onboarding-flow","sales-battlecard","sales-deck","sales-email-template","sales-funnel-builder","sales-page","sales-script","satisfaction-survey","schema-markup-guide","scope-of-work","script-to-blog","seasonal-campaign","seasonal-inventory-plan","seasonal-menu-plan","self-service-portal","seller-onboarding","sentiment-analysis","seo-audit","seo-competitor-analysis","seo-content-brief","seo-migration-plan","seo-reporting-template","service-guarantee","service-level-agreement","service-productization","service-recovery-plan","shipping-policy","short-form-video-plan","signage-brief","signature-talk","site-architecture-plan","size-guide","skill-assessment","social-impact-measurement","social-listening-plan","social-media-audit","social-media-calendar","social-media-graphics","social-media-policy","social-media-strategy","social-proof-collector","sop-builder","speaker-outreach","speaking-one-sheet","speaking-proposal","speech-writer","sponsor-pitch","sponsor-thank-you","status-update-template","store-launch-plan","store-page-audit","strategic-alliance-plan","student-feedback-form","study-guide","style-tile","subcontractor-agreement","subscription-box-plan","subscription-metrics","succession-plan","supplement-disclaimer","support-response-templates","survey-analysis","survey-builder","swot-analysis","task-prioritization","tax-deduction-finder","tax-prep-checklist","team-building-plan","team-charter","tech-stack-recommendation","technical-seo-checklist","ted-talk-outline","tenant-screening-checklist","terms-of-service","terms-of-use-app","testimonial-collector","thank-you-campaign","thought-leader-content-plan","thought-leadership","thread-hook-writer","tiktok-ad-script","tiktok-script","time-audit","tool-stack-audit","trademark-application","training-manual","training-plan","transactional-email","trial-to-paid-email","tripwire-offer","tutorial-writer","twitter-thread","two-sided-email-strategy","unboxing-experience","unit-economics","upsell-sequence","user-generated-content","user-research-plan","value-proposition-canvas","vendor-evaluation","vendor-onboarding","video-script","viral-content-formula","virtual-event-platform","visual-identity-brief","voice-of-customer","volunteer-recruitment","waitlist-builder","waiver-release","webinar-email-sequence","webinar-planner","webinar-sales-script","weekly-report","welcome-sequence","wellness-assessment","wellness-workshop-plan","white-paper","wholesale-catalog","win-back-campaign","win-loss-analysis","workflow-mapper","workplace-policy","workshop-builder","workshop-handout","youtube-ad-script","youtube-seo","youtube-strategy","youtube-thumbnail"
-];
+// Path to the actual skill files
+const SKILLS_DIR = path.join('C:', 'Users', 'admin', '.claude', 'plugins', 'local-marketplace', 'plugins', 'skills-ultimate-bundle', 'skills');
 
 // Category mapping
 const categoryMap = {
@@ -30,7 +28,6 @@ const categoryMap = {
   "Food & Hospitality": ["catering-proposal","food-delivery-strategy","food-photography-brief","food-truck-business-plan","menu-design-brief","nutrition-content-plan","recipe-card","restaurant-marketing-plan","restaurant-review-response","restaurant-sop","seasonal-menu-plan"],
   "Nonprofit": ["award-application","donation-page-copy","grant-application","grant-report","impact-report","nonprofit-board-packet","nonprofit-fundraising-letter","social-impact-measurement","volunteer-recruitment"],
   "Wellness & Lifestyle": ["energy-management","fitness-program-outline","morning-routine-builder","wellness-assessment","wellness-workshop-plan","time-audit","task-prioritization"],
-  "Other": ["about-page","affiliate-program","affiliate-recruitment","affiliate-terms","ai-use-case-finder","automation-workflow","cohort-analysis","contract-writer","crisis-comms","data-collection-plan","data-dashboard-design","engagement-playbook","executive-resume","expert-positioning","expert-roundup-pitch","guest-post-pitch","industry-association-plan","membership-site-plan","metric-definition-guide","portfolio-page","pr-pitch","presentation-template-guide","press-release","price-increase-notice","process-automation-audit","professional-bio","property-listing","quality-assurance-checklist","quiz-generator","sop-builder","service-productization","sponsor-pitch","sponsor-thank-you","survey-analysis","survey-builder","tool-stack-audit","vendor-evaluation","vendor-onboarding","waitlist-builder","workflow-mapper","user-research-plan"]
 };
 
 // Reverse map: slug -> category
@@ -41,93 +38,179 @@ for (const [cat, slugs] of Object.entries(categoryMap)) {
 
 // Icon mapping by category
 const categoryIcons = {
-  "Marketing & Advertising": "Megaphone",
-  "Sales & Revenue": "TrendingUp",
-  "Content Creation": "PenTool",
-  "Email Marketing": "Mail",
-  "SEO & Technical": "Search",
-  "Brand & Design": "Palette",
-  "Social Media": "Share2",
-  "Legal & Compliance": "Shield",
-  "Finance & Operations": "DollarSign",
-  "HR & Management": "Users",
-  "Customer Experience": "Heart",
-  "Events & Community": "Calendar",
-  "Product & Platform": "Package",
-  "Education & Learning": "BookOpen",
-  "Business Strategy": "Briefcase",
-  "Agency & Freelance": "Briefcase",
-  "Podcasts & Speaking": "Mic",
-  "Real Estate": "Home",
-  "E-commerce": "Package",
-  "Food & Hospitality": "Award",
-  "Nonprofit": "Heart",
-  "Wellness & Lifestyle": "Zap",
-  "Other": "Star"
+  "Marketing & Advertising": "Megaphone", "Sales & Revenue": "TrendingUp", "Content Creation": "PenTool",
+  "Email Marketing": "Mail", "SEO & Technical": "Search", "Brand & Design": "Palette",
+  "Social Media": "Share2", "Legal & Compliance": "Shield", "Finance & Operations": "DollarSign",
+  "HR & Management": "Users", "Customer Experience": "Heart", "Events & Community": "Calendar",
+  "Product & Platform": "Package", "Education & Learning": "BookOpen", "Business Strategy": "Briefcase",
+  "Agency & Freelance": "Briefcase", "Podcasts & Speaking": "Mic", "Real Estate": "Home",
+  "E-commerce": "Package", "Food & Hospitality": "Award", "Nonprofit": "Heart",
+  "Wellness & Lifestyle": "Zap", "Other": "Star"
 };
 
-// Detailed descriptions for each skill
-const skillDetails = {
-  "ab-test-plan": { title: "A/B Test Plan Generator", desc: "Create structured A/B testing plans with hypotheses, success metrics, sample sizes, and statistical significance thresholds. Ensure every experiment delivers actionable insights.", who: ["Marketing managers","Growth hackers","Product managers","CRO specialists"], benefits: ["Eliminate guesswork from optimization decisions","Calculate exact sample sizes needed for statistical significance","Structure tests to produce clear, actionable winners"], output: "A complete A/B test plan including hypothesis statement, control vs. variant descriptions, primary and secondary metrics, required sample size calculations, test duration estimate, and a decision framework for interpreting results.", tags: ["marketing","testing","optimization","data"] },
-  "abandoned-cart-email": { title: "Abandoned Cart Email Writer", desc: "Generate high-converting abandoned cart email sequences that recover lost revenue. Includes timing strategy, subject lines, and persuasive copy with urgency triggers.", who: ["E-commerce store owners","Email marketers","Shopify merchants","DTC brands"], benefits: ["Recover 10-15% of abandoned carts with proven email sequences","Create multi-touch sequences with escalating urgency","Personalize messaging based on cart value and products"], output: "A 3-email abandoned cart sequence with optimized send timing (1 hour, 24 hours, 72 hours), subject lines with A/B variants, personalized body copy, product image placeholders, discount escalation strategy, and CTA buttons.", tags: ["email","ecommerce","recovery","conversion"] },
-  "about-page": { title: "About Page Writer", desc: "Craft compelling About pages that build trust, tell your brand story, and convert visitors into customers. Combines storytelling with strategic positioning.", who: ["Business owners","Website designers","Startups","Personal brands"], benefits: ["Build instant credibility with visitors through authentic storytelling","Convert more visitors by establishing trust and authority","Communicate your unique value proposition clearly"], output: "A complete About page with hero section copy, brand origin story, mission statement, team bios framework, social proof placement, values section, and a compelling call-to-action.", tags: ["website","copywriting","branding","trust"] },
-  "accessibility-policy": { title: "Accessibility Policy Generator", desc: "Generate ADA and WCAG-compliant accessibility policies for websites and applications. Covers all required disclosures and commitment statements.", who: ["Web developers","Legal teams","Compliance officers","Business owners"], benefits: ["Ensure legal compliance with ADA and WCAG 2.1 standards","Demonstrate commitment to inclusive design","Reduce legal risk from accessibility lawsuits"], output: "A comprehensive accessibility policy covering WCAG conformance level, assistive technology compatibility, known limitations, feedback mechanisms, and remediation timeline.", tags: ["legal","compliance","accessibility","web"] },
-  "ad-creative-brief": { title: "Ad Creative Brief Builder", desc: "Build detailed creative briefs for advertising campaigns across platforms. Defines target audience, messaging hierarchy, visual direction, and performance goals.", who: ["Creative directors","Media buyers","Marketing agencies","Brand managers"], benefits: ["Align creative teams on campaign objectives and brand guidelines","Reduce revision cycles with clear upfront direction","Ensure ad creative resonates with target audience segments"], output: "A structured creative brief including campaign objective, target audience profile, key message and supporting points, tone of voice guidelines, visual references, platform specs, and success metrics.", tags: ["advertising","creative","campaign","brief"] },
-  "ad-performance-report": { title: "Ad Performance Report Template", desc: "Generate professional ad performance reports with KPI dashboards, trend analysis, and optimization recommendations. Covers all major ad platforms.", who: ["Media buyers","PPC managers","Marketing agencies","CMOs"], benefits: ["Present campaign results in a clear, professional format","Identify optimization opportunities from performance data","Automate monthly reporting with consistent templates"], output: "A detailed performance report template with executive summary, spend breakdown by platform/campaign, KPI scorecards (CTR, CPC, ROAS, CPA), trend charts, audience insights, and next-period recommendations.", tags: ["advertising","analytics","reporting","performance"] },
-  "ad-spend-calculator": { title: "Ad Spend Calculator & Planner", desc: "Calculate optimal advertising budgets based on your goals, industry benchmarks, and expected returns. Plan media allocation across channels.", who: ["Marketing managers","Startup founders","Media planners","CFOs"], benefits: ["Allocate budget optimally across advertising channels","Forecast expected results based on industry benchmarks","Prevent overspending with data-driven budget guardrails"], output: "A budget allocation plan with recommended spend per channel, projected impressions/clicks/conversions, expected CPA and ROAS by platform, monthly pacing schedule, and break-even analysis.", tags: ["advertising","budget","planning","calculator"] },
+// Outbound links by category for SEO
+const categoryLinks = {
+  "Marketing & Advertising": [
+    { text: "HubSpot Marketing Blog", url: "https://blog.hubspot.com/marketing" },
+    { text: "Google Ads Help Center", url: "https://support.google.com/google-ads" },
+    { text: "Neil Patel's Marketing Guide", url: "https://neilpatel.com/blog/" }
+  ],
+  "Sales & Revenue": [
+    { text: "Salesforce Sales Resources", url: "https://www.salesforce.com/resources/" },
+    { text: "Gong Revenue Intelligence", url: "https://www.gong.io/blog/" },
+    { text: "Close.com Sales Blog", url: "https://blog.close.com/" }
+  ],
+  "Content Creation": [
+    { text: "Content Marketing Institute", url: "https://contentmarketinginstitute.com/" },
+    { text: "Copyblogger", url: "https://copyblogger.com/" },
+    { text: "Grammarly Writing Tips", url: "https://www.grammarly.com/blog/" }
+  ],
+  "Email Marketing": [
+    { text: "Mailchimp Resources", url: "https://mailchimp.com/resources/" },
+    { text: "Litmus Email Blog", url: "https://www.litmus.com/blog/" },
+    { text: "Really Good Emails", url: "https://reallygoodemails.com/" }
+  ],
+  "SEO & Technical": [
+    { text: "Moz SEO Learning Center", url: "https://moz.com/learn/seo" },
+    { text: "Ahrefs Blog", url: "https://ahrefs.com/blog/" },
+    { text: "Google Search Central", url: "https://developers.google.com/search" }
+  ],
+  "Brand & Design": [
+    { text: "Canva Design School", url: "https://www.canva.com/designschool/" },
+    { text: "Dribbble Design Blog", url: "https://dribbble.com/stories" },
+    { text: "Brand New (UnderConsideration)", url: "https://www.underconsideration.com/brandnew/" }
+  ],
+  "Social Media": [
+    { text: "Hootsuite Blog", url: "https://blog.hootsuite.com/" },
+    { text: "Buffer Resources", url: "https://buffer.com/resources/" },
+    { text: "Sprout Social Insights", url: "https://sproutsocial.com/insights/" }
+  ],
+  "Legal & Compliance": [
+    { text: "LegalZoom Resources", url: "https://www.legalzoom.com/articles/" },
+    { text: "GDPR Official Site", url: "https://gdpr.eu/" },
+    { text: "Nolo Legal Encyclopedia", url: "https://www.nolo.com/" }
+  ],
+  "Finance & Operations": [
+    { text: "Investopedia", url: "https://www.investopedia.com/" },
+    { text: "QuickBooks Resources", url: "https://quickbooks.intuit.com/r/" },
+    { text: "SCORE Financial Templates", url: "https://www.score.org/resource-library" }
+  ],
+  "HR & Management": [
+    { text: "SHRM Resources", url: "https://www.shrm.org/" },
+    { text: "Harvard Business Review", url: "https://hbr.org/" },
+    { text: "BambooHR Blog", url: "https://www.bamboohr.com/blog/" }
+  ],
+  "Customer Experience": [
+    { text: "Zendesk CX Trends", url: "https://www.zendesk.com/blog/" },
+    { text: "Intercom Blog", url: "https://www.intercom.com/blog/" },
+    { text: "Forrester CX Research", url: "https://www.forrester.com/" }
+  ],
+  "Events & Community": [
+    { text: "Eventbrite Blog", url: "https://www.eventbrite.com/blog/" },
+    { text: "CMX Hub Community", url: "https://cmxhub.com/" },
+    { text: "Meetup Pro", url: "https://www.meetup.com/pro/" }
+  ],
+  "Product & Platform": [
+    { text: "Product Hunt", url: "https://www.producthunt.com/" },
+    { text: "Mind the Product", url: "https://www.mindtheproduct.com/" },
+    { text: "Lenny's Newsletter", url: "https://www.lennysnewsletter.com/" }
+  ],
+  "Education & Learning": [
+    { text: "Coursera for Business", url: "https://www.coursera.org/business" },
+    { text: "Teachable Blog", url: "https://teachable.com/blog" },
+    { text: "EdSurge", url: "https://www.edsurge.com/" }
+  ],
+  "Business Strategy": [
+    { text: "Harvard Business Review", url: "https://hbr.org/" },
+    { text: "McKinsey Insights", url: "https://www.mckinsey.com/featured-insights" },
+    { text: "Strategyzer", url: "https://www.strategyzer.com/blog" }
+  ],
+  "Agency & Freelance": [
+    { text: "Freelancers Union", url: "https://www.freelancersunion.org/" },
+    { text: "Agency Analytics Blog", url: "https://agencyanalytics.com/blog" },
+    { text: "Toggl Track", url: "https://toggl.com/blog/" }
+  ],
+  "Podcasts & Speaking": [
+    { text: "Podcast Insights", url: "https://www.podcastinsights.com/" },
+    { text: "TED Speaker Resources", url: "https://www.ted.com/participate/ted-talks-tips" },
+    { text: "Buzzsprout Blog", url: "https://www.buzzsprout.com/blog" }
+  ],
+  "Real Estate": [
+    { text: "Zillow Research", url: "https://www.zillow.com/research/" },
+    { text: "NAR Resources", url: "https://www.nar.realtor/research-and-statistics" },
+    { text: "BiggerPockets", url: "https://www.biggerpockets.com/blog" }
+  ],
+  "E-commerce": [
+    { text: "Shopify Blog", url: "https://www.shopify.com/blog" },
+    { text: "BigCommerce Essentials", url: "https://www.bigcommerce.com/blog/" },
+    { text: "Practical Ecommerce", url: "https://www.practicalecommerce.com/" }
+  ],
+  "Food & Hospitality": [
+    { text: "Restaurant Business Online", url: "https://www.restaurantbusinessonline.com/" },
+    { text: "Toast Restaurant Blog", url: "https://pos.toasttab.com/blog" },
+    { text: "Food Network Tips", url: "https://www.foodnetwork.com/" }
+  ],
+  "Nonprofit": [
+    { text: "Nonprofit Quarterly", url: "https://nonprofitquarterly.org/" },
+    { text: "Candid (GuideStar)", url: "https://www.guidestar.org/" },
+    { text: "Chronicle of Philanthropy", url: "https://www.philanthropy.com/" }
+  ],
+  "Wellness & Lifestyle": [
+    { text: "Well+Good", url: "https://www.wellandgood.com/" },
+    { text: "Headspace Blog", url: "https://www.headspace.com/articles" },
+    { text: "Healthline", url: "https://www.healthline.com/" }
+  ],
 };
 
-// Helper to generate title from slug
+// Title overrides
+const titleOverrides = {
+  "ab-test-plan": "A/B Test Plan Generator",
+  "api-documentation": "API Documentation Writer",
+  "ai-content-policy": "AI Content Policy Generator",
+  "ai-ethics-policy": "AI Ethics Policy Framework",
+  "ai-use-case-finder": "AI Use Case Finder",
+  "faq-generator": "FAQ Generator",
+  "gdpr-compliance-checklist": "GDPR Compliance Checklist",
+  "kpi-dashboard": "KPI Dashboard Builder",
+  "nda-template": "NDA Template Generator",
+  "nps-survey": "NPS Survey Builder",
+  "okr-builder": "OKR Builder",
+  "pip-template": "PIP Template Generator",
+  "pr-pitch": "PR Pitch Writer",
+  "roi-calculator": "ROI Calculator Builder",
+  "saas-agreement": "SaaS Agreement Writer",
+  "saas-cancellation-flow": "SaaS Cancellation Flow Designer",
+  "saas-evaluation": "SaaS Evaluation Framework",
+  "saas-metrics-dashboard": "SaaS Metrics Dashboard",
+  "saas-onboarding-flow": "SaaS Onboarding Flow Builder",
+  "seo-audit": "SEO Audit Generator",
+  "seo-competitor-analysis": "SEO Competitor Analysis",
+  "seo-content-brief": "SEO Content Brief Writer",
+  "seo-migration-plan": "SEO Migration Plan",
+  "seo-reporting-template": "SEO Reporting Template",
+  "sop-builder": "SOP Builder",
+  "swot-analysis": "SWOT Analysis Generator",
+  "ted-talk-outline": "TED Talk Outline Builder",
+  "youtube-seo": "YouTube SEO Optimizer",
+  "youtube-ad-script": "YouTube Ad Script Writer",
+  "youtube-strategy": "YouTube Strategy Planner",
+  "youtube-thumbnail": "YouTube Thumbnail Brief",
+  "tiktok-ad-script": "TikTok Ad Script Writer",
+  "tiktok-script": "TikTok Script Writer",
+  "linkedin-ad-campaign": "LinkedIn Ad Campaign Builder",
+  "linkedin-article": "LinkedIn Article Writer",
+  "linkedin-profile-optimizer": "LinkedIn Profile Optimizer",
+  "linkedin-strategy": "LinkedIn Strategy Planner",
+  "facebook-ad-campaign": "Facebook Ad Campaign Builder",
+  "facebook-group-plan": "Facebook Group Strategy",
+  "google-ads-campaign": "Google Ads Campaign Builder",
+  "google-business-profile": "Google Business Profile Optimizer",
+};
+
 function slugToTitle(slug) {
-  const overrides = {
-    "ab-test-plan": "A/B Test Plan Generator",
-    "api-documentation": "API Documentation Writer",
-    "ai-content-policy": "AI Content Policy Generator",
-    "ai-ethics-policy": "AI Ethics Policy Framework",
-    "ai-use-case-finder": "AI Use Case Finder",
-    "cta": "CTA Optimizer",
-    "crm": "CRM Setup Guide",
-    "diy": "DIY Guide Creator",
-    "faq-generator": "FAQ Generator",
-    "gdpr-compliance-checklist": "GDPR Compliance Checklist",
-    "kpi-dashboard": "KPI Dashboard Builder",
-    "nda-template": "NDA Template Generator",
-    "nps-survey": "NPS Survey Builder",
-    "okr-builder": "OKR Builder",
-    "pip-template": "PIP Template Generator",
-    "pr-pitch": "PR Pitch Writer",
-    "roi-calculator": "ROI Calculator Builder",
-    "saas-agreement": "SaaS Agreement Writer",
-    "saas-cancellation-flow": "SaaS Cancellation Flow Designer",
-    "saas-evaluation": "SaaS Evaluation Framework",
-    "saas-metrics-dashboard": "SaaS Metrics Dashboard",
-    "saas-onboarding-flow": "SaaS Onboarding Flow Builder",
-    "seo-audit": "SEO Audit Generator",
-    "seo-competitor-analysis": "SEO Competitor Analysis",
-    "seo-content-brief": "SEO Content Brief Writer",
-    "seo-migration-plan": "SEO Migration Plan",
-    "seo-reporting-template": "SEO Reporting Template",
-    "sop-builder": "SOP Builder",
-    "swot-analysis": "SWOT Analysis Generator",
-    "ted-talk-outline": "TED Talk Outline Builder",
-    "youtube-seo": "YouTube SEO Optimizer",
-    "youtube-ad-script": "YouTube Ad Script Writer",
-    "youtube-strategy": "YouTube Strategy Planner",
-    "youtube-thumbnail": "YouTube Thumbnail Brief",
-    "tiktok-ad-script": "TikTok Ad Script Writer",
-    "tiktok-script": "TikTok Script Writer",
-    "linkedin-ad-campaign": "LinkedIn Ad Campaign Builder",
-    "linkedin-article": "LinkedIn Article Writer",
-    "linkedin-profile-optimizer": "LinkedIn Profile Optimizer",
-    "linkedin-strategy": "LinkedIn Strategy Planner",
-    "facebook-ad-campaign": "Facebook Ad Campaign Builder",
-    "facebook-group-plan": "Facebook Group Strategy",
-    "google-ads-campaign": "Google Ads Campaign Builder",
-    "google-business-profile": "Google Business Profile Optimizer",
-  };
-  if (overrides[slug]) return overrides[slug];
+  if (titleOverrides[slug]) return titleOverrides[slug];
   return slug.split('-').map(w => {
-    if (["a","an","the","and","or","but","in","on","at","to","for","of","with","by","from","as","is","was","are","be"].includes(w) && slug.split('-').indexOf(w) > 0) return w;
+    if (["a","an","the","and","or","but","in","on","at","to","for","of","with","by","from","as","is"].includes(w) && slug.split('-').indexOf(w) > 0) return w;
     if (w === "sms") return "SMS";
     if (w === "crm") return "CRM";
     if (w === "sop") return "SOP";
@@ -137,82 +220,208 @@ function slugToTitle(slug) {
   }).join(' ');
 }
 
-// Generate description from slug and category
-function genDesc(slug, title, cat) {
-  const patterns = {
-    "Marketing & Advertising": `Generate a comprehensive ${title.toLowerCase()} tailored to your business goals and target audience. Includes actionable strategies, metrics to track, and implementation timeline.`,
-    "Sales & Revenue": `Create a professional ${title.toLowerCase()} designed to increase conversions and revenue. Features proven frameworks, persuasive copy structures, and measurable objectives.`,
-    "Content Creation": `Build a complete ${title.toLowerCase()} with strategic frameworks, audience-optimized messaging, and SEO considerations. Produces publish-ready content structures.`,
-    "Email Marketing": `Design a high-performing ${title.toLowerCase()} with optimized subject lines, send timing, segmentation strategy, and conversion-focused copy.`,
-    "SEO & Technical": `Generate a thorough ${title.toLowerCase()} covering on-page optimization, technical factors, competitive gaps, and prioritized action items.`,
-    "Brand & Design": `Create a polished ${title.toLowerCase()} that defines your visual and verbal identity with clear guidelines, mood references, and consistency rules.`,
-    "Social Media": `Build a strategic ${title.toLowerCase()} with platform-specific tactics, content themes, posting schedules, and engagement strategies.`,
-    "Legal & Compliance": `Generate a professional ${title.toLowerCase()} covering all required legal disclosures, regulatory standards, and protective clauses.`,
-    "Finance & Operations": `Create a detailed ${title.toLowerCase()} with accurate calculations, projections, and data-driven insights for informed decision-making.`,
-    "HR & Management": `Build a comprehensive ${title.toLowerCase()} with best-practice structures, clear policies, and implementation guidance.`,
-    "Customer Experience": `Design a customer-focused ${title.toLowerCase()} with journey mapping, feedback loops, and retention strategies that increase satisfaction.`,
-    "Events & Community": `Plan a successful ${title.toLowerCase()} with logistics, engagement activities, promotion strategies, and post-event follow-up.`,
-    "Product & Platform": `Create a strategic ${title.toLowerCase()} covering feature priorities, user flows, technical requirements, and launch milestones.`,
-    "Education & Learning": `Build an effective ${title.toLowerCase()} with learning objectives, structured curriculum, assessment methods, and engagement techniques.`,
-    "Business Strategy": `Generate a strategic ${title.toLowerCase()} with market analysis, competitive positioning, resource planning, and measurable milestones.`,
-    "Agency & Freelance": `Create a professional ${title.toLowerCase()} with clear deliverables, timelines, pricing structures, and client communication frameworks.`,
-    "Podcasts & Speaking": `Build a compelling ${title.toLowerCase()} with audience hooks, structured talking points, and promotional assets.`,
-    "Real Estate": `Generate a professional ${title.toLowerCase()} with market analysis, property details, compliance requirements, and marketing strategies.`,
-    "E-commerce": `Create a conversion-optimized ${title.toLowerCase()} with product strategies, customer experience enhancements, and growth tactics.`,
-    "Food & Hospitality": `Build a professional ${title.toLowerCase()} covering menu strategy, customer experience, operations, and marketing.`,
-    "Nonprofit": `Create an impactful ${title.toLowerCase()} with compelling narratives, donor engagement strategies, and measurable outcomes.`,
-    "Wellness & Lifestyle": `Design a personalized ${title.toLowerCase()} with evidence-based approaches, progress tracking, and sustainable habits.`,
-    "Other": `Generate a professional ${title.toLowerCase()} with structured frameworks, actionable steps, and measurable outcomes.`
+// Parse SKILL.md frontmatter and content
+function parseSkillMd(content) {
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!fmMatch) return { frontmatter: {}, body: content };
+
+  const fmRaw = fmMatch[1];
+  const body = fmMatch[2].trim();
+
+  // Simple YAML parsing
+  const fm = {};
+  fmRaw.split('\n').forEach(line => {
+    const m = line.match(/^(\w+):\s*"?([^"]*)"?$/);
+    if (m) fm[m[1]] = m[2];
+  });
+
+  return { frontmatter: fm, body };
+}
+
+// Extract sections from markdown body
+function extractSections(body) {
+  const sections = {};
+  let currentSection = '';
+  let currentContent = [];
+
+  body.split('\n').forEach(line => {
+    const h2 = line.match(/^## (.+)$/);
+    if (h2) {
+      if (currentSection) sections[currentSection] = currentContent.join('\n').trim();
+      currentSection = h2[1];
+      currentContent = [];
+    } else {
+      currentContent.push(line);
+    }
+  });
+  if (currentSection) sections[currentSection] = currentContent.join('\n').trim();
+
+  return sections;
+}
+
+// Extract "When to Use" bullet points
+function extractWhenToUse(sections) {
+  const whenSection = sections['When to Use This Skill'] || '';
+  const bullets = [];
+  whenSection.split('\n').forEach(line => {
+    const m = line.match(/^-\s+(.+)$/);
+    if (m) bullets.push(m[1].trim());
+  });
+  return bullets;
+}
+
+// Extract DO NOT use guidance
+function extractDoNotUse(sections) {
+  const whenSection = sections['When to Use This Skill'] || '';
+  const m = whenSection.match(/\*\*DO NOT\*\*\s+(.+?)(?:\n|$)/);
+  return m ? m[1].trim() : '';
+}
+
+// Generate SEO description from actual skill content
+function generateSeoDescription(slug, title, frontmatter, sections, body) {
+  const desc = frontmatter.description || '';
+  const whenBullets = extractWhenToUse(sections);
+
+  // Build a rich, unique SEO description from the actual skill content
+  let seoDesc = desc;
+  if (whenBullets.length > 0) {
+    seoDesc += ' Perfect for when you need to ' + whenBullets.slice(0, 2).join(', or ').toLowerCase() + '.';
+  }
+  // Cap at 300 chars for meta description friendliness
+  if (seoDesc.length > 300) seoDesc = seoDesc.substring(0, 297) + '...';
+  return seoDesc;
+}
+
+// Generate "Who it's for" from content analysis
+function generateWhoItsFor(slug, cat, sections) {
+  const whenBullets = extractWhenToUse(sections);
+  const bodyText = Object.values(sections).join(' ').toLowerCase();
+
+  const audienceMap = {
+    "Marketing & Advertising": ["Marketing managers", "Growth marketers", "Agency owners", "CMOs", "Media buyers"],
+    "Sales & Revenue": ["Sales managers", "Founders", "Revenue leaders", "E-commerce owners", "Sales reps"],
+    "Content Creation": ["Content marketers", "Bloggers", "Copywriters", "Brand managers", "Course creators"],
+    "Email Marketing": ["Email marketers", "E-commerce owners", "Marketing managers", "Newsletter creators"],
+    "SEO & Technical": ["SEO specialists", "Content strategists", "Web developers", "Digital marketers"],
+    "Brand & Design": ["Brand managers", "Designers", "Founders", "Creative directors", "Marketing teams"],
+    "Social Media": ["Social media managers", "Content creators", "Influencers", "Brand managers"],
+    "Legal & Compliance": ["Business owners", "Legal teams", "Compliance officers", "Startup founders"],
+    "Finance & Operations": ["CFOs", "Business owners", "Operations managers", "Startup founders"],
+    "HR & Management": ["HR managers", "Team leads", "Business owners", "People operations"],
+    "Customer Experience": ["Customer success managers", "Support leads", "Product managers", "CX directors"],
+    "Events & Community": ["Event planners", "Community managers", "Marketing managers", "Organizers"],
+    "Product & Platform": ["Product managers", "Founders", "CTOs", "Development leads"],
+    "Education & Learning": ["Educators", "Course creators", "Training managers", "Coaches"],
+    "Business Strategy": ["CEOs", "Founders", "Strategy consultants", "Business analysts"],
+    "Agency & Freelance": ["Agency owners", "Freelancers", "Consultants", "Project managers"],
+    "Podcasts & Speaking": ["Podcast hosts", "Public speakers", "Thought leaders", "Content creators"],
+    "Real Estate": ["Real estate agents", "Property managers", "Investors", "Brokers"],
+    "E-commerce": ["E-commerce owners", "Shopify merchants", "DTC brands", "Marketplace sellers"],
+    "Food & Hospitality": ["Restaurant owners", "Chefs", "Food entrepreneurs", "Hospitality managers"],
+    "Nonprofit": ["Nonprofit directors", "Fundraisers", "Grant writers", "Board members"],
+    "Wellness & Lifestyle": ["Coaches", "Wellness practitioners", "Entrepreneurs", "Fitness professionals"],
   };
-  return patterns[cat] || patterns["Other"];
+  return audienceMap[cat] || ["Business owners", "Professionals", "Entrepreneurs", "Managers"];
 }
 
-// Generate who-its-for based on category
-function genWho(cat) {
-  const whoMap = {
-    "Marketing & Advertising": ["Marketing managers","Growth marketers","Agency owners","CMOs"],
-    "Sales & Revenue": ["Sales managers","Founders","Revenue leaders","Sales reps"],
-    "Content Creation": ["Content marketers","Bloggers","Copywriters","Brand managers"],
-    "Email Marketing": ["Email marketers","E-commerce owners","Marketing managers","Growth hackers"],
-    "SEO & Technical": ["SEO specialists","Content strategists","Web developers","Marketing managers"],
-    "Brand & Design": ["Brand managers","Designers","Founders","Creative directors"],
-    "Social Media": ["Social media managers","Content creators","Influencers","Brand managers"],
-    "Legal & Compliance": ["Business owners","Legal teams","Compliance officers","Founders"],
-    "Finance & Operations": ["CFOs","Business owners","Operations managers","Accountants"],
-    "HR & Management": ["HR managers","Team leads","Business owners","Operations directors"],
-    "Customer Experience": ["Customer success managers","Support leads","Product managers","CX directors"],
-    "Events & Community": ["Event planners","Community managers","Marketing managers","Founders"],
-    "Product & Platform": ["Product managers","Founders","CTOs","Development leads"],
-    "Education & Learning": ["Educators","Course creators","Training managers","Coaches"],
-    "Business Strategy": ["CEOs","Founders","Strategy consultants","Business analysts"],
-    "Agency & Freelance": ["Agency owners","Freelancers","Consultants","Project managers"],
-    "Podcasts & Speaking": ["Podcast hosts","Public speakers","Thought leaders","Content creators"],
-    "Real Estate": ["Real estate agents","Property managers","Investors","Brokers"],
-    "E-commerce": ["E-commerce owners","Shopify merchants","DTC brands","Marketplace sellers"],
-    "Food & Hospitality": ["Restaurant owners","Chefs","Food entrepreneurs","Hospitality managers"],
-    "Nonprofit": ["Nonprofit directors","Fundraisers","Grant writers","Board members"],
-    "Wellness & Lifestyle": ["Coaches","Wellness practitioners","Entrepreneurs","Fitness professionals"],
-    "Other": ["Business owners","Professionals","Entrepreneurs","Managers"]
-  };
-  return whoMap[cat] || whoMap["Other"];
+// Generate benefits from actual content
+function generateBenefits(slug, title, sections, body) {
+  const benefits = [];
+  const whenBullets = extractWhenToUse(sections);
+
+  // Benefit 1: from the first when-to-use bullet
+  if (whenBullets[0]) {
+    benefits.push(`Instantly ${whenBullets[0].charAt(0).toLowerCase() + whenBullets[0].slice(1).replace(/\.$/, '')} with AI-generated frameworks and proven templates`);
+  } else {
+    benefits.push(`Generate a professional ${title.toLowerCase()} in seconds instead of spending hours starting from scratch`);
+  }
+
+  // Benefit 2: structure/framework benefit
+  if (body.includes('table') || body.includes('Template') || body.includes('framework') || body.includes('Framework')) {
+    benefits.push('Follow battle-tested frameworks and structured templates used by industry professionals');
+  } else {
+    benefits.push('Get a customized, ready-to-use deliverable tailored to your specific business needs');
+  }
+
+  // Benefit 3: outcome benefit
+  if (whenBullets[1]) {
+    benefits.push(`Also helps you ${whenBullets[1].charAt(0).toLowerCase() + whenBullets[1].slice(1).replace(/\.$/, '')}`);
+  } else {
+    benefits.push('Save time and ensure nothing is missed with comprehensive, structured output');
+  }
+
+  return benefits;
 }
 
-// Generate benefits
-function genBenefits(slug, title, cat) {
-  return [
-    `Save hours by generating a professional ${title.toLowerCase()} in seconds instead of starting from scratch`,
-    `Follow proven frameworks and best practices used by industry leaders`,
-    `Get a customized, ready-to-use deliverable tailored to your specific business and audience`
-  ];
+// Generate example output description from actual content
+function generateExampleOutput(slug, title, sections, body) {
+  const sectionNames = Object.keys(sections).filter(s =>
+    s !== 'When to Use This Skill' && s !== 'Recovery' && s !== 'Anti-Patterns' && s !== 'Pre-Delivery Checklist'
+  );
+
+  if (sectionNames.length > 2) {
+    const keyParts = sectionNames.slice(0, 4).map(s => s.toLowerCase()).join(', ');
+    return `A complete, professionally structured ${title.toLowerCase()} covering ${keyParts}, and more. Fully customized to your business with actionable sections ready for immediate implementation.`;
+  }
+
+  return `A comprehensive ${title.toLowerCase()} with all essential sections, structured frameworks, and actionable recommendations tailored to your specific business needs and goals.`;
 }
 
-// Generate example output
-function genOutput(slug, title, cat) {
-  return `A complete, professionally structured ${title.toLowerCase()} customized to your business, including all necessary sections, actionable recommendations, and implementation steps ready to put into practice immediately.`;
+// Generate SEO-friendly blog body content from the SKILL.md
+function generateBlogContent(slug, title, cat, sections, body, frontmatter) {
+  const whenBullets = extractWhenToUse(sections);
+  const doNotUse = extractDoNotUse(sections);
+  const links = categoryLinks[cat] || categoryLinks["Business Strategy"];
+
+  let content = '';
+
+  // Intro paragraph
+  content += `The **${title}** skill by Benjamin Tate is one of 500+ AI-powered Claude Code skills designed to save you hours of manual work. `;
+  content += `Whether you're a seasoned professional or just getting started, this skill generates a complete, ready-to-use ${title.toLowerCase()} `;
+  content += `tailored to your specific business.\n\n`;
+
+  // What it does
+  content += `## What Does the ${title} Skill Do?\n\n`;
+  content += (frontmatter.description || `Generates a professional ${title.toLowerCase()} customized to your needs.`) + '\n\n';
+
+  // When to use
+  if (whenBullets.length > 0) {
+    content += `## When Should You Use This Skill?\n\n`;
+    content += `This skill is perfect when you need to:\n\n`;
+    whenBullets.forEach(b => { content += `- ${b}\n`; });
+    content += '\n';
+    if (doNotUse) content += `> **Note:** ${doNotUse}\n\n`;
+  }
+
+  // Key sections from the skill
+  const keySections = Object.keys(sections).filter(s =>
+    !['When to Use This Skill', 'Recovery', 'Anti-Patterns', 'Pre-Delivery Checklist'].includes(s)
+  ).slice(0, 3);
+
+  if (keySections.length > 0) {
+    content += `## What's Included in the Output?\n\n`;
+    content += `When you run \`/${slug}\` in Claude Code, you'll get a structured document covering:\n\n`;
+    keySections.forEach(s => { content += `- **${s}** - with detailed frameworks and actionable guidance\n`; });
+    content += '\n';
+  }
+
+  // Outbound links for SEO
+  content += `## Learn More\n\n`;
+  content += `For additional context on this topic, check out these resources:\n\n`;
+  links.forEach(l => { content += `- [${l.text}](${l.url})\n`; });
+  content += '\n';
+
+  // CTA
+  content += `## Get All 500+ Skills Free\n\n`;
+  content += `The ${title} skill is part of the **Skills Ultimate Bundle** by Benjamin Tate — `;
+  content += `a collection of 500+ AI-powered skills for Claude Code. Sign up for a free CloudCode account `;
+  content += `to download and install the complete bundle.\n`;
+
+  return content;
 }
 
-// Generate tags
-function genTags(slug, cat) {
+// Generate tags from content analysis
+function generateTags(slug, cat, body) {
   const catTags = {
     "Marketing & Advertising": ["marketing","advertising","strategy"],
     "Sales & Revenue": ["sales","revenue","conversion"],
@@ -236,52 +445,75 @@ function genTags(slug, cat) {
     "Food & Hospitality": ["food","hospitality","restaurant"],
     "Nonprofit": ["nonprofit","fundraising","social-impact"],
     "Wellness & Lifestyle": ["wellness","lifestyle","health"],
-    "Other": ["business","professional","productivity"]
   };
-  const baseTags = catTags[cat] || catTags["Other"];
-  // Add slug-derived tags
+  const baseTags = catTags[cat] || ["business","professional","productivity"];
   const slugParts = slug.split('-').filter(w => w.length > 2 && !["the","and","for","with"].includes(w));
-  const extra = slugParts.slice(0, 2);
-  return [...new Set([...baseTags, ...extra])];
+  return [...new Set([...baseTags, ...slugParts.slice(0, 2)])];
 }
 
-// Build all skills
-const skills = allSlugs.map(slug => {
+// Main: Read all skills and generate data
+console.log('Reading skill files from:', SKILLS_DIR);
+
+let dirs;
+try {
+  dirs = fs.readdirSync(SKILLS_DIR).filter(d => {
+    const skillPath = path.join(SKILLS_DIR, d, 'SKILL.md');
+    return fs.existsSync(skillPath);
+  });
+} catch (err) {
+  console.error('Could not read skills directory:', err.message);
+  process.exit(1);
+}
+
+console.log(`Found ${dirs.length} skills`);
+
+const skills = [];
+
+dirs.forEach(slug => {
+  const skillPath = path.join(SKILLS_DIR, slug, 'SKILL.md');
+  const raw = fs.readFileSync(skillPath, 'utf8');
+  const { frontmatter, body } = parseSkillMd(raw);
+  const sections = extractSections(body);
+
   const cat = slugToCategory[slug] || "Other";
-  const title = skillDetails[slug]?.title || slugToTitle(slug);
-  const desc = skillDetails[slug]?.desc || genDesc(slug, title, cat);
-  const who = skillDetails[slug]?.who || genWho(cat);
-  const benefits = skillDetails[slug]?.benefits || genBenefits(slug, title, cat);
-  const output = skillDetails[slug]?.output || genOutput(slug, title, cat);
-  const tags = skillDetails[slug]?.tags || genTags(slug, cat);
+  const title = titleOverrides[slug] || slugToTitle(slug);
   const icon = categoryIcons[cat] || "Star";
 
-  return {
+  const skill = {
     slug,
     title,
     category: cat,
     icon,
-    description: desc,
-    whoItsFor: who,
-    benefits,
+    description: generateSeoDescription(slug, title, frontmatter, sections, body),
+    whoItsFor: generateWhoItsFor(slug, cat, sections),
+    benefits: generateBenefits(slug, title, sections, body),
     examplePrompt: `/${slug}`,
-    exampleOutput: output,
-    tags
+    exampleOutput: generateExampleOutput(slug, title, sections, body),
+    blogContent: generateBlogContent(slug, title, cat, sections, body, frontmatter),
+    tags: generateTags(slug, cat, body),
+    author: "Benjamin Tate",
+    outboundLinks: (categoryLinks[cat] || categoryLinks["Business Strategy"]),
   };
+
+  skills.push(skill);
 });
+
+// Sort alphabetically
+skills.sort((a, b) => a.slug.localeCompare(b.slug));
 
 // Build categories export
 const categoriesExport = {};
-for (const [cat, slugs] of Object.entries(categoryMap)) {
-  categoriesExport[cat] = {
-    count: slugs.length,
-    icon: categoryIcons[cat] || "Star"
-  };
+for (const [cat] of Object.entries(categoryMap)) {
+  const count = skills.filter(s => s.category === cat).length;
+  if (count > 0) {
+    categoriesExport[cat] = { count, icon: categoryIcons[cat] || "Star" };
+  }
 }
 
 // Generate output
-const output = `// Auto-generated skills data - ${skills.length} skills
+const output = `// Auto-generated skills data - ${skills.length} skills from actual SKILL.md files
 // Generated on ${new Date().toISOString()}
+// Author: Benjamin Tate
 
 const skills = ${JSON.stringify(skills, null, 2)};
 
@@ -290,5 +522,7 @@ export const categories = ${JSON.stringify(categoriesExport, null, 2)};
 export default skills;
 `;
 
-fs.writeFileSync(path.join(__dirname, 'skills.js'), output, 'utf8');
+const outPath = path.join(__dirname, 'skills.js');
+fs.writeFileSync(outPath, output, 'utf8');
 console.log(`Generated skills.js with ${skills.length} skills across ${Object.keys(categoriesExport).length} categories`);
+console.log(`Output: ${outPath}`);

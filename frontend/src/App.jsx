@@ -25,6 +25,7 @@ const AdminVMs = lazy(() => import('./pages/admin/VMs'));
 const AdminProxmox = lazy(() => import('./pages/admin/Proxmox'));
 const AdminBilling = lazy(() => import('./pages/admin/Billing'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
+const About = lazy(() => import('./pages/About'));
 const Blog = lazy(() => import('./pages/blog/Blog'));
 const BlogIndex = lazy(() => import('./pages/blog/BlogIndex'));
 const BlogPost = lazy(() => import('./pages/blog/BlogPost'));
@@ -187,6 +188,7 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/accept-invite/:token" element={<AcceptInvite />} />
 
+          <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/claude" element={<BlogIndex />} />
           <Route path="/blog/claude/:skillSlug" element={<BlogPost />} />
