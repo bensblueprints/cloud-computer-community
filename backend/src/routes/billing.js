@@ -757,6 +757,58 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
       });
       break;
     }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object;
+      console.log(`[Webhook] Payment failed for subscription ${invoice.subscription}`);
+
+      if (invoice.subscription) {
+        const subscription = await prisma.subscription.findFirst({
+          where: { stripeId: invoice.subscription },
+          include: { org: true }
+        });
+
+        if (subscription) {
+          await prisma.subscription.update({
+            where: { id: subscription.id },
+            data: { status: "past_due" }
+          });
+
+          // Suspend GHL if payment fails
+          if (subscription.org?.ghlLocationId && ghlService.isConfigured()) {
+            console.log(`[Webhook][GHL] Suspending due to payment failure: ${subscription.org.ghlLocationId}`);
+            await ghlService.suspendSubAccount(subscription.org.ghlLocationId).catch(() => {});
+          }
+        }
+      }
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object;
+      console.log(`[Webhook] Payment succeeded for subscription ${invoice.subscription}`);
+
+      if (invoice.subscription) {
+        const subscription = await prisma.subscription.findFirst({
+          where: { stripeId: invoice.subscription },
+          include: { org: true }
+        });
+
+        if (subscription) {
+          await prisma.subscription.update({
+            where: { id: subscription.id },
+            data: { status: "active", renewsAt: new Date(invoice.period_end * 1000) }
+          });
+
+          // Reactivate GHL on successful payment
+          if (subscription.org?.ghlLocationId && ghlService.isConfigured()) {
+            console.log(`[Webhook][GHL] Reactivating after payment: ${subscription.org.ghlLocationId}`);
+            await ghlService.reactivateSubAccount(subscription.org.ghlLocationId).catch(() => {});
+          }
+        }
+      }
+      break;
+    }
   }
 
   res.json({ received: true });
