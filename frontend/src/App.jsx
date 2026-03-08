@@ -25,6 +25,8 @@ const AdminVMs = lazy(() => import('./pages/admin/VMs'));
 const AdminProxmox = lazy(() => import('./pages/admin/Proxmox'));
 const AdminBilling = lazy(() => import('./pages/admin/Billing'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
+const BlogIndex = lazy(() => import('./pages/blog/BlogIndex'));
+const BlogPost = lazy(() => import('./pages/blog/BlogPost'));
 
 function Loading() {
   return (
@@ -183,6 +185,9 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/accept-invite/:token" element={<AcceptInvite />} />
+
+          <Route path="/blog/claude" element={<BlogIndex />} />
+          <Route path="/blog/claude/:skillSlug" element={<BlogPost />} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><DashboardIndex /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/new" element={<ProtectedRoute><DashboardLayout><DashboardNew /></DashboardLayout></ProtectedRoute>} />
