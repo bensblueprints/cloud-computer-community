@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Key, Copy, Check, Eye, EyeOff } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -160,6 +160,118 @@ function ServerCard({ vm, onAction }) {
         <p className="text-xs text-amber-700">
           <span className="font-semibold">Default login:</span> <code className="bg-amber-100 px-1 rounded">cloudcomputer</code> / <code className="bg-amber-100 px-1 rounded">AI@123456</code> — Change via <code className="bg-amber-100 px-1 rounded">passwd</code> in terminal
         </p>
+      </div>
+    </div>
+  );
+}
+
+function AiApiKeyCard({ api }) {
+  const [apiKey, setApiKey] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  useEffect(() => {
+    api.get('/ollama/api-key')
+      .then(res => setApiKey(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const copyKey = () => {
+    if (apiKey?.apiKey) {
+      navigator.clipboard.writeText(apiKey.apiKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const regenerate = async () => {
+    setRegenerating(true);
+    try {
+      const res = await api.post('/ollama/api-key/regenerate');
+      setApiKey(res.data);
+    } catch {
+      alert('Failed to regenerate API key');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  if (loading) return null;
+
+  const maskedKey = apiKey?.apiKey ? apiKey.apiKey.slice(0, 10) + '••••••••••••••••••••' : '';
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <Key className="w-4 h-4 text-purple-500" />
+        AI API (Mistral)
+      </h2>
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <p className="text-sm text-gray-500 mb-4">
+          Use this API key to access Mistral AI from your VM, scripts, or any app. OpenAI-compatible endpoints.
+        </p>
+
+        {/* API Key Display */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center justify-between">
+            <span>{visible ? apiKey?.apiKey : maskedKey}</span>
+            <button onClick={() => setVisible(!visible)} className="text-gray-400 hover:text-gray-600 ml-2">
+              {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          <button
+            onClick={copyKey}
+            className="flex items-center gap-1.5 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition text-sm"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+
+        {/* Endpoints */}
+        <div className="grid sm:grid-cols-2 gap-3 mb-4">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <p className="text-xs font-medium text-gray-500 mb-1">External Endpoint</p>
+            <p className="text-sm font-mono text-gray-800">https://cloudcode.space/api/ollama/v1</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <p className="text-xs font-medium text-gray-500 mb-1">From Your VM (faster)</p>
+            <p className="text-sm font-mono text-gray-800">http://10.10.10.1:11434</p>
+          </div>
+        </div>
+
+        {/* Quick Usage Example */}
+        <details className="mb-4">
+          <summary className="text-sm font-medium text-purple-600 cursor-pointer hover:text-purple-700">Quick Usage Examples</summary>
+          <div className="mt-3 space-y-3">
+            <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+              <p className="text-gray-500"># From your VM (direct, no API key needed)</p>
+              <p>curl http://10.10.10.1:11434/api/generate \</p>
+              <p className="pl-4">-d '{`{"model":"mistral","prompt":"Hello!"}`}'</p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+              <p className="text-gray-500"># From anywhere (API key required)</p>
+              <p>curl https://cloudcode.space/api/ollama/v1/chat \</p>
+              <p className="pl-4">-H "Authorization: Bearer {visible ? apiKey?.apiKey : 'sk-cc-...'}" \</p>
+              <p className="pl-4">-d '{`{"model":"mistral","messages":[{"role":"user","content":"Hello!"}]}`}'</p>
+            </div>
+          </div>
+        </details>
+
+        {/* Regenerate */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-400">Models: mistral &middot; Unlimited usage with your plan</p>
+          <button
+            onClick={regenerate}
+            disabled={regenerating}
+            className="text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+          >
+            {regenerating ? 'Regenerating...' : 'Regenerate Key'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -435,6 +547,9 @@ export default function DashboardIndex() {
           </Link>
         </div>
       )}
+
+      {/* AI API Key Section */}
+      {hasSubscription && <AiApiKeyCard api={api} />}
     </div>
   );
 }
