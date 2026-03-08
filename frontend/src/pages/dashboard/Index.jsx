@@ -483,6 +483,9 @@ export default function DashboardIndex() {
         </Link>
       </div>
 
+      {/* AI API Key Section */}
+      {hasSubscription && <AiApiKeyCard api={api} />}
+
       {/* Provisioning VMs */}
       {provisioningVMs.length > 0 && (
         <div className="mb-8">
@@ -548,8 +551,6 @@ export default function DashboardIndex() {
         </div>
       )}
 
-      {/* AI API Key Section */}
-      {hasSubscription && <AiApiKeyCard api={api} />}
     </div>
   );
 }
