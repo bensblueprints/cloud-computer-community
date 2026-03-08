@@ -23,7 +23,7 @@ export default function Billing() {
 
   async function handleSubscribe(plan) {
     try {
-      const res = await api.post('/billing/subscribe', { plan });
+      const res = await api.post('/billing/checkout', { plan });
       window.location.href = res.data.url;
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to start checkout');

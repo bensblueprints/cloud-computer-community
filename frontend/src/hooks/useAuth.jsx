@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/auth/me')
+    api.get('/auth/me', { headers: { 'Cache-Control': 'no-cache' }, params: { _t: Date.now() } })
       .then(res => setUser(res.data.user))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
