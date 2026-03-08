@@ -393,10 +393,23 @@ router.post('/proxmox/vms/:vmid/stop', auditLog('admin.proxmox.stop'), async (re
 router.delete('/proxmox/vms/:vmid', auditLog('admin.proxmox.destroy'), async (req, res, next) => {
   try {
     const vmid = parseInt(req.params.vmid);
-    // Stop first, then destroy
+
+    // Stop the VM first
     try { await proxmoxService.stopVM(vmid); } catch (e) { /* may already be stopped */ }
+
+    // Wait for VM to actually stop (poll status up to 30s)
+    for (let i = 0; i < 15; i++) {
+      try {
+        const status = await proxmoxService.getVMStatus(vmid);
+        if (status.status === 'stopped') break;
+      } catch (e) { break; }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+
+    // Now destroy
     await proxmoxService.deleteVM(vmid);
-    // Also clean up database record and traefik route if they exist
+
+    // Clean up database record and traefik route if they exist
     const dbVm = await prisma.vM.findFirst({ where: { vmid } });
     if (dbVm) {
       await prisma.vMUser.deleteMany({ where: { vmId: dbVm.id } });

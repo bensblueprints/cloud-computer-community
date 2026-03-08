@@ -18,7 +18,7 @@ export default function AdminProxmox() {
         api.get('/admin/proxmox/vms'),
       ]);
       setStats(statsRes.data.stats);
-      setVMs(vmsRes.data.vms || []);
+      setVMs((vmsRes.data.vms || []).sort((a, b) => a.vmid - b.vmid));
     } catch (err) {
       console.error('Proxmox fetch error:', err);
     }
@@ -32,17 +32,24 @@ export default function AdminProxmox() {
     return () => clearInterval(intervalRef.current);
   }, [autoRefresh]);
 
+  const [actionLoading, setActionLoading] = useState(null);
+
   async function handleVMAction(vmid, action) {
     try {
       if (action === 'destroy') {
         if (!confirm(`DESTROY Proxmox VM ${vmid}? This is irreversible.`)) return;
-        await api.delete(`/admin/proxmox/vms/${vmid}`);
+      }
+      setActionLoading(`${vmid}-${action}`);
+      if (action === 'destroy') {
+        await api.delete(`/admin/proxmox/vms/${vmid}`, { timeout: 60000 });
       } else if (action === 'stop') {
         await api.post(`/admin/proxmox/vms/${vmid}/stop`);
       }
       fetchData();
     } catch (err) {
       alert(err.response?.data?.error || `Failed to ${action} VM ${vmid}`);
+    } finally {
+      setActionLoading(null);
     }
   }
 
@@ -107,13 +114,17 @@ export default function AdminProxmox() {
                 <td className="px-4 py-3">
                   <div className="flex gap-1 justify-end">
                     {vm.status === 'running' && (
-                      <button onClick={() => handleVMAction(vm.vmid, 'stop')} className="p-1 text-yellow-400 hover:text-yellow-300" title="Stop">
-                        <Square className="w-4 h-4" />
+                      <button onClick={() => handleVMAction(vm.vmid, 'stop')}
+                        disabled={!!actionLoading}
+                        className="p-1 text-yellow-400 hover:text-yellow-300 disabled:opacity-50" title="Stop">
+                        {actionLoading === `${vm.vmid}-stop` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4" />}
                       </button>
                     )}
                     {vm.vmid >= 500 && (
-                      <button onClick={() => handleVMAction(vm.vmid, 'destroy')} className="p-1 text-red-400 hover:text-red-300" title="Destroy">
-                        <Trash2 className="w-4 h-4" />
+                      <button onClick={() => handleVMAction(vm.vmid, 'destroy')}
+                        disabled={!!actionLoading}
+                        className="p-1 text-red-400 hover:text-red-300 disabled:opacity-50" title="Destroy">
+                        {actionLoading === `${vm.vmid}-destroy` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </button>
                     )}
                   </div>
