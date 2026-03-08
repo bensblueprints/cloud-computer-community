@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, Globe } from 'lucide-react';
+import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, Globe, Link2 } from 'lucide-react';
 
 export default function Referrals() {
   const { api } = useAuth();
@@ -9,8 +9,10 @@ export default function Referrals() {
   const [selectedPage, setSelectedPage] = useState(() => {
     try { return localStorage.getItem('cc-ref-dest') || 'register'; } catch { return 'register'; }
   });
+  const [customUrl, setCustomUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [copiedCustom, setCopiedCustom] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [payoutMsg, setPayoutMsg] = useState('');
 
@@ -62,6 +64,34 @@ export default function Referrals() {
       navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Build a tracked referral link from any pasted cloudcode.space URL
+  const getCustomShareUrl = () => {
+    if (!customUrl.trim() || !codeData?.code) return '';
+    const code = codeData.code;
+    const base = 'https://cloudcode.space';
+    let path = customUrl.trim();
+    // Strip domain if they pasted a full URL
+    path = path.replace(/^https?:\/\/(www\.)?cloudcode\.space/i, '');
+    // Ensure it starts with /
+    if (!path.startsWith('/')) path = '/' + path;
+    // Remove any existing ref param
+    path = path.replace(/[?&]ref=[^&]*/g, '').replace(/\?$/, '');
+    if (path === '/register' || path === '/') {
+      return path === '/register' ? `${base}/r/${code}` : `${base}/r/${code}?to=${encodeURIComponent(path)}`;
+    }
+    return `${base}/r/${code}?to=${encodeURIComponent(path)}`;
+  };
+
+  const customShareUrl = getCustomShareUrl();
+
+  const copyCustomLink = () => {
+    if (customShareUrl) {
+      navigator.clipboard.writeText(customShareUrl);
+      setCopiedCustom(true);
+      setTimeout(() => setCopiedCustom(false), 2000);
     }
   };
 
@@ -140,6 +170,45 @@ export default function Referrals() {
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">Code: <span className="font-mono font-bold">{codeData?.code}</span></p>
+      </div>
+
+      {/* Custom URL Builder */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <Link2 className="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Custom Link Builder</h3>
+            <p className="text-xs text-gray-500">Paste any cloudcode.space URL to create a tracked referral link for it</p>
+          </div>
+        </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            value={customUrl}
+            onChange={e => setCustomUrl(e.target.value)}
+            placeholder="Paste a URL — e.g. cloudcode.space/blog/claude/sales-page or /for/developers"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+        {customShareUrl && (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={customShareUrl}
+              className="flex-1 bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 text-sm text-purple-700 font-mono"
+            />
+            <button
+              onClick={copyCustomLink}
+              className="flex items-center gap-2 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition"
+            >
+              {copiedCustom ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copiedCustom ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Stats Grid */}
