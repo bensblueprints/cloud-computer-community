@@ -409,6 +409,46 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Annual Savings Comparison */}
+      <section className="py-24">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Do the Math</h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">The average business spends $500-$1,500/month on SaaS tools. CloudCode replaces them all.</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700 rounded-3xl p-8 sm:p-12">
+            <div className="grid sm:grid-cols-3 gap-8 items-center">
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-2 uppercase tracking-wider font-medium">Typical Annual Spend</p>
+                <p className="text-5xl sm:text-6xl font-bold text-red-400 line-through">$13,884</p>
+                <p className="text-slate-500 text-sm mt-2">CRM + hosting + AI tools + IDE + more</p>
+              </div>
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center">
+                  <ArrowRight className="w-8 h-8 text-emerald-400" />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-2 uppercase tracking-wider font-medium">CloudCode Annual Cost</p>
+                <p className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">$204</p>
+                <p className="text-emerald-400 text-sm mt-2 font-semibold">Everything included. One subscription.</p>
+              </div>
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-slate-700 text-center">
+              <p className="text-slate-400 mb-2">That is a savings of</p>
+              <p className="text-6xl sm:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400">$13,680</p>
+              <p className="text-2xl text-slate-300 font-semibold mt-2">per year</p>
+              <a href="#pricing" className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-lg shadow-emerald-500/25 mt-8">
+                Start Saving Now
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="pricing" className="py-24">
         <div className="max-w-7xl mx-auto px-4">
