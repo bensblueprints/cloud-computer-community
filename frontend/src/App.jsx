@@ -27,6 +27,8 @@ const AdminProxmox = lazy(() => import('./pages/admin/Proxmox'));
 const AdminBilling = lazy(() => import('./pages/admin/Billing'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
 const About = lazy(() => import('./pages/About'));
+const GoHighLevel = lazy(() => import('./pages/GoHighLevel'));
+const DashboardCRM = lazy(() => import('./pages/dashboard/CRM'));
 const MagicLogin = lazy(() => import('./pages/MagicLogin'));
 const Blog = lazy(() => import('./pages/blog/Blog'));
 const BlogIndex = lazy(() => import('./pages/blog/BlogIndex'));
@@ -84,6 +86,7 @@ function DashboardLayout({ children }) {
     ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
     // Only show Team for TEAM/ARMY plans
     ...(isSharedPlan ? [{ path: '/dashboard/team', label: 'Team' }] : []),
+    { path: '/dashboard/crm', label: 'CRM' },
     { path: '/dashboard/billing', label: 'Billing' },
     { path: '/dashboard/referrals', label: 'Referrals' },
     { path: '/dashboard/profile', label: 'Profile' },
@@ -193,6 +196,7 @@ export default function App() {
 
           <Route path="/about" element={<About />} />
           <Route path="/magic-login" element={<MagicLogin />} />
+          <Route path="/crm" element={<GoHighLevel />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/claude" element={<BlogIndex />} />
           <Route path="/blog/claude/:skillSlug" element={<BlogPost />} />
@@ -204,6 +208,7 @@ export default function App() {
           <Route path="/dashboard/server" element={<ProtectedRoute><DashboardLayout><Server /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/terminal" element={<ProtectedRoute><DashboardLayout><DashboardTerminal /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/referrals" element={<ProtectedRoute><DashboardLayout><Referrals /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/crm" element={<ProtectedRoute><DashboardLayout><DashboardCRM /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/console/:vmid" element={<ProtectedRoute><Console /></ProtectedRoute>} />
