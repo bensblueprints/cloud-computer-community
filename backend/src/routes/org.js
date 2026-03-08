@@ -68,7 +68,24 @@ router.post('/activate-crm', auth, async (req, res, next) => {
       data: { ghlLocationId: ghlResult.locationId }
     });
 
-    console.log(`[CRM Activation] Created for org ${org.id}: ${ghlResult.locationId}`);
+    console.log(`[CRM Activation] Sub-account created for org ${org.id}: ${ghlResult.locationId}`);
+
+    // Create a user in the sub-account so they can log in
+    // GHL auto-sends an invitation/password setup email
+    const nameParts = (req.user.name || 'User').split(' ');
+    const userResult = await ghlService.createUser(ghlResult.locationId, {
+      firstName: nameParts[0],
+      lastName: nameParts.slice(1).join(' ') || '',
+      email: req.user.email,
+      role: 'admin'
+    });
+
+    if (userResult.success) {
+      console.log(`[CRM Activation] User created in location ${ghlResult.locationId}: ${req.user.email}`);
+    } else {
+      console.log(`[CRM Activation] User creation failed (non-blocking): ${userResult.error}`);
+    }
+
     res.json({ success: true, ghlLocationId: ghlResult.locationId });
   } catch (err) {
     console.error('[CRM Activation] Error:', err);
