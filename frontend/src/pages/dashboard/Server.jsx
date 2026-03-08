@@ -170,6 +170,17 @@ export default function DashboardServer() {
         </div>
       </div>
 
+      {/* Default credentials notice */}
+      <div className="bg-amber-50 border-x border-amber-200 px-4 py-2.5 flex items-start gap-2">
+        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+        <div className="text-xs text-amber-800">
+          <span className="font-semibold">Default Linux password:</span>{' '}
+          <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono">AI@123456</code>{' '}
+          — Please change this after logging in by opening a terminal and running{' '}
+          <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono">passwd</code>
+        </div>
+      </div>
+
       {/* Console canvas */}
       <div className="relative bg-black rounded-b-xl overflow-hidden" style={{ height: '70vh' }}>
         <div ref={canvasRef} className="w-full h-full">

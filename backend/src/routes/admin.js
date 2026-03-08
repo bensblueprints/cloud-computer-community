@@ -191,8 +191,14 @@ router.post('/users', auditLog('admin.user.create'), async (req, res, next) => {
               <h2>Welcome to Cloud Computer!</h2>
               <p>Hi ${name},</p>
               <p>Your account has been created with the <strong>${planKey}</strong> plan. Your cloud server is being provisioned now.</p>
-              <p>Click the button below to set your password and get started:</p>
+              <p>Click the button below to set your dashboard password and get started:</p>
               <a href="${setupUrl}" style="display: inline-block; background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0; font-weight: bold;">Set Your Password</a>
+              <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0 0 8px; font-weight: bold; color: #92400e;">Your Linux Desktop Credentials</p>
+                <p style="margin: 0 0 4px; color: #92400e;">Username: <code style="background: #fde68a; padding: 2px 6px; border-radius: 4px;">cloudcomputer</code></p>
+                <p style="margin: 0 0 8px; color: #92400e;">Password: <code style="background: #fde68a; padding: 2px 6px; border-radius: 4px;">AI@123456</code></p>
+                <p style="margin: 0; color: #b45309; font-size: 12px;">Please change this password after logging in by opening a terminal and running <code>passwd</code></p>
+              </div>
               <p style="color: #666; font-size: 12px;">This link expires in 72 hours. If it expires, you can use the "Forgot Password" option on the login page.</p>
               <p style="color: #666; font-size: 12px;">Cloud Computer - Your cloud desktop platform</p>
             </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -152,6 +152,14 @@ function ServerCard({ vm, onAction }) {
             </button>
           </>
         )}
+      </div>
+
+      {/* Default credentials notice */}
+      <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-amber-700">
+          <span className="font-semibold">Default login:</span> <code className="bg-amber-100 px-1 rounded">cloudcomputer</code> / <code className="bg-amber-100 px-1 rounded">AI@123456</code> — Change via <code className="bg-amber-100 px-1 rounded">passwd</code> in terminal
+        </p>
       </div>
     </div>
   );
