@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, ChevronDown, Globe } from 'lucide-react';
+import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, Globe } from 'lucide-react';
 
 export default function Referrals() {
   const { api } = useAuth();
   const [data, setData] = useState(null);
   const [codeData, setCodeData] = useState(null);
-  const [landingPages, setLandingPages] = useState([]);
-  const [skills, setSkills] = useState([]);
   const [selectedPage, setSelectedPage] = useState(() => {
     try { return localStorage.getItem('cc-ref-dest') || 'register'; } catch { return 'register'; }
   });
@@ -16,17 +14,24 @@ export default function Referrals() {
   const [requesting, setRequesting] = useState(false);
   const [payoutMsg, setPayoutMsg] = useState('');
 
+  const LANDING_PAGES = [
+    { id: 'register', label: 'Registration Page', path: '/register' },
+    { id: 'home', label: 'Homepage', path: '/' },
+    { id: 'for-developers', label: 'For Developers', path: '/for/developers' },
+    { id: 'for-save', label: 'SaaS Savings', path: '/for/save' },
+    { id: 'for-power', label: 'Lightweight & Powerful', path: '/for/power' },
+    { id: 'for-agencies', label: 'For Agencies', path: '/for/agencies' },
+    { id: 'for-remote', label: 'Remote Work', path: '/for/remote' },
+    { id: 'blog-claude', label: 'Skills Blog Index', path: '/blog/claude' },
+  ];
+
   useEffect(() => {
     Promise.all([
       api.get('/referrals/my-code').then(r => r.data),
-      api.get('/referrals/stats').then(r => r.data),
-      api.get('/referrals/landing-pages').then(r => r.data),
-      import('../../data/skills.js').then(m => m.default || m.skills || []).catch(() => [])
-    ]).then(([code, stats, pages, skillsData]) => {
+      api.get('/referrals/stats').then(r => r.data)
+    ]).then(([code, stats]) => {
       setCodeData(code);
       setData(stats);
-      setLandingPages(pages.pages || []);
-      setSkills(Array.isArray(skillsData) ? skillsData : []);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -36,13 +41,8 @@ export default function Referrals() {
     const code = codeData.code;
     const base = 'https://cloudcode.space';
 
-    // Find the selected page path
-    const page = landingPages.find(p => p.id === selectedPage);
-    const skill = skills.find(s => s.slug === selectedPage);
-
-    let dest = '/register';
-    if (page) dest = page.path;
-    else if (skill) dest = `/blog/claude/${skill.slug}`;
+    const page = LANDING_PAGES.find(p => p.id === selectedPage);
+    let dest = page ? page.path : '/register';
 
     // Use the redirect route for tracking
     if (dest === '/register') {
@@ -88,15 +88,6 @@ export default function Referrals() {
     );
   }
 
-  // Build dropdown options
-  const allOptions = [
-    { group: 'Pages', items: landingPages },
-    ...(skills.length > 0 ? [{
-      group: `Skills Pages (${skills.length})`,
-      items: skills.map(s => ({ id: s.slug, label: s.title, path: `/blog/claude/${s.slug}` }))
-    }] : [])
-  ];
-
   return (
     <div>
       <div className="mb-8">
@@ -127,12 +118,8 @@ export default function Referrals() {
             onChange={e => setSelectedPage(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           >
-            {allOptions.map(group => (
-              <optgroup key={group.group} label={group.group}>
-                {group.items.map(item => (
-                  <option key={item.id} value={item.id}>{item.label}</option>
-                ))}
-              </optgroup>
+            {LANDING_PAGES.map(p => (
+              <option key={p.id} value={p.id}>{p.label}</option>
             ))}
           </select>
         </div>
