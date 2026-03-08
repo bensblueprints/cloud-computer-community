@@ -17,6 +17,7 @@ export default function MusicPlayer({ dark }) {
   const [expanded, setExpanded] = useState(false);
   const audioRef = useRef(null);
   const progressInterval = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const audio = new Audio();
@@ -36,6 +37,17 @@ export default function MusicPlayer({ dark }) {
       audio.src = '';
       if (progressInterval.current) clearInterval(progressInterval.current);
     };
+  }, []);
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setExpanded(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
   useEffect(() => {
@@ -82,81 +94,86 @@ export default function MusicPlayer({ dark }) {
 
   const toggleMute = () => setMuted(!muted);
 
-  // Collapsed: just a small music icon button
-  if (!expanded) {
-    return (
+  return (
+    <div className="relative" ref={containerRef}>
+      {/* Toggle button - always visible */}
       <button
-        onClick={() => setExpanded(true)}
+        onClick={() => setExpanded(!expanded)}
         className={`p-2 rounded-lg transition ${dark ? 'text-gray-400 hover:text-white hover:bg-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
         title="Music Player"
       >
         <Music className={`w-4 h-4 ${playing ? 'text-purple-500 animate-pulse' : ''}`} />
       </button>
-    );
-  }
 
-  return (
-    <div className={`rounded-xl border p-3 w-64 ${dark ? 'bg-gray-900/90 backdrop-blur border-gray-700' : 'bg-white border-gray-200 shadow-lg'}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Music className={`w-3.5 h-3.5 ${playing ? 'text-purple-500' : dark ? 'text-gray-400' : 'text-gray-500'}`} />
-          <span className={`text-xs font-medium truncate max-w-[140px] ${dark ? 'text-gray-200' : 'text-gray-700'}`}>
-            {TRACKS[currentTrack].name}
-          </span>
-        </div>
-        <button
-          onClick={() => setExpanded(false)}
-          className={`text-xs ${dark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
-        >
-          &times;
-        </button>
-      </div>
-
-      {/* Progress bar */}
-      <div className={`w-full h-1 rounded-full mb-2 ${dark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      {/* Dropdown panel - absolute positioned */}
+      {expanded && (
         <div
-          className="h-full rounded-full bg-purple-500 transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+          className={`absolute right-0 top-full mt-2 rounded-xl border p-3 w-64 ${dark ? 'bg-gray-900/95 backdrop-blur border-gray-700' : 'bg-white border-gray-200 shadow-xl'}`}
+          style={{ zIndex: 9999 }}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Music className={`w-3.5 h-3.5 ${playing ? 'text-purple-500' : dark ? 'text-gray-400' : 'text-gray-500'}`} />
+              <span className={`text-xs font-medium truncate max-w-[140px] ${dark ? 'text-gray-200' : 'text-gray-700'}`}>
+                {TRACKS[currentTrack].name}
+              </span>
+            </div>
+            <button
+              onClick={() => setExpanded(false)}
+              className={`text-xs px-1 ${dark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              &times;
+            </button>
+          </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={togglePlay}
-            className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition"
-          >
-            {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
-          </button>
-          <button
-            onClick={skipNext}
-            className={`p-1.5 rounded transition ${dark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            <SkipForward className="w-3.5 h-3.5" />
-          </button>
-        </div>
+          {/* Progress bar */}
+          <div className={`w-full h-1 rounded-full mb-2 ${dark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+            <div
+              className="h-full rounded-full bg-purple-500 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
 
-        {/* Volume */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={toggleMute}
-            className={`p-1 rounded transition ${dark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-          </button>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={muted ? 0 : volume}
-            onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }}
-            className="w-16 h-1 accent-purple-500"
-          />
+          {/* Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={togglePlay}
+                className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition"
+              >
+                {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+              </button>
+              <button
+                onClick={skipNext}
+                className={`p-1.5 rounded transition ${dark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <SkipForward className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Volume */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleMute}
+                className={`p-1 rounded transition ${dark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={muted ? 0 : volume}
+                onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }}
+                className="w-16 h-1 accent-purple-500"
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

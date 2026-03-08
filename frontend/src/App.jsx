@@ -241,9 +241,7 @@ function DashboardLayout({ children }) {
               </nav>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <MusicPlayer dark={isMatrix} />
-              </div>
+              <MusicPlayer dark={isMatrix} />
               <ThemePickerDropdown matrixTheme={matrixTheme} setMatrixTheme={setMatrixTheme} />
               <span className={`hidden sm:block text-sm ${headerText}`}>{user?.name}</span>
               <button
