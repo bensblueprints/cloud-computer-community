@@ -198,9 +198,8 @@ export default function AdminUsers() {
               <button onClick={async () => {
                 try {
                   await api.post(`/admin/impersonate/${selectedUser.id}`);
-                  // Full page navigation to user dashboard with cache bust
-                  window.location.href = 'https://app.cloudcode.space/dashboard?impersonate=' + Date.now();
-                  window.location.reload(true);
+                  // Full page navigation to user dashboard - do NOT reload, just navigate
+                  window.location.replace('https://app.cloudcode.space/dashboard?as=' + Date.now());
                 } catch (err) {
                   alert(err.response?.data?.error || 'Failed to impersonate user');
                 }

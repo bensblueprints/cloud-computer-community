@@ -21,14 +21,42 @@ const Stripe = require("stripe");
 const jwt = require("jsonwebtoken");
 const { Queue } = require("bullmq");
 const IORedis = require("ioredis");
+const { Resend } = require("resend");
 const auth = require("../middleware/auth");
 const ghlService = require("../services/GHLService");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const redis = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", { maxRetriesPerRequest: null });
 const provisionQueue = new Queue("vm-provisioning", { connection: redis });
+
+// Send admin notification when new customer signs up
+async function notifyNewCustomer({ name, email, plan, ghlLocationId }) {
+  try {
+    const emailFrom = process.env.EMAIL_FROM || "noreply@cloudcode.space";
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || "ben@advancedmarketing.co";
+    await resend.emails.send({
+      from: `Cloud Computer <${emailFrom}>`,
+      to: adminEmail,
+      subject: `New ${plan} Customer: ${name}`,
+      html: `
+        <h2>New Cloud Computer Customer</h2>
+        <table style="border-collapse:collapse;width:100%;max-width:500px;">
+          <tr><td style="padding:8px;font-weight:bold;">Name</td><td style="padding:8px;">${name}</td></tr>
+          <tr><td style="padding:8px;font-weight:bold;">Email</td><td style="padding:8px;">${email}</td></tr>
+          <tr><td style="padding:8px;font-weight:bold;">Plan</td><td style="padding:8px;">${plan} ($${plan === 'SOLO' ? '17' : plan === 'TEAM' ? '79' : '299'}/mo)</td></tr>
+          <tr><td style="padding:8px;font-weight:bold;">GHL Location</td><td style="padding:8px;">${ghlLocationId || 'Not created'}</td></tr>
+          <tr><td style="padding:8px;font-weight:bold;">Date</td><td style="padding:8px;">${new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' })}</td></tr>
+        </table>
+      `
+    });
+    console.log(`[Notify] Admin notified about new ${plan} customer: ${email}`);
+  } catch (err) {
+    console.error(`[Notify] Failed to send admin notification:`, err.message);
+  }
+}
 
 const PLANS = {
   SOLO: { seats: 1, priceId: process.env.STRIPE_PRICE_SOLO, price: 17, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 513 },
@@ -448,6 +476,7 @@ router.post("/test-account", async (req, res, next) => {
           data: { ghlLocationId }
         });
         console.log(`[TEST][GHL] Sub-account created: ${ghlLocationId}`);
+        notifyNewCustomer({ name, email, plan: planKey, ghlLocationId });
       }
     }
 
@@ -560,8 +589,12 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
                 data: { ghlLocationId: ghlResult.locationId }
               });
               console.log(`[GHL] Sub-account created for org ${orgId}: ${ghlResult.locationId}`);
+              // Notify admin of new customer
+              notifyNewCustomer({ name, email, plan, ghlLocationId: ghlResult.locationId });
             } else {
               console.log(`[GHL] Sub-account creation failed (non-blocking): ${ghlResult.error}`);
+              // Still notify admin even if GHL failed
+              notifyNewCustomer({ name, email, plan, ghlLocationId: null });
             }
           }
         } else {
