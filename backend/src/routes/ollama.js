@@ -30,7 +30,7 @@ router.get("/api-key", auth, async (req, res, next) => {
         createdAt: existing.createdAt,
         endpoint: "https://cloudcode.space/api/ollama/v1",
         internalEndpoint: "http://10.10.10.1:11434",
-        models: ["mistral"]
+        models: ["mistral", "llama3.2:3b", "qwen2.5:3b", "gemma2:2b"]
       });
     }
 
@@ -50,7 +50,7 @@ router.get("/api-key", auth, async (req, res, next) => {
       createdAt: new Date(),
       endpoint: "https://cloudcode.space/api/ollama/v1",
       internalEndpoint: "http://10.10.10.1:11434",
-      models: ["mistral"]
+      models: ["mistral", "llama3.2:3b", "qwen2.5:3b", "gemma2:2b"]
     });
   } catch (err) {
     next(err);
@@ -92,7 +92,7 @@ router.post("/api-key/regenerate", auth, async (req, res, next) => {
       createdAt: new Date(),
       endpoint: "https://cloudcode.space/api/ollama/v1",
       internalEndpoint: "http://10.10.10.1:11434",
-      models: ["mistral"]
+      models: ["mistral", "llama3.2:3b", "qwen2.5:3b", "gemma2:2b"]
     });
   } catch (err) {
     next(err);

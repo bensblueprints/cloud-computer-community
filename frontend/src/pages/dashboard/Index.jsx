@@ -263,7 +263,7 @@ function AiApiKeyCard({ api }) {
 
         {/* Regenerate */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Models: mistral &middot; Unlimited usage with your plan</p>
+          <p className="text-xs text-gray-400">Models: mistral, llama3.2, qwen2.5, gemma2 &middot; Unlimited usage with your plan</p>
           <button
             onClick={regenerate}
             disabled={regenerating}
