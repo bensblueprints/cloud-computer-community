@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AlertTriangle, Trash2, CreditCard, Lock, Info } from 'lucide-react';
+import useIsDark from '../../hooks/useIsDark';
 
 export default function Profile() {
+  const dark = useIsDark();
   const { user, api, logout } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || '');
@@ -90,31 +92,31 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-2xl font-bold mb-6">Profile</h2>
+      <h2 className={`text-2xl font-bold mb-6 ${dark ? 'text-white' : ''}`}>Profile</h2>
 
       {error && (
         <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">{error}</div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h3 className="font-semibold text-lg mb-4">Account Information</h3>
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
+        <h3 className={`font-semibold text-lg mb-4 ${dark ? 'text-white' : ''}`}>Account Information</h3>
         <form onSubmit={handleSave}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Name</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Email</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
             {email !== user?.email && (
               <div className="flex items-start gap-2 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -127,21 +129,21 @@ export default function Profile() {
           </div>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+              <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Organization</label>
               <input
                 type="text"
                 value={user?.org?.name || '—'}
                 disabled
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                className={`w-full px-3 py-2 border rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'border-gray-200 bg-gray-50 text-gray-500'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Role</label>
               <input
                 type="text"
                 value={user?.orgRole || '—'}
                 disabled
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                className={`w-full px-3 py-2 border rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'border-gray-200 bg-gray-50 text-gray-500'}`}
               />
             </div>
           </div>
@@ -152,8 +154,8 @@ export default function Profile() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
+        <h3 className={`font-semibold text-lg mb-4 flex items-center gap-2 ${dark ? 'text-white' : ''}`}>
           <Lock className="w-5 h-5" />
           Change Password
         </h3>
@@ -165,33 +167,33 @@ export default function Profile() {
         )}
         <form onSubmit={handleChangePassword}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Current Password</label>
             <input
               type="password"
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
               placeholder="At least 8 characters"
               required
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <label className={`block text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-700'} mb-1`}>Confirm New Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
               required
             />
           </div>
@@ -203,14 +205,14 @@ export default function Profile() {
 
       {/* Subscription Management - Owner only */}
       {user?.orgRole === 'OWNER' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
+          <h3 className={`font-semibold text-lg mb-4 flex items-center gap-2 ${dark ? 'text-white' : ''}`}>
             <CreditCard className="w-5 h-5" />
             Subscription
           </h3>
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
-              Current Plan: <span className="font-semibold text-gray-900">{user?.org?.plan || 'Free'}</span>
+            <p className={`text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
+              Current Plan: <span className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>{user?.org?.plan || 'Free'}</span>
             </p>
           </div>
           <button
@@ -224,12 +226,12 @@ export default function Profile() {
 
       {/* Danger Zone - Owner only */}
       {user?.orgRole === 'OWNER' && (
-        <div className="bg-red-50 rounded-xl border border-red-200 p-6">
-          <h3 className="font-semibold text-lg mb-2 text-red-700 flex items-center gap-2">
+        <div className={`${dark ? 'bg-red-950/50 border-red-800' : 'bg-red-50 border-red-200'} rounded-xl border p-6`}>
+          <h3 className={`font-semibold text-lg mb-2 ${dark ? 'text-red-400' : 'text-red-700'} flex items-center gap-2`}>
             <AlertTriangle className="w-5 h-5" />
             Danger Zone
           </h3>
-          <p className="text-sm text-red-600 mb-4">
+          <p className={`text-sm ${dark ? 'text-red-400' : 'text-red-600'} mb-4`}>
             Once you delete your account, there is no going back. All your VMs and data will be permanently deleted.
           </p>
           <button

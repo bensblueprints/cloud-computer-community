@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import SeatUsageBar from '../../components/SeatUsageBar';
 import { UserPlus, Trash2, ArrowUpCircle, Mail, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import useIsDark from '../../hooks/useIsDark';
 
 export default function Team() {
+  const dark = useIsDark();
   const { api, user } = useAuth();
   const [members, setMembers] = useState([]);
   const [invites, setInvites] = useState([]);
@@ -94,7 +96,7 @@ export default function Team() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Team Management</h2>
+        <h2 className={`text-2xl font-bold ${dark ? 'text-white' : ''}`}>Team Management</h2>
         {isOwner && (
           <button
             onClick={() => setShowInvite(true)}
@@ -113,8 +115,8 @@ export default function Team() {
       )}
 
       {showInvite && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 max-w-md">
-          <h3 className="font-semibold mb-3">Invite Team Member</h3>
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6 max-w-md`}>
+          <h3 className={`font-semibold mb-3 ${dark ? 'text-white' : ''}`}>Invite Team Member</h3>
           <form onSubmit={handleInvite}>
             {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-3">{error}</div>}
             <input
@@ -122,22 +124,22 @@ export default function Team() {
               value={inviteEmail}
               onChange={e => setInviteEmail(e.target.value)}
               placeholder="email@example.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-brand-500"
+              className={`w-full px-3 py-2 border rounded-lg mb-3 focus:ring-2 focus:ring-brand-500 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
               required
             />
             <div className="flex gap-2">
               <button type="submit" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-brand-700">Send Invite</button>
-              <button type="button" onClick={() => setShowInvite(false)} className="text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-100">Cancel</button>
+              <button type="button" onClick={() => setShowInvite(false)} className={`${dark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} px-4 py-2 rounded-lg text-sm`}>Cancel</button>
             </div>
           </form>
         </div>
       )}
 
       {seatUsage && seatUsage.available <= 0 && isOwner && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+        <div className={`${dark ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4 mb-6 flex items-center gap-3`}>
           <ArrowUpCircle className="w-5 h-5 text-yellow-600" />
           <div>
-            <p className="text-sm font-medium text-yellow-800">All seats are filled</p>
+            <p className={`text-sm font-medium ${dark ? 'text-yellow-300' : 'text-yellow-800'}`}>All seats are filled</p>
             <a href="/dashboard/billing" className="text-sm text-yellow-600 hover:text-yellow-700 underline">Upgrade your plan</a>
           </div>
         </div>
@@ -145,13 +147,13 @@ export default function Team() {
 
       {/* Pending Invites */}
       {isOwner && (pendingInvites.length > 0 || expiredInvites.length > 0) && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <Mail className="w-4 h-4 text-gray-500" />
-            <h3 className="font-semibold text-gray-900">Pending Invites</h3>
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border overflow-hidden mb-6`}>
+          <div className={`px-6 py-4 border-b ${dark ? 'border-gray-800' : 'border-gray-100'} flex items-center gap-2`}>
+            <Mail className={`w-4 h-4 ${dark ? 'text-gray-400' : 'text-gray-500'}`} />
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Pending Invites</h3>
             <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{pendingInvites.length} pending</span>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className={`divide-y ${dark ? 'divide-gray-800' : 'divide-gray-100'}`}>
             {pendingInvites.map(inv => (
               <div key={inv.id} className="px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -159,8 +161,8 @@ export default function Team() {
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{inv.email}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-sm font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>{inv.email}</p>
+                    <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Sent {new Date(inv.createdAt).toLocaleDateString()} &middot; Expires {new Date(inv.expiresAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -187,20 +189,20 @@ export default function Team() {
               </div>
             ))}
             {expiredInvites.map(inv => (
-              <div key={inv.id} className="px-6 py-4 flex items-center justify-between bg-gray-50/50">
+              <div key={inv.id} className={`px-6 py-4 flex items-center justify-between ${dark ? 'bg-gray-800/50' : 'bg-gray-50/50'}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                  <div className={`w-8 h-8 ${dark ? 'bg-gray-700' : 'bg-gray-100'} rounded-full flex items-center justify-center`}>
                     <XCircle className="w-4 h-4 text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">{inv.email}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className={`text-sm font-medium ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{inv.email}</p>
+                    <p className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'}`}>
                       Sent {new Date(inv.createdAt).toLocaleDateString()} &middot; Expired {new Date(inv.expiresAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded font-medium">Expired</span>
+                  <span className={`text-xs ${dark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'} px-2 py-1 rounded font-medium`}>Expired</span>
                   <button
                     onClick={() => handleResend(inv.id)}
                     disabled={resending === inv.id}
@@ -226,13 +228,13 @@ export default function Team() {
 
       {/* Accepted Invites (history) */}
       {isOwner && acceptedInvites.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border overflow-hidden mb-6`}>
+          <div className={`px-6 py-4 border-b ${dark ? 'border-gray-800' : 'border-gray-100'} flex items-center gap-2`}>
             <CheckCircle className="w-4 h-4 text-emerald-500" />
-            <h3 className="font-semibold text-gray-900">Accepted Invites</h3>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Accepted Invites</h3>
             <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">{acceptedInvites.length}</span>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className={`divide-y ${dark ? 'divide-gray-800' : 'divide-gray-100'}`}>
             {acceptedInvites.map(inv => (
               <div key={inv.id} className="px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -240,8 +242,8 @@ export default function Team() {
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{inv.email}</p>
-                    <p className="text-xs text-gray-500">Invited {new Date(inv.createdAt).toLocaleDateString()}</p>
+                    <p className={`text-sm font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>{inv.email}</p>
+                    <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Invited {new Date(inv.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <span className="text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-medium">Accepted</span>
@@ -252,25 +254,25 @@ export default function Team() {
       )}
 
       {/* Team Members */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Team Members</h3>
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border overflow-hidden`}>
+        <div className={`px-6 py-4 border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>
+          <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Team Members</h3>
         </div>
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className={`${dark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b`}>
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">VM Status</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Last Active</th>
+              <th className={`text-left px-6 py-3 text-xs font-medium ${dark ? 'text-gray-400' : 'text-gray-500'} uppercase`}>Name</th>
+              <th className={`text-left px-6 py-3 text-xs font-medium ${dark ? 'text-gray-400' : 'text-gray-500'} uppercase`}>Email</th>
+              <th className={`text-left px-6 py-3 text-xs font-medium ${dark ? 'text-gray-400' : 'text-gray-500'} uppercase`}>VM Status</th>
+              <th className={`text-left px-6 py-3 text-xs font-medium ${dark ? 'text-gray-400' : 'text-gray-500'} uppercase`}>Last Active</th>
               {isOwner && <th className="px-6 py-3"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className={`divide-y ${dark ? 'divide-gray-800' : 'divide-gray-100'}`}>
             {members.map(member => (
-              <tr key={member.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium">{member.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{member.email}</td>
+              <tr key={member.id} className={`${dark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
+                <td className={`px-6 py-4 text-sm font-medium ${dark ? 'text-white' : ''}`}>{member.name}</td>
+                <td className={`px-6 py-4 text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>{member.email}</td>
                 <td className="px-6 py-4 text-sm">
                   {member.vms.length > 0 ? (
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${member.vms[0].status === 'RUNNING' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -278,7 +280,7 @@ export default function Team() {
                     </span>
                   ) : <span className="text-gray-400 text-xs">No VM</span>}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className={`px-6 py-4 text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>
                   {member.lastLoginAt ? new Date(member.lastLoginAt).toLocaleDateString() : '—'}
                 </td>
                 {isOwner && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import useIsDark from '../../hooks/useIsDark';
 import {
   Zap, Users, Mail, BarChart3, MessageSquare, Calendar,
   Globe, Phone, Bot, Megaphone, ShoppingCart, FileText,
@@ -86,6 +87,7 @@ export default function CRM() {
   const [activating, setActivating] = useState(false);
   const [org, setOrg] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const dark = useIsDark();
 
   useState(() => {
     api.get('/org').then(res => {
@@ -115,14 +117,14 @@ export default function CRM() {
         <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Zap className="w-7 h-7 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Go High Level CRM</h1>
-        <p className="text-gray-500 max-w-xl mx-auto">
+        <h1 className={`text-3xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-2`}>Go High Level CRM</h1>
+        <p className={`${dark ? 'text-gray-400' : 'text-gray-500'} max-w-xl mx-auto`}>
           A full marketing and sales platform included free with your CloudCode plan. Everything you need to run an agency — CRM, funnels, email, SMS, automations, and more.
         </p>
       </div>
 
       {/* Action Card */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6 mb-10 text-center">
+      <div className={`${dark ? 'bg-gradient-to-r from-indigo-950/50 to-purple-950/50 border border-indigo-700' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200'} rounded-2xl p-6 mb-10 text-center`}>
         {hasGHL ? (
           <>
             <p className="text-sm text-indigo-700 font-medium mb-3">Your CRM is active and ready to use</p>
@@ -154,22 +156,22 @@ export default function CRM() {
       </div>
 
       {/* Features Grid */}
-      <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Everything Included</h2>
+      <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-6 text-center`}>Everything Included</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
         {features.map((f, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition">
+          <div key={i} className={`${dark ? 'bg-gray-900/80 backdrop-blur' : 'bg-white'} rounded-xl border ${dark ? 'border-gray-700' : 'border-gray-200'} p-5 hover:shadow-md transition`}>
             <div className={`w-10 h-10 ${f.color} rounded-lg flex items-center justify-center mb-3`}>
               <f.icon className="w-5 h-5" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{f.title}</h3>
-            <p className="text-sm text-gray-500">{f.desc}</p>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'} mb-1`}>{f.title}</h3>
+            <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{f.desc}</p>
           </div>
         ))}
       </div>
 
       {/* Value Comparison */}
-      <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 border-gray-200 p-8 sm:p-10 mb-10">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">What You Would Pay Separately</h2>
+      <div className={`${dark ? 'bg-gradient-to-br from-gray-800 to-gray-900/80 backdrop-blur border-2 border-gray-700' : 'bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200'} rounded-2xl p-8 sm:p-10 mb-10`}>
+        <h2 className={`text-2xl sm:text-3xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-8 text-center`}>What You Would Pay Separately</h2>
         <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {[
             { tool: 'CRM (HubSpot/Salesforce)', price: '$50-300/mo' },
@@ -181,20 +183,20 @@ export default function CRM() {
             { tool: 'Website Builder (Wix/Squarespace)', price: '$16-40/mo' },
             { tool: 'Automation (Zapier)', price: '$20-100/mo' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center justify-between py-4 px-4 border-b border-gray-100 bg-white rounded-lg">
+            <div key={i} className={`flex items-center justify-between py-4 px-4 border-b ${dark ? 'border-gray-700 bg-gray-900/80 backdrop-blur' : 'border-gray-100 bg-white'} rounded-lg`}>
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                <span className="text-base font-medium text-gray-800">{item.tool}</span>
+                <span className={`text-base font-medium ${dark ? 'text-gray-100' : 'text-gray-800'}`}>{item.tool}</span>
               </div>
               <span className="text-lg font-semibold text-red-400 line-through">{item.price}</span>
             </div>
           ))}
         </div>
-        <div className="text-center mt-8 pt-6 border-t-2 border-gray-200">
-          <p className="text-gray-500 text-lg">Total if purchased separately:</p>
+        <div className={`text-center mt-8 pt-6 border-t-2 ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <p className={`${dark ? 'text-gray-400' : 'text-gray-500'} text-lg`}>Total if purchased separately:</p>
           <p className="text-3xl sm:text-4xl font-bold text-red-400 line-through mt-1">$315 - $1,157/mo</p>
           <p className="text-3xl sm:text-4xl font-bold text-emerald-600 mt-3">Included FREE with CloudCode</p>
-          <p className="text-gray-400 text-sm mt-2">Starting at just $17/mo</p>
+          <p className={`${dark ? 'text-gray-500' : 'text-gray-400'} text-sm mt-2`}>Starting at just $17/mo</p>
         </div>
       </div>
 

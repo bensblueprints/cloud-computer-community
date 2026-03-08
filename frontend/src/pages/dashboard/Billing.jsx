@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Check, AlertTriangle } from 'lucide-react';
+import useIsDark from '../../hooks/useIsDark';
 
 const plans = [
   { name: 'SOLO', label: 'Solo', price: 19, seats: 1, features: ['8GB RAM / 2 vCPU / 40GB SSD', '1 Cloud Environment', 'noVNC + RDP access', 'Email support'] },
@@ -9,6 +10,7 @@ const plans = [
 ];
 
 export default function Billing() {
+  const dark = useIsDark();
   const { api, user } = useAuth();
   const [org, setOrg] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,22 +58,22 @@ export default function Billing() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Billing</h2>
+      <h2 className={`text-2xl font-bold mb-6 ${dark ? 'text-white' : ''}`}>Billing</h2>
 
       {org && hasSubscription && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-8`}>
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Current Plan</p>
-              <p className="text-xl font-bold">{org.plan}</p>
-              <p className="text-sm text-gray-600">{org.seatLimit} {org.seatLimit === 1 ? 'seat' : 'seats'}</p>
+              <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Current Plan</p>
+              <p className={`text-xl font-bold ${dark ? 'text-white' : ''}`}>{org.plan}</p>
+              <p className={`text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>{org.seatLimit} {org.seatLimit === 1 ? 'seat' : 'seats'}</p>
               {org.subscription?.renewsAt && (
-                <p className="text-xs text-gray-400 mt-1">Renews {new Date(org.subscription.renewsAt).toLocaleDateString()}</p>
+                <p className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'} mt-1`}>Renews {new Date(org.subscription.renewsAt).toLocaleDateString()}</p>
               )}
             </div>
             {user?.orgRole === 'OWNER' ? (
               <div className="flex items-center gap-3">
-                <button onClick={handlePortal} className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200">
+                <button onClick={handlePortal} className={`${dark ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-lg text-sm`}>
                   Manage Billing
                 </button>
                 <button onClick={() => setShowCancelConfirm(true)} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-100">
@@ -79,7 +81,7 @@ export default function Billing() {
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-gray-400">Only the account owner can manage billing</p>
+              <p className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'}`}>Only the account owner can manage billing</p>
             )}
           </div>
         </div>
@@ -120,23 +122,23 @@ export default function Billing() {
 
       {(!hasSubscription || !org?.plan || org.plan === 'FREE') && (
         <>
-          <h3 className="text-lg font-semibold mb-4">{user?.orgRole === 'OWNER' ? 'Choose a Plan' : 'Current Plans'}</h3>
+          <h3 className={`text-lg font-semibold mb-4 ${dark ? 'text-white' : ''}`}>{user?.orgRole === 'OWNER' ? 'Choose a Plan' : 'Current Plans'}</h3>
           {user?.orgRole !== 'OWNER' && (
-            <p className="text-sm text-gray-500 mb-4">Contact your account owner to manage the subscription.</p>
+            <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'} mb-4`}>Contact your account owner to manage the subscription.</p>
           )}
           <div className="grid md:grid-cols-3 gap-6">
             {plans.map(plan => (
-              <div key={plan.name} className={`bg-white rounded-xl p-6 border-2 ${plan.popular ? 'border-brand-500' : 'border-gray-200'}`}>
+              <div key={plan.name} className={`${dark ? 'bg-gray-900/80 backdrop-blur' : 'bg-white'} rounded-xl p-6 border-2 ${plan.popular ? 'border-brand-500' : dark ? 'border-gray-700' : 'border-gray-200'}`}>
                 {plan.popular && <span className="text-xs font-semibold text-brand-600 uppercase">Most Popular</span>}
-                <h4 className="text-xl font-bold mt-1">{plan.label}</h4>
+                <h4 className={`text-xl font-bold mt-1 ${dark ? 'text-white' : ''}`}>{plan.label}</h4>
                 <div className="mt-3">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-gray-500">/mo</span>
+                  <span className={`text-3xl font-bold ${dark ? 'text-white' : ''}`}>${plan.price}</span>
+                  <span className={`${dark ? 'text-gray-400' : 'text-gray-500'}`}>/mo</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{plan.seats} {plan.seats === 1 ? 'seat' : 'seats'}</p>
+                <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{plan.seats} {plan.seats === 1 ? 'seat' : 'seats'}</p>
                 <ul className="mt-4 space-y-2">
                   {plan.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                    <li key={f} className={`flex items-center gap-2 text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
                       <Check className="w-4 h-4 text-green-500" /> {f}
                     </li>
                   ))}
@@ -145,7 +147,7 @@ export default function Billing() {
                   <button
                     onClick={() => handleSubscribe(plan.name)}
                     className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
-                      plan.popular ? 'bg-brand-600 text-white hover:bg-brand-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      plan.popular ? 'bg-brand-600 text-white hover:bg-brand-700' : dark ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     Select Plan
@@ -159,22 +161,22 @@ export default function Billing() {
 
       {hasSubscription && org.plan !== 'FREE' && (
         <>
-          <h3 className="text-lg font-semibold mb-4">Available Plans</h3>
+          <h3 className={`text-lg font-semibold mb-4 ${dark ? 'text-white' : ''}`}>Available Plans</h3>
           <div className="grid md:grid-cols-3 gap-6">
             {plans.map(plan => {
               const isCurrent = org?.plan === plan.name;
               return (
-                <div key={plan.name} className={`bg-white rounded-xl p-6 border-2 ${isCurrent ? 'border-brand-500' : 'border-gray-200'}`}>
+                <div key={plan.name} className={`${dark ? 'bg-gray-900/80 backdrop-blur' : 'bg-white'} rounded-xl p-6 border-2 ${isCurrent ? 'border-brand-500' : dark ? 'border-gray-700' : 'border-gray-200'}`}>
                   {isCurrent && <span className="text-xs font-semibold text-brand-600 uppercase">Current Plan</span>}
-                  <h4 className="text-xl font-bold mt-1">{plan.label}</h4>
+                  <h4 className={`text-xl font-bold mt-1 ${dark ? 'text-white' : ''}`}>{plan.label}</h4>
                   <div className="mt-3">
-                    <span className="text-3xl font-bold">${plan.price}</span>
-                    <span className="text-gray-500">/mo</span>
+                    <span className={`text-3xl font-bold ${dark ? 'text-white' : ''}`}>${plan.price}</span>
+                    <span className={`${dark ? 'text-gray-400' : 'text-gray-500'}`}>/mo</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{plan.seats} {plan.seats === 1 ? 'seat' : 'seats'}</p>
+                  <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{plan.seats} {plan.seats === 1 ? 'seat' : 'seats'}</p>
                   <ul className="mt-4 space-y-2">
                     {plan.features.map(f => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                      <li key={f} className={`flex items-center gap-2 text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
                         <Check className="w-4 h-4 text-green-500" /> {f}
                       </li>
                     ))}
@@ -184,7 +186,7 @@ export default function Billing() {
                       disabled={isCurrent}
                       onClick={() => !isCurrent && handleSubscribe(plan.name)}
                       className={`w-full mt-6 py-2.5 rounded-lg font-semibold text-sm ${
-                        isCurrent ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        isCurrent ? (dark ? 'bg-gray-800 text-gray-500 cursor-default' : 'bg-gray-100 text-gray-400 cursor-default') : (dark ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
                       }`}
                     >
                       {isCurrent ? 'Current Plan' : 'Switch Plan'}

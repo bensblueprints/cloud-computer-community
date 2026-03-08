@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import useIsDark from '../../hooks/useIsDark';
 import { Maximize2, Copy, RotateCcw, Keyboard, Monitor, AlertTriangle } from 'lucide-react';
 
 export default function DashboardServer() {
   const { api, user } = useAuth();
+  const dark = useIsDark();
   const [vms, setVms] = useState([]);
   const [selectedVM, setSelectedVM] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -109,11 +111,11 @@ export default function DashboardServer() {
   if (vms.length === 0) {
     return (
       <div className="text-center py-20">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className={`w-16 h-16 ${dark ? 'bg-gray-800' : 'bg-gray-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
           <Monitor className="w-8 h-8 text-gray-400" />
         </div>
-        <h2 className="text-xl font-semibold mb-2">No Running Servers</h2>
-        <p className="text-gray-600">You don't have any running servers to connect to. Start a server from My Environments first.</p>
+        <h2 className={`text-xl font-semibold mb-2 ${dark ? 'text-white' : ''}`}>No Running Servers</h2>
+        <p className={`${dark ? 'text-gray-400' : 'text-gray-600'}`}>You don't have any running servers to connect to. Start a server from My Environments first.</p>
       </div>
     );
   }
@@ -121,7 +123,7 @@ export default function DashboardServer() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Server Console</h2>
+        <h2 className={`text-2xl font-bold ${dark ? 'text-white' : ''}`}>Server Console</h2>
         {vms.length > 1 && (
           <select
             value={selectedVM?.id || ''}
@@ -129,7 +131,7 @@ export default function DashboardServer() {
               const vm = vms.find(v => v.id === e.target.value);
               if (vm) connectToVM(vm);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500"
+            className={`px-3 py-2 border ${dark ? 'border-gray-700 bg-gray-800 text-white' : 'border-gray-300'} rounded-lg text-sm focus:ring-2 focus:ring-brand-500`}
           >
             {vms.map(vm => (
               <option key={vm.id} value={vm.id}>VM {vm.vmid} — {vm.subdomain}</option>
@@ -171,13 +173,13 @@ export default function DashboardServer() {
       </div>
 
       {/* Default credentials notice */}
-      <div className="bg-amber-50 border-x border-amber-200 px-4 py-2.5 flex items-start gap-2">
-        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-        <div className="text-xs text-amber-800">
+      <div className={`${dark ? 'bg-amber-900/30 border-x border-amber-700' : 'bg-amber-50 border-x border-amber-200'} px-4 py-2.5 flex items-start gap-2`}>
+        <AlertTriangle className={`w-4 h-4 ${dark ? 'text-amber-400' : 'text-amber-600'} mt-0.5 flex-shrink-0`} />
+        <div className={`text-xs ${dark ? 'text-amber-300' : 'text-amber-800'}`}>
           <span className="font-semibold">Default Linux password:</span>{' '}
-          <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono">AI@123456</code>{' '}
+          <code className={`${dark ? 'bg-amber-900/50' : 'bg-amber-100'} px-1.5 py-0.5 rounded font-mono`}>AI@123456</code>{' '}
           — Please change this after logging in by opening a terminal and running{' '}
-          <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono">passwd</code>
+          <code className={`${dark ? 'bg-amber-900/50' : 'bg-amber-100'} px-1.5 py-0.5 rounded font-mono`}>passwd</code>
         </div>
       </div>
 
