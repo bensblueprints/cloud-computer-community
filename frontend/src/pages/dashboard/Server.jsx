@@ -48,7 +48,7 @@ export default function DashboardServer() {
       const { token, wsUrl, proxmox, type, vncPassword } = res.data;
 
       const RFB = (await import('@novnc/novnc/lib/rfb')).default;
-      const password = type === 'lxc' ? (vncPassword || 'clawdbot123') : (proxmox?.ticket || '');
+      const password = proxmox?.ticket || vncPassword || '';
 
       // Wait for canvas to be in DOM
       await new Promise(r => setTimeout(r, 100));

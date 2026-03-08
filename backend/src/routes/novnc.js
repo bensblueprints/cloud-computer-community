@@ -47,35 +47,7 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
       data: { lastActiveAt: new Date() }
     });
 
-    // For LXC containers with internalIp, use direct VNC connection
-    if (vm.internalIp) {
-      const token = jwt.sign(
-        {
-          vmid,
-          userId: req.userId,
-          internalIp: vm.internalIp,
-          iat: Math.floor(Date.now() / 1000)
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-
-      // Use backend's websocket proxy
-      const wsUrl = `wss://api.cloudcode.space/websockify`;
-
-      // VNC password for LXC containers (standard password set during provisioning)
-      const vncPassword = 'clawdbot123';
-
-      return res.json({
-        token,
-        wsUrl,
-        vmid,
-        type: 'lxc',
-        vncPassword
-      });
-    }
-
-    // Fallback to Proxmox VNC for QEMU VMs
+    // All VMs use Proxmox VNC proxy (QEMU VMs)
     const vncInfo = await proxmoxService.getVNCProxy(vmid);
 
     const token = jwt.sign(
@@ -90,7 +62,6 @@ router.get('/:vmid/token', auth, async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
-    // Use the central API websocket proxy
     const wsUrl = `wss://api.cloudcode.space/websockify`;
 
     res.json({
