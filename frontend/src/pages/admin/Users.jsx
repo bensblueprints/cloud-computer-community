@@ -198,8 +198,9 @@ export default function AdminUsers() {
               <button onClick={async () => {
                 try {
                   await api.post(`/admin/impersonate/${selectedUser.id}`);
-                  // Force full page reload to pick up new auth cookie
-                  window.location.replace('https://app.cloudcode.space/dashboard');
+                  // Full page navigation to user dashboard with cache bust
+                  window.location.href = 'https://app.cloudcode.space/dashboard?impersonate=' + Date.now();
+                  window.location.reload(true);
                 } catch (err) {
                   alert(err.response?.data?.error || 'Failed to impersonate user');
                 }
