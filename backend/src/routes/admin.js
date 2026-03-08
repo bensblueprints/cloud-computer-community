@@ -39,6 +39,27 @@ router.post('/auth/login', async (req, res, next) => {
   }
 });
 
+// Impersonate user (login as user from admin)
+router.post('/impersonate/:userId', auth, adminOnly, auditLog('admin.impersonate'), async (req, res, next) => {
+  try {
+    const targetUser = await prisma.user.findUnique({ where: { id: req.params.userId } });
+    if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+    const token = jwt.sign({ userId: targetUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      domain: '.cloudcode.space',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    res.json({ message: `Now logged in as ${targetUser.name}`, redirectUrl: '/dashboard' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // All routes below require admin
 router.use(auth, adminOnly);
 

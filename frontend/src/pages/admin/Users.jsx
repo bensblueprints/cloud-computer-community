@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, X, UserCog, Plus } from 'lucide-react';
+import { Search, X, UserCog, Plus, LogIn } from 'lucide-react';
 
 export default function AdminUsers() {
   const { api } = useAuth();
@@ -195,6 +195,17 @@ export default function AdminUsers() {
             </div>
 
             <div className="mt-8 space-y-2">
+              <button onClick={async () => {
+                try {
+                  const res = await api.post(`/admin/impersonate/${selectedUser.id}`);
+                  window.location.href = 'https://cloudcode.space/dashboard';
+                } catch (err) {
+                  alert(err.response?.data?.error || 'Failed to impersonate user');
+                }
+              }}
+                className="w-full py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2">
+                <LogIn className="w-4 h-4" /> Login as User
+              </button>
               <button onClick={() => handleAction('update', { suspended: !selectedUser.suspended })}
                 className={`w-full py-2 rounded-lg text-sm font-medium ${selectedUser.suspended ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'}`}>
                 {selectedUser.suspended ? 'Unsuspend' : 'Suspend'}
