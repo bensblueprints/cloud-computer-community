@@ -410,39 +410,46 @@ export default function Home() {
       </section>
 
       {/* Annual Savings Comparison */}
-      <section className="py-24">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Do the Math</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">The average business spends $500-$1,500/month on SaaS tools. CloudCode replaces them all.</p>
+      <section className="py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent"></div>
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        <div className="max-w-5xl mx-auto px-4 relative">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-5 py-2 text-sm mb-6">
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span className="text-emerald-300 font-medium">Stop overpaying for software</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-6">Do the Math</h2>
+            <p className="text-slate-400 text-xl max-w-2xl mx-auto">The average business spends $500-$1,500/month on SaaS tools. CloudCode replaces them all.</p>
           </div>
 
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700 rounded-3xl p-8 sm:p-12">
-            <div className="grid sm:grid-cols-3 gap-8 items-center">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-emerald-500/30 rounded-3xl p-10 sm:p-16 shadow-2xl shadow-emerald-500/5">
+            <div className="grid sm:grid-cols-3 gap-10 items-center">
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-2 uppercase tracking-wider font-medium">Typical Annual Spend</p>
-                <p className="text-5xl sm:text-6xl font-bold text-red-400 line-through">$13,884</p>
-                <p className="text-slate-500 text-sm mt-2">CRM + hosting + AI tools + IDE + more</p>
+                <p className="text-slate-400 text-base mb-3 uppercase tracking-wider font-semibold">Typical Annual Spend</p>
+                <p className="text-6xl sm:text-7xl lg:text-8xl font-black text-red-400 line-through">$13,884</p>
+                <p className="text-slate-500 text-base mt-3">CRM + hosting + AI tools + IDE + more</p>
               </div>
               <div className="flex justify-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center">
-                  <ArrowRight className="w-8 h-8 text-emerald-400" />
+                <div className="w-20 h-20 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border-2 border-emerald-500/30 rounded-full flex items-center justify-center">
+                  <ArrowRight className="w-10 h-10 text-emerald-400" />
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-2 uppercase tracking-wider font-medium">CloudCode Annual Cost</p>
-                <p className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">$204</p>
-                <p className="text-emerald-400 text-sm mt-2 font-semibold">Everything included. One subscription.</p>
+                <p className="text-slate-400 text-base mb-3 uppercase tracking-wider font-semibold">CloudCode Annual Cost</p>
+                <p className="text-6xl sm:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">$204</p>
+                <p className="text-emerald-400 text-base mt-3 font-semibold">Everything included. One subscription.</p>
               </div>
             </div>
 
-            <div className="mt-10 pt-8 border-t border-slate-700 text-center">
-              <p className="text-slate-400 mb-2">That is a savings of</p>
-              <p className="text-6xl sm:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400">$13,680</p>
-              <p className="text-2xl text-slate-300 font-semibold mt-2">per year</p>
-              <a href="#pricing" className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-lg shadow-emerald-500/25 mt-8">
+            <div className="mt-14 pt-10 border-t-2 border-slate-700 text-center">
+              <p className="text-slate-400 text-xl mb-4">That is a savings of</p>
+              <p className="text-7xl sm:text-8xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 leading-none">$13,680</p>
+              <p className="text-3xl sm:text-4xl text-slate-200 font-bold mt-4">per year</p>
+              <a href="#pricing" className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-12 py-5 rounded-xl font-bold text-xl hover:opacity-90 transition shadow-2xl shadow-emerald-500/25 mt-10">
                 Start Saving Now
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-6 h-6" />
               </a>
             </div>
           </div>
