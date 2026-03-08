@@ -45,7 +45,7 @@ await provisionQueue.add('provision', {
   orgId: 'xxx-xxx-xxx',
   vmId: 'xxx-xxx-xxx',
   vmid: 99999,
-  templateVmid: 111,  // or 112/113 for TEAM/ARMY
+  templateVmid: 512,  // or 513/514 for TEAM/ARMY
   subdomain: 'username-99999',
   username: 'username',
   isShared: false,  // true for TEAM/ARMY

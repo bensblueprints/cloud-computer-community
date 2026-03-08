@@ -79,7 +79,7 @@ CloudCode is a cloud desktop platform that provides virtual Ubuntu environments 
    └─> Queues provisioning job
 
 5. VM PROVISIONING (BullMQ worker)
-   └─> Clone template from Proxmox (111/112/113)
+   └─> Clone template from Proxmox (512/513/514)
    └─> Start VM
    └─> Wait for guest agent (5 min timeout)
    └─> Set credentials (RDP/VNC passwords)
@@ -310,9 +310,9 @@ PROXMOX_NODE=pve
 PROXMOX_USER=api@pve
 PROXMOX_TOKEN_ID=apitoken
 PROXMOX_TOKEN_SECRET=...
-PROXMOX_TEMPLATE_SOLO=111
-PROXMOX_TEMPLATE_TEAM=112
-PROXMOX_TEMPLATE_ARMY=113
+PROXMOX_TEMPLATE_SOLO=512
+PROXMOX_TEMPLATE_TEAM=513
+PROXMOX_TEMPLATE_ARMY=514
 
 # Stripe
 STRIPE_SECRET_KEY=sk_...

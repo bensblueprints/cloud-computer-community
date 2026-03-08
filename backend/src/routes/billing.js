@@ -31,9 +31,9 @@ const redis = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", { m
 const provisionQueue = new Queue("vm-provisioning", { connection: redis });
 
 const PLANS = {
-  SOLO: { seats: 1, priceId: process.env.STRIPE_PRICE_SOLO, price: 17, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 111 },
-  TEAM: { seats: 5, priceId: process.env.STRIPE_PRICE_TEAM, price: 79, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 112 },
-  ARMY: { seats: 25, priceId: process.env.STRIPE_PRICE_ARMY, price: 299, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 113 }
+  SOLO: { seats: 1, priceId: process.env.STRIPE_PRICE_SOLO, price: 17, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 512 },
+  TEAM: { seats: 5, priceId: process.env.STRIPE_PRICE_TEAM, price: 79, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 513 },
+  ARMY: { seats: 25, priceId: process.env.STRIPE_PRICE_ARMY, price: 299, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 514 }
 };
 
 router.get("/plans", (req, res) => {

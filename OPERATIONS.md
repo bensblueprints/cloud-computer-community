@@ -161,9 +161,9 @@ Once the system is working, these files should NOT be modified without careful c
 ### Template IDs
 | Plan | Template VMID | Specs |
 |------|---------------|-------|
-| SOLO | 111 | 8GB RAM, 2 vCPU, 40GB |
-| TEAM | 112 | 16GB RAM, 4 vCPU, 80GB |
-| ARMY | 113 | 32GB RAM, 8 vCPU, 160GB |
+| SOLO | 512 | 8GB RAM, 2 vCPU, 40GB |
+| TEAM | 513 | 16GB RAM, 4 vCPU, 80GB |
+| ARMY | 514 | 32GB RAM, 8 vCPU, 160GB |
 
 ### Template Configuration
 - OS: Ubuntu 24.04 with GNOME
@@ -179,9 +179,9 @@ PROXMOX_USER=root@pam
 PROXMOX_TOKEN_ID=terraform
 PROXMOX_TOKEN_SECRET=...
 PROXMOX_NODE=pve
-PROXMOX_TEMPLATE_SOLO=111
-PROXMOX_TEMPLATE_TEAM=112
-PROXMOX_TEMPLATE_ARMY=113
+PROXMOX_TEMPLATE_SOLO=512
+PROXMOX_TEMPLATE_TEAM=513
+PROXMOX_TEMPLATE_ARMY=514
 ```
 
 ---
@@ -343,7 +343,7 @@ docker-compose restart backend
 - [ ] Stripe webhook endpoint configured correctly
 - [ ] STRIPE_WEBHOOK_SECRET matches Stripe dashboard
 - [ ] Backend can reach Proxmox API (PROXMOX_HOST reachable)
-- [ ] Proxmox templates exist (111, 112, 113)
+- [ ] Proxmox templates exist (512, 513, 514)
 - [ ] Redis running (for BullMQ job queue)
 - [ ] PostgreSQL running (for database)
 - [ ] Traefik can write to /etc/traefik/dynamic/
