@@ -289,46 +289,50 @@ class ProxmoxService {
   }
 
   // Configure DNS and networking on a freshly provisioned VM
-  // Uses file-write API (reliable) + safe exec commands that don't block on failure
+  // Fixes: 1) Netplan MAC matching (cloned VMs get new MACs), 2) DNS resolvers, 3) Boot-time DNS fix
   async configureNetworking(vmid) {
     console.log(`Configuring networking for VM ${vmid}`);
     try {
-      // Step 1: Write resolv.conf directly using file-write API (most critical - gives immediate internet)
+      // Step 1: Write clean netplan config WITHOUT MAC matching (critical for cloned VMs)
+      // Cloned VMs get new MAC addresses, so the template's mac-match netplan breaks networking
+      const netplanConfig = "network:\n  version: 2\n  renderer: NetworkManager\n  ethernets:\n    ens18:\n      dhcp4: true\n      nameservers:\n        addresses: [1.1.1.1, 8.8.8.8, 1.0.0.1]\n";
+      try {
+        await this.writeFileInVM(vmid, "/etc/netplan/00-installer-config.yaml", netplanConfig);
+        console.log(`[Net] netplan config written for VM ${vmid} (no MAC matching)`);
+      } catch (e) {
+        console.log(`[Net] Could not write netplan: ${e.message}`);
+      }
+
+      // Step 2: Write resolv.conf directly (immediate DNS fix even before netplan apply)
       const resolvConf = "nameserver 1.1.1.1\nnameserver 8.8.8.8\nnameserver 1.0.0.1\nnameserver 8.8.4.4\n";
       await this.writeFileInVM(vmid, "/etc/resolv.conf", resolvConf);
       console.log(`[Net] resolv.conf written for VM ${vmid}`);
 
-      // Step 2: Write systemd-resolved config (dir may already exist in template)
+      // Step 3: Apply netplan (exec may fail with 596 but config is written for next boot)
+      await this.safeExecInVM(vmid, "netplan apply");
+
+      // Step 4: Write systemd-resolved config
       const resolvedConf = "[Resolve]\nDNS=1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4\nFallbackDNS=9.9.9.9\nDNSStubListener=no\n";
       await this.safeExecInVM(vmid, "mkdir -p /etc/systemd/resolved.conf.d");
       try {
         await this.writeFileInVM(vmid, "/etc/systemd/resolved.conf.d/dns.conf", resolvedConf);
-        console.log(`[Net] systemd-resolved config written for VM ${vmid}`);
-      } catch (e) {
-        console.log(`[Net] Could not write resolved config, but resolv.conf is set`);
-      }
-
-      // Step 3: Restart systemd-resolved (non-critical)
+      } catch (e) { /* non-critical */ }
       await this.safeExecInVM(vmid, "systemctl restart systemd-resolved");
 
-      // Step 4: Write boot-time DNS fix script (persists across reboots)
+      // Step 5: Write boot-time DNS fix script (persists across reboots)
       const fixDnsScript = '#!/bin/bash\nsleep 5\nif ! host google.com > /dev/null 2>&1; then\n  echo "nameserver 1.1.1.1" > /etc/resolv.conf\n  echo "nameserver 8.8.8.8" >> /etc/resolv.conf\n  echo "nameserver 1.0.0.1" >> /etc/resolv.conf\n  systemctl restart systemd-resolved 2>/dev/null || true\nfi\n';
       try {
         await this.writeFileInVM(vmid, "/usr/local/bin/fix-dns.sh", fixDnsScript);
         await this.safeExecInVM(vmid, "chmod +x /usr/local/bin/fix-dns.sh");
-      } catch (e) {
-        console.log(`[Net] Could not write fix-dns.sh, but resolv.conf is set`);
-      }
+      } catch (e) { /* non-critical */ }
 
-      // Step 5: Write and enable systemd service for boot-time fix (non-critical)
+      // Step 6: Write and enable systemd service for boot-time fix
       const fixDnsService = "[Unit]\nDescription=Fix DNS on Boot\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/fix-dns.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target\n";
       try {
         await this.writeFileInVM(vmid, "/etc/systemd/system/fix-dns.service", fixDnsService);
         await this.safeExecInVM(vmid, "systemctl daemon-reload");
         await this.safeExecInVM(vmid, "systemctl enable fix-dns.service");
-      } catch (e) {
-        console.log(`[Net] Could not set up boot-time service, but resolv.conf is set`);
-      }
+      } catch (e) { /* non-critical */ }
 
       console.log(`Networking configured for VM ${vmid}`);
       return { success: true };
