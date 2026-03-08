@@ -149,6 +149,94 @@ router.post('/invite', auth, async (req, res, next) => {
   }
 });
 
+// List all invites for the org (auth required, OWNER only)
+router.get('/invites', auth, async (req, res, next) => {
+  try {
+    if (req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can view invites' });
+    }
+
+    const invites = await prisma.invite.findMany({
+      where: { orgId: req.user.orgId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        used: true,
+        expiresAt: true,
+        createdAt: true,
+        inviter: { select: { name: true } }
+      }
+    });
+
+    // Add a computed status
+    const now = new Date();
+    const mapped = invites.map(inv => ({
+      ...inv,
+      status: inv.used ? 'accepted' : inv.expiresAt < now ? 'expired' : 'pending'
+    }));
+
+    res.json({ invites: mapped });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Cancel a pending invite
+router.delete('/invites/:id', auth, async (req, res, next) => {
+  try {
+    if (req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can cancel invites' });
+    }
+
+    const invite = await prisma.invite.findFirst({
+      where: { id: req.params.id, orgId: req.user.orgId }
+    });
+
+    if (!invite) return res.status(404).json({ error: 'Invite not found' });
+    if (invite.used) return res.status(400).json({ error: 'Cannot cancel an accepted invite' });
+
+    await prisma.invite.delete({ where: { id: invite.id } });
+    res.json({ message: 'Invite cancelled' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Resend an invite email
+router.post('/invites/:id/resend', auth, async (req, res, next) => {
+  try {
+    if (req.user.orgRole !== 'OWNER') {
+      return res.status(403).json({ error: 'Only org owners can resend invites' });
+    }
+
+    const invite = await prisma.invite.findFirst({
+      where: { id: req.params.id, orgId: req.user.orgId }
+    });
+
+    if (!invite) return res.status(404).json({ error: 'Invite not found' });
+    if (invite.used) return res.status(400).json({ error: 'Invite already accepted' });
+
+    // Refresh expiration
+    const updated = await prisma.invite.update({
+      where: { id: invite.id },
+      data: { expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) }
+    });
+
+    const inviteUrl = `${process.env.FRONTEND_URL}/accept-invite/${invite.token}`;
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'noreply@cloudcode.space',
+      to: invite.email,
+      subject: `Reminder: You're invited to join Cloud Computer`,
+      html: `<p>You've been invited to join a Cloud Computer team.</p><p><a href="${inviteUrl}">Accept Invite</a></p><p>This link expires in 48 hours.</p>`
+    });
+
+    res.json({ invite: { id: updated.id, email: updated.email, expiresAt: updated.expiresAt } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get invite details by token (public, no auth required)
 router.get('/invite/:token', async (req, res, next) => {
   try {
