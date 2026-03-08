@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Key, Copy, Check, Eye, EyeOff, Download, BookOpen } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Copy, Check, Download, BookOpen } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -165,87 +165,132 @@ function ServerCard({ vm, onAction }) {
   );
 }
 
-function AiApiKeyCard({ api }) {
-  const [apiKey, setApiKey] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
+function AiSetupGuide() {
+  const [copiedGroq, setCopiedGroq] = useState(false);
 
-  useEffect(() => {
-    api.get('/ollama/api-key')
-      .then(res => setApiKey(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const copyKey = () => {
-    if (apiKey?.apiKey) {
-      navigator.clipboard.writeText(apiKey.apiKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedGroq(true);
+    setTimeout(() => setCopiedGroq(false), 2000);
   };
-
-  const regenerate = async () => {
-    setRegenerating(true);
-    try {
-      const res = await api.post('/ollama/api-key/regenerate');
-      setApiKey(res.data);
-    } catch {
-      alert('Failed to regenerate API key');
-    } finally {
-      setRegenerating(false);
-    }
-  };
-
-  if (loading) return null;
-
-  const maskedKey = apiKey?.apiKey ? apiKey.apiKey.slice(0, 10) + '••••••••••••••••••••' : '';
 
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <Key className="w-4 h-4 text-purple-500" />
-        Free AI Models
-        <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">BETA</span>
+        <Zap className="w-4 h-4 text-purple-500" />
+        AI Setup Guide
       </h2>
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-          <p className="text-xs text-amber-700">
-            <span className="font-semibold">Beta Service:</span> AI models are provided as a free bonus and are not guaranteed with your plan. You may experience performance issues during peak usage. For production workloads, we recommend using your own API keys (OpenAI, Anthropic, etc.).
-          </p>
-        </div>
-        <p className="text-sm text-gray-500 mb-4">
-          4 AI models included free. Use from your VM terminal, in your code, or via API. OpenAI-compatible — works with any OpenAI SDK.
+        <p className="text-sm text-gray-600 mb-5">
+          Get blazing-fast AI running on your cloud computer for free. We recommend <strong>Groq</strong> — it runs on custom LPU hardware and delivers 500+ tokens/sec, way faster than any GPU-based API.
         </p>
 
-        {/* Quick Start - Terminal */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 mb-4">
-          <p className="text-sm font-semibold text-purple-900 mb-1">Quickest way — open a terminal in your VM:</p>
-          <div className="bg-gray-900 rounded-lg p-3 font-mono text-sm mt-2">
-            <p className="text-green-400">ai "How do I set up a Node.js project?"</p>
-            <p className="text-gray-500 mt-1">ai chat &nbsp;&nbsp;&nbsp;# interactive mode</p>
-            <p className="text-gray-500">ai models &nbsp;# see all models</p>
+        {/* Groq Section */}
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-5 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-5 h-5 text-orange-600" />
+            <h3 className="font-semibold text-gray-900">Groq — Free & Lightning Fast</h3>
+            <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full">RECOMMENDED</span>
+          </div>
+
+          <div className="space-y-3 mb-4">
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center text-xs font-bold text-orange-700">1</span>
+              <div>
+                <p className="text-sm font-medium text-gray-800">Create a free Groq account</p>
+                <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" className="text-sm text-orange-600 hover:text-orange-700 underline flex items-center gap-1">
+                  console.groq.com <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center text-xs font-bold text-orange-700">2</span>
+              <div>
+                <p className="text-sm font-medium text-gray-800">Generate an API key</p>
+                <p className="text-xs text-gray-500">Go to API Keys in the left sidebar and click "Create API Key". No credit card needed.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center text-xs font-bold text-orange-700">3</span>
+              <div>
+                <p className="text-sm font-medium text-gray-800">Use it everywhere — it's OpenAI-compatible</p>
+                <p className="text-xs text-gray-500">Base URL: <code className="bg-orange-100 px-1.5 py-0.5 rounded text-orange-800">https://api.groq.com/openai/v1</code></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Free Tier Specs */}
+          <div className="bg-white/70 rounded-lg p-3 mb-4 border border-orange-100">
+            <p className="text-xs font-semibold text-gray-700 mb-2">Free Tier Specs:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="text-center">
+                <p className="font-bold text-orange-700">500+</p>
+                <p className="text-gray-500">tokens/sec</p>
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-orange-700">30</p>
+                <p className="text-gray-500">requests/min</p>
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-orange-700">6,000+</p>
+                <p className="text-gray-500">tokens/min</p>
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-orange-700">14,400</p>
+                <p className="text-gray-500">requests/day</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Available Models */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+            {[
+              { name: 'llama-3.3-70b-versatile', desc: 'Best all-around' },
+              { name: 'llama-3.1-8b-instant', desc: 'Ultra fast' },
+              { name: 'mixtral-8x7b-32768', desc: '32K context' },
+              { name: 'gemma2-9b-it', desc: 'Google model' },
+              { name: 'qwen-qwq-32b', desc: 'Great at reasoning' },
+              { name: 'deepseek-r1-distill-llama-70b', desc: 'DeepSeek reasoning' },
+            ].map(m => (
+              <div key={m.name} className="bg-white/60 rounded-lg p-2 border border-orange-100 text-center">
+                <p className="text-xs font-semibold text-gray-800 truncate" title={m.name}>{m.name}</p>
+                <p className="text-xs text-gray-400">{m.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Code Examples - Tabbed */}
+        {/* Use in Cursor */}
         <details className="mb-4" open>
-          <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-purple-700 mb-2">Use in Your Code</summary>
+          <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-purple-700 mb-2">Use Groq in Cursor IDE</summary>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+            <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+              <li>Open Cursor and go to <strong>Settings</strong> (gear icon) → <strong>Models</strong></li>
+              <li>Click <strong>"Add Model"</strong> under OpenAI API Compatible</li>
+              <li>Set the <strong>Base URL</strong> to: <code className="bg-gray-200 px-1.5 py-0.5 rounded text-gray-800 text-xs">https://api.groq.com/openai/v1</code></li>
+              <li>Paste your Groq API key</li>
+              <li>Add model name: <code className="bg-gray-200 px-1.5 py-0.5 rounded text-gray-800 text-xs">llama-3.3-70b-versatile</code></li>
+              <li>You're done — select the model from the model dropdown when chatting</li>
+            </ol>
+          </div>
+        </details>
+
+        {/* Code Examples */}
+        <details className="mb-4">
+          <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-purple-700 mb-2">Use Groq in Your Code</summary>
           <div className="space-y-3">
             {/* Node.js */}
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Node.js (OpenAI SDK — works out of the box)</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">Node.js (OpenAI SDK)</p>
               <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
                 <p className="text-gray-500">// npm install openai</p>
                 <p>{`const OpenAI = require('openai');`}</p>
                 <p>{`const ai = new OpenAI({`}</p>
-                <p className="pl-4">{`baseURL: 'http://ai.internal:11434/v1',`}</p>
-                <p className="pl-4">{`apiKey: 'unused'  // no key needed from your VM`}</p>
+                <p className="pl-4">{`baseURL: 'https://api.groq.com/openai/v1',`}</p>
+                <p className="pl-4">{`apiKey: process.env.GROQ_API_KEY`}</p>
                 <p>{`});`}</p>
                 <p className="mt-2">{`const response = await ai.chat.completions.create({`}</p>
-                <p className="pl-4">{`model: 'mistral',`}</p>
+                <p className="pl-4">{`model: 'llama-3.3-70b-versatile',`}</p>
                 <p className="pl-4">{`messages: [{ role: 'user', content: 'Hello!' }]`}</p>
                 <p>{`});`}</p>
                 <p>{`console.log(response.choices[0].message.content);`}</p>
@@ -258,76 +303,63 @@ function AiApiKeyCard({ api }) {
               <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
                 <p className="text-gray-500"># pip install openai</p>
                 <p>{`from openai import OpenAI`}</p>
-                <p>{`ai = OpenAI(base_url="http://ai.internal:11434/v1", api_key="unused")`}</p>
+                <p>{`import os`}</p>
+                <p className="mt-1">{`ai = OpenAI(`}</p>
+                <p className="pl-4">{`base_url="https://api.groq.com/openai/v1",`}</p>
+                <p className="pl-4">{`api_key=os.environ["GROQ_API_KEY"]`}</p>
+                <p>{`)`}</p>
                 <p className="mt-2">{`response = ai.chat.completions.create(`}</p>
-                <p className="pl-4">{`model="mistral",`}</p>
+                <p className="pl-4">{`model="llama-3.3-70b-versatile",`}</p>
                 <p className="pl-4">{`messages=[{"role": "user", "content": "Hello!"}]`}</p>
                 <p>{`)`}</p>
                 <p>{`print(response.choices[0].message.content)`}</p>
               </div>
             </div>
 
-            {/* curl */}
+            {/* cURL */}
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">cURL (from VM terminal)</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">cURL</p>
               <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
-                <p>{`curl http://ai.internal:11434/v1/chat/completions \\`}</p>
+                <p>{`curl https://api.groq.com/openai/v1/chat/completions \\`}</p>
+                <p className="pl-4">{`-H "Authorization: Bearer $GROQ_API_KEY" \\`}</p>
                 <p className="pl-4">{`-H "Content-Type: application/json" \\`}</p>
-                <p className="pl-4">{`-d '{"model":"mistral","messages":[{"role":"user","content":"Hello!"}]}'`}</p>
+                <p className="pl-4">{`-d '{"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":"Hello!"}]}'`}</p>
               </div>
             </div>
           </div>
         </details>
 
-        {/* Available Models */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-          {[
-            { name: 'mistral', size: '7B', desc: 'Best all-around' },
-            { name: 'llama3.2:3b', size: '3B', desc: 'Fast responses' },
-            { name: 'qwen2.5:3b', size: '3B', desc: 'Good at code' },
-            { name: 'gemma2:2b', size: '2B', desc: 'Fastest' },
-          ].map(m => (
-            <div key={m.name} className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 text-center">
-              <p className="text-sm font-semibold text-gray-800">{m.name}</p>
-              <p className="text-xs text-gray-400">{m.size} &middot; {m.desc}</p>
-            </div>
-          ))}
+        {/* Set env var tip */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <p className="text-xs text-blue-800">
+            <span className="font-semibold">Pro tip:</span> Add your API key to your environment so all tools can use it. Open a terminal and run:
+          </p>
+          <div className="bg-gray-900 rounded-lg p-2 font-mono text-xs text-green-400 mt-2">
+            <p>{`echo 'export GROQ_API_KEY="your-key-here"' >> ~/.bashrc && source ~/.bashrc`}</p>
+          </div>
         </div>
 
-        {/* External API Key (collapsible) */}
+        {/* Ollama Self-Install */}
         <details className="mb-3">
-          <summary className="text-sm font-medium text-purple-600 cursor-pointer hover:text-purple-700">API Key (for use outside your VM)</summary>
-          <div className="mt-3">
-            <p className="text-xs text-gray-500 mb-2">Use this key to access AI from outside your VM (e.g. your local machine, other servers).</p>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center justify-between">
-                <span className="truncate">{visible ? apiKey?.apiKey : maskedKey}</span>
-                <button onClick={() => setVisible(!visible)} className="text-gray-400 hover:text-gray-600 ml-2 flex-shrink-0">
-                  {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <button
-                onClick={copyKey}
-                className="flex items-center gap-1.5 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition text-sm flex-shrink-0"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
+          <summary className="text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700">Want to run AI locally? Install Ollama yourself</summary>
+          <div className="mt-3 bg-gray-50 rounded-lg p-4">
+            <p className="text-xs text-gray-600 mb-2">
+              Ollama lets you run open-source AI models locally on your VM. Note: performance depends on your plan's CPU — it will be slower than Groq.
+            </p>
+            <div className="bg-gray-900 rounded-lg p-3 font-mono text-sm text-green-400 mb-2">
+              <p>curl -fsSL https://ollama.com/install.sh | sh</p>
+              <p className="text-gray-500 mt-1">ollama pull llama3.2:3b &nbsp;&nbsp;# download a model</p>
+              <p className="text-gray-500">ollama run llama3.2:3b &nbsp;&nbsp;&nbsp;# start chatting</p>
             </div>
-            <p className="text-xs text-gray-400 font-mono">Endpoint: https://cloudcode.space/api/ollama/v1</p>
+            <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-xs text-purple-600 hover:text-purple-700 underline flex items-center gap-1">
+              ollama.com <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </details>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Unlimited usage &middot; No API key needed from your VM</p>
-          <button
-            onClick={regenerate}
-            disabled={regenerating}
-            className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50"
-          >
-            {regenerating ? 'Regenerating...' : 'Regenerate API Key'}
-          </button>
+        <div className="pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-400">Groq is free, no credit card required. For higher limits, Groq offers paid tiers starting at $0.</p>
         </div>
       </div>
     </div>
@@ -574,8 +606,8 @@ export default function DashboardIndex() {
         </div>
       )}
 
-      {/* AI API Key Section */}
-      {hasSubscription && <AiApiKeyCard api={api} />}
+      {/* AI Setup Guide */}
+      {hasSubscription && <AiSetupGuide />}
 
       {/* Provisioning VMs */}
       {provisioningVMs.length > 0 && (

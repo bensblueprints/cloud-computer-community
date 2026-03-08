@@ -175,8 +175,7 @@ WantedBy=multi-user.target
 UNIT
 systemctl enable fix-dns.service
 
-# Add AI host alias so VMs can reach Ollama via ai.internal
-echo "10.10.10.1 ai.internal" >> /etc/hosts
+# AI host alias removed — Ollama no longer provided. Users set up Groq or install Ollama themselves.
 
 # Additional dev tools
 echo "Installing additional dev tools..."
@@ -219,36 +218,30 @@ done
 chmod +x /home/cloudcomputer/Desktop/*.desktop 2>/dev/null || true
 chown -R cloudcomputer:cloudcomputer /home/cloudcomputer/Desktop
 
-# Install AI command (access to Ollama on host network)
-echo "[13/13] Installing AI command..."
-cat > /usr/local/bin/ai << 'AICMD'
+# AI Setup Info (Groq recommended, Ollama self-install)
+echo "[13/13] Setting up AI info..."
+cat > /usr/local/bin/ai-setup << 'AISETUP'
 #!/bin/bash
-OLLAMA="http://ai.internal:11434"
-MODEL="${AI_MODEL:-mistral}"
-if [ "$1" = "models" ]; then
-    echo "Available AI Models:"
-    curl -s "$OLLAMA/api/tags" | python3 -c "import sys,json;[print(f'  - {m[\"name\"]} ({m[\"details\"][\"parameter_size\"]})') for m in json.load(sys.stdin).get('models',[])]" 2>/dev/null
-    echo ""; echo "Set default: export AI_MODEL=mistral"; exit 0
-fi
-if [ "$1" = "chat" ]; then
-    echo "CloudCode AI Chat (model: $MODEL) - Ctrl+C to quit"; echo "---"
-    while true; do
-        printf "\033[36mYou:\033[0m "; read -r P; [ -z "$P" ] && continue
-        printf "\033[33mAI:\033[0m "
-        curl -s "$OLLAMA/api/generate" -d "{\"model\":\"$MODEL\",\"prompt\":\"$P\",\"stream\":true}" | while read -r l; do echo "$l" | python3 -c "import sys,json;print(json.load(sys.stdin).get('response',''),end='',flush=True)" 2>/dev/null; done; echo
-    done; exit 0
-fi
-if [ -z "$1" ]; then
-    echo "CloudCode AI - Free AI on your cloud computer"; echo ""
-    echo "Usage:"; echo "  ai \"What is Docker?\"     Quick question"
-    echo "  ai chat                   Interactive chat"; echo "  ai models                 List available models"; echo ""
-    echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
-    echo "Change model: export AI_MODEL=mistral"; echo ""
-    echo "API Endpoint: http://ai.internal:11434"; exit 0
-fi
-curl -s "$OLLAMA/api/generate" -d "{\"model\":\"$MODEL\",\"prompt\":\"$*\",\"stream\":true}" | while read -r l; do echo "$l" | python3 -c "import sys,json;print(json.load(sys.stdin).get('response',''),end='',flush=True)" 2>/dev/null; done; echo
-AICMD
-chmod +x /usr/local/bin/ai
+echo ""
+echo "=== AI Setup for Cloud Computer ==="
+echo ""
+echo "RECOMMENDED: Groq (free, 500+ tokens/sec)"
+echo "  1. Sign up at https://console.groq.com (free, no credit card)"
+echo "  2. Create an API key in the sidebar"
+echo "  3. Add to your environment:"
+echo "     echo 'export GROQ_API_KEY=\"your-key\"' >> ~/.bashrc && source ~/.bashrc"
+echo ""
+echo "  Use in Cursor: Settings → Models → Add OpenAI Compatible"
+echo "    Base URL: https://api.groq.com/openai/v1"
+echo "    Model: llama-3.3-70b-versatile"
+echo ""
+echo "OPTIONAL: Install Ollama locally (slower, runs on CPU)"
+echo "  curl -fsSL https://ollama.com/install.sh | sh"
+echo "  ollama pull llama3.2:3b"
+echo "  ollama run llama3.2:3b"
+echo ""
+AISETUP
+chmod +x /usr/local/bin/ai-setup
 
 # Create a welcome note on desktop
 cat > /home/cloudcomputer/Desktop/WELCOME.txt << 'EOF'
@@ -259,15 +252,21 @@ Your cloud desktop comes pre-installed with:
   - Telegram Desktop
   - Cursor IDE
   - Claude Code CLI (run: claude in terminal)
-  - AI Models (run: ai in terminal)
 
-FREE AI ACCESS (no API key needed from your VM):
-  Quick question:    ai "What is Docker?"
-  Interactive chat:  ai chat
-  List models:       ai models
+AI SETUP (free & blazing fast with Groq):
+  Run: ai-setup    (in terminal for full instructions)
 
-  Available models: Mistral 7B, Llama 3.2, Qwen 2.5, Gemma2
-  API endpoint: http://ai.internal:11434
+  Quick start:
+  1. Sign up free at https://console.groq.com
+  2. Create an API key (no credit card needed)
+  3. Add to environment:
+     echo 'export GROQ_API_KEY="your-key"' >> ~/.bashrc
+  4. Use in Cursor: Settings → Models → OpenAI Compatible
+     Base URL: https://api.groq.com/openai/v1
+     Model: llama-3.3-70b-versatile
+
+  Want local AI? Install Ollama yourself:
+     curl -fsSL https://ollama.com/install.sh | sh
 
 IMPORTANT: Please change your password!
 Open a terminal and run: passwd
