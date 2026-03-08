@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import SEO from '../components/SEO';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -52,6 +53,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <SEO title="Reset Password" description="Reset your CloudCode account password." path="/forgot-password" noindex={true} />
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link to="/" className="text-2xl font-bold text-brand-700">Cloud Computer</Link>

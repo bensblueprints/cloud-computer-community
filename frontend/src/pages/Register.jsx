@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Cloud, Gift } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -62,6 +63,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+      <SEO title="Create Account" description="Create your CloudCode account. Get a cloud desktop with Claude Code, VS Code, and a free Go High Level CRM. Start your 3-day free trial." path="/register" />
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">

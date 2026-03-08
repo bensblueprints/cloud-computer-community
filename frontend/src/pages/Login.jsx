@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import SEO from '../components/SEO';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -42,6 +43,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <SEO title="Log In" description="Log in to your CloudCode cloud desktop. Access your development environment from any browser." path="/login" noindex={true} />
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link to="/" className="text-2xl font-bold text-brand-700">Cloud Computer</Link>
