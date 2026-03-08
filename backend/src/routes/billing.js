@@ -818,7 +818,7 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
       if (invoice.subscription) {
         const subscription = await prisma.subscription.findFirst({
           where: { stripeId: invoice.subscription },
-          include: { org: true }
+          include: { org: { include: { owner: true } } }
         });
 
         if (subscription) {
@@ -831,6 +831,16 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
           if (subscription.org?.ghlLocationId && ghlService.isConfigured()) {
             console.log(`[Webhook][GHL] Reactivating after payment: ${subscription.org.ghlLocationId}`);
             await ghlService.reactivateSubAccount(subscription.org.ghlLocationId).catch(() => {});
+          }
+
+          // Process referral commission (20% of payment)
+          if (subscription.org?.owner) {
+            const { processReferralCommission } = require("./referrals");
+            const amountPaid = (invoice.amount_paid || 0) / 100; // Stripe uses cents
+            if (amountPaid > 0) {
+              processReferralCommission(subscription.org.owner.id, amountPaid)
+                .catch(err => console.error("[Webhook] Referral commission error:", err));
+            }
           }
         }
       }

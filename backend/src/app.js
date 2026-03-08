@@ -18,6 +18,7 @@ const sshRoutes = require('./routes/ssh');
 const orgRoutes = require('./routes/org');
 const billingRoutes = require('./routes/billing');
 const adminRoutes = require('./routes/admin');
+const referralRoutes = require('./routes/referrals');
 const { Client: SSHClient } = require('ssh2');
 const provisionWorker = require('./jobs/provisionVM');
 const abandonedCartWorker = require('./jobs/abandonedCart');
@@ -54,6 +55,7 @@ app.use('/api/ssh', sshRoutes);
 app.use('/api/org', orgRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/referrals', referralRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

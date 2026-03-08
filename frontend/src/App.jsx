@@ -16,6 +16,7 @@ const Billing = lazy(() => import('./pages/dashboard/Billing'));
 const Profile = lazy(() => import('./pages/dashboard/Profile'));
 const Server = lazy(() => import('./pages/dashboard/Server'));
 const DashboardTerminal = lazy(() => import('./pages/dashboard/Terminal'));
+const Referrals = lazy(() => import('./pages/dashboard/Referrals'));
 const Console = lazy(() => import('./pages/Console'));
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const AdminOverview = lazy(() => import('./pages/admin/Overview'));
@@ -84,6 +85,7 @@ function DashboardLayout({ children }) {
     // Only show Team for TEAM/ARMY plans
     ...(isSharedPlan ? [{ path: '/dashboard/team', label: 'Team' }] : []),
     { path: '/dashboard/billing', label: 'Billing' },
+    { path: '/dashboard/referrals', label: 'Referrals' },
     { path: '/dashboard/profile', label: 'Profile' },
   ];
 
@@ -201,6 +203,7 @@ export default function App() {
           <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><Billing /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/server" element={<ProtectedRoute><DashboardLayout><Server /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/terminal" element={<ProtectedRoute><DashboardLayout><DashboardTerminal /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/referrals" element={<ProtectedRoute><DashboardLayout><Referrals /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/console/:vmid" element={<ProtectedRoute><Console /></ProtectedRoute>} />

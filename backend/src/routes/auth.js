@@ -34,7 +34,7 @@ function setTokenCookie(res, userId) {
 
 router.post("/register", authLimiter, async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, ref } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: "Name, email, and password are required" });
     }
@@ -47,11 +47,24 @@ router.post("/register", authLimiter, async (req, res, next) => {
       return res.status(409).json({ error: "Email already registered" });
     }
 
+    // Validate referral code if provided
+    let referrer = null;
+    if (ref) {
+      referrer = await prisma.user.findFirst({ where: { referralCode: ref } });
+    }
+
     const passwordHash = await bcrypt.hash(password, 12);
+
+    const referralCodeForUser = crypto.randomBytes(3).toString("hex").toUpperCase();
+    const userRefCode = (name.replace(/[^a-zA-Z]/g, "").slice(0, 4).toUpperCase() || "REF") + "-" + referralCodeForUser;
 
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
-        data: { name, email, passwordHash, orgRole: "OWNER" }
+        data: {
+          name, email, passwordHash, orgRole: "OWNER",
+          referralCode: userRefCode,
+          referredBy: referrer ? ref : null
+        }
       });
 
       const org = await tx.organization.create({
@@ -69,6 +82,19 @@ router.post("/register", authLimiter, async (req, res, next) => {
         where: { id: newUser.id },
         data: { orgId: org.id }
       });
+
+      // Create referral record if referred
+      if (referrer) {
+        await tx.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredUserId: newUser.id,
+            referralCode: ref,
+            commissionRate: 0.20,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+          }
+        });
+      }
 
       return tx.user.findUnique({
         where: { id: newUser.id },
@@ -494,7 +520,7 @@ router.post("/reset-password", async (req, res, next) => {
 // Magic link - create account if needed, send login link via email
 router.post("/magic-link", authLimiter, async (req, res, next) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, ref } = req.body;
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
@@ -511,10 +537,23 @@ router.post("/magic-link", authLimiter, async (req, res, next) => {
       if (!name) {
         return res.status(400).json({ error: "Name is required for new accounts" });
       }
+
+      // Validate referral code
+      let referrer = null;
+      if (ref) {
+        referrer = await prisma.user.findFirst({ where: { referralCode: ref } });
+      }
+
       const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
+      const magicRefCode = (name.replace(/[^a-zA-Z]/g, "").slice(0, 4).toUpperCase() || "REF") + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+
       user = await prisma.$transaction(async (tx) => {
         const newUser = await tx.user.create({
-          data: { name, email, passwordHash, orgRole: "OWNER" }
+          data: {
+            name, email, passwordHash, orgRole: "OWNER",
+            referralCode: magicRefCode,
+            referredBy: referrer ? ref : null
+          }
         });
         const org = await tx.organization.create({
           data: {
@@ -529,6 +568,20 @@ router.post("/magic-link", authLimiter, async (req, res, next) => {
           where: { id: newUser.id },
           data: { orgId: org.id }
         });
+
+        // Create referral record
+        if (referrer) {
+          await tx.referral.create({
+            data: {
+              referrerId: referrer.id,
+              referredUserId: newUser.id,
+              referralCode: ref,
+              commissionRate: 0.20,
+              expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+            }
+          });
+        }
+
         return tx.user.findUnique({
           where: { id: newUser.id },
           include: { org: true }

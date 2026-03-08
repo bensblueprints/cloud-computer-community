@@ -4,7 +4,7 @@
 // This file defines the database schema.
 // Changes require migrations and can break the entire app.
 //
-// Last verified working: 2026-03-07
+// Last verified working: 2026-03-08
 // ============================================================
 
 generator client {
@@ -50,6 +50,11 @@ model User {
   lastLoginAt          DateTime?
   passwordResetToken   String?
   passwordResetExpires DateTime?
+  referralCode         String?       @unique
+  referredBy           String?       // referral code used at signup
+  referralsMade        Referral[]    @relation("Referrer")
+  referralsReceived    Referral?     @relation("Referred")
+  referralPayouts      ReferralPayout[]
 }
 
 model VM {
@@ -169,4 +174,43 @@ model VMUser {
   createdAt       DateTime     @default(now())
 
   @@unique([vmId, userId])
+}
+
+model Referral {
+  id              String         @id @default(uuid())
+  referrerId      String
+  referrer        User           @relation("Referrer", fields: [referrerId], references: [id])
+  referredUserId  String         @unique
+  referredUser    User           @relation("Referred", fields: [referredUserId], references: [id])
+  referralCode    String         // the code that was used
+  status          ReferralStatus @default(PENDING)
+  commissionRate  Float          @default(0.20) // 20%
+  totalEarned     Float          @default(0)
+  expiresAt       DateTime       // 365 days from creation
+  createdAt       DateTime       @default(now())
+  completedAt     DateTime?      // when first payment made
+}
+
+model ReferralPayout {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  amount    Float
+  status    PayoutStatus @default(PENDING)
+  note      String?
+  createdAt DateTime     @default(now())
+  paidAt    DateTime?
+}
+
+enum ReferralStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  REJECTED
 }

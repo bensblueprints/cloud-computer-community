@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Cloud } from 'lucide-react';
+import { Cloud, Gift } from 'lucide-react';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -9,10 +9,24 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [referrerName, setReferrerName] = useState('');
   const { register, api } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get('plan');
+  const ref = searchParams.get('ref');
+
+  // Validate referral code on mount
+  useEffect(() => {
+    if (ref) {
+      fetch(`/api/referrals/validate/${ref}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.valid) setReferrerName(data.referrerName);
+        })
+        .catch(() => {});
+    }
+  }, [ref]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +37,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await register(name, email, password);
+      await register(name, email, password, ref || undefined);
 
       // If a plan was selected, go straight to Stripe checkout
       if (plan) {
@@ -35,7 +49,6 @@ export default function Register() {
           }
         } catch (checkoutErr) {
           console.error('Checkout redirect failed:', checkoutErr);
-          // Fall through to dashboard if checkout fails
         }
       }
 
@@ -59,6 +72,15 @@ export default function Register() {
             {plan ? `Sign up to start your ${plan} plan` : 'Start building in the cloud'}
           </p>
         </div>
+
+        {ref && referrerName && (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-4 flex items-center gap-3">
+            <Gift className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <p className="text-sm text-emerald-300">
+              Referred by <span className="font-bold text-white">{referrerName}</span>
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="bg-slate-900 rounded-2xl border border-slate-800 p-8">
           {error && (
