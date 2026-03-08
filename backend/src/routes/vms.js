@@ -71,9 +71,9 @@ router.get('/', auth, async (req, res, next) => {
 
 // Template mapping per plan
 const PLAN_TEMPLATES = {
-  SOLO: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 512,
-  TEAM: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 513,
-  ARMY: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 514
+  SOLO: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 513,
+  TEAM: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 514,
+  ARMY: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 515
 };
 
 router.post('/', auth, seatGuard, provisionLimiter, async (req, res, next) => {
@@ -87,7 +87,7 @@ router.post('/', auth, seatGuard, provisionLimiter, async (req, res, next) => {
       return res.status(403).json({ error: 'Only team owners can create environments. Contact your team owner.' });
     }
 
-    const templateVmid = PLAN_TEMPLATES[plan] || 512;
+    const templateVmid = PLAN_TEMPLATES[plan] || 513;
     const newVmid = Date.now() % 100000 + 1000;
     const subdomain = `${req.user.name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${newVmid}`;
 

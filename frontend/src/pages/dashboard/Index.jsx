@@ -425,7 +425,7 @@ export default function DashboardIndex() {
   const plan = org?.plan || 'SOLO';
   const isSharedPlan = plan === 'TEAM' || plan === 'ARMY';
 
-  if (!hasSubscription && vms.length === 0) {
+  if (!hasSubscription && !org?.plan && vms.length === 0) {
     return <SelectPlanPrompt onSelectPlan={handleSelectPlan} loading={checkoutLoading} />;
   }
 
@@ -522,7 +522,7 @@ export default function DashboardIndex() {
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
             <Users className="w-5 h-5 text-cyan-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Team Environments</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Team Servers</h3>
             <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 font-medium border border-cyan-200">
               {plan}
             </span>
@@ -547,7 +547,7 @@ export default function DashboardIndex() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Server className="w-5 h-5 text-brand-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Personal Environments</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Servers</h3>
             </div>
             {hasSubscription && !isSharedPlan && isOwner && (
               <Link

@@ -51,9 +51,9 @@ router.post('/users', auditLog('admin.user.create'), async (req, res, next) => {
     }
     const planKey = plan.toUpperCase();
     const PLANS = {
-      SOLO: { seats: 1, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 512 },
-      TEAM: { seats: 5, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 513 },
-      ARMY: { seats: 25, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 514 }
+      SOLO: { seats: 1, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_SOLO) || 513 },
+      TEAM: { seats: 5, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_TEAM) || 514 },
+      ARMY: { seats: 25, templateVmid: parseInt(process.env.PROXMOX_TEMPLATE_ARMY) || 515 }
     };
     if (!PLANS[planKey]) {
       return res.status(400).json({ error: 'Invalid plan. Choose SOLO, TEAM, or ARMY' });

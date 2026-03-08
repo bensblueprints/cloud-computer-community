@@ -94,6 +94,7 @@ export default function AdminProxmox() {
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Status</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">CPU</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">RAM</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Disk</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Uptime</th>
               <th className="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Actions</th>
             </tr>
@@ -110,6 +111,7 @@ export default function AdminProxmox() {
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-400">{vm.cpu ? `${Math.round(vm.cpu * 100)}%` : '—'}</td>
                 <td className="px-4 py-3 text-sm text-gray-400">{vm.mem ? formatBytes(vm.mem) : '—'}</td>
+                <td className="px-4 py-3 text-sm text-gray-400">{vm.maxdisk ? formatBytes(vm.maxdisk) : '—'}</td>
                 <td className="px-4 py-3 text-sm text-gray-500">{vm.uptime ? `${Math.floor(vm.uptime / 3600)}h` : '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1 justify-end">
