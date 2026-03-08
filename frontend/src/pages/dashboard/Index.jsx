@@ -478,7 +478,7 @@ export default function DashboardIndex() {
         {/* Go High Level */}
         {org?.ghlLocationId ? (
           <a
-            href="https://www.gohighlevel.com"
+            href="https://client.advancedmarketing.co"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 rounded-xl border bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 hover:border-indigo-300 transition"
