@@ -63,11 +63,13 @@ function AdminRoute({ children }) {
 }
 
 const MatrixBackground = lazy(() => import('./components/MatrixBackground'));
+const LofiCoder = lazy(() => import('./components/LofiCoder'));
 
 const THEME_OPTIONS = [
-  { id: 'off', label: 'Off', desc: 'Clean default look', preview: 'bg-gray-100' },
-  { id: 'classic', label: 'Classic Matrix', desc: 'Green digital rain', preview: 'bg-green-900' },
-  { id: 'neon', label: 'Neon Matrix', desc: 'Pink & purple rain', preview: 'bg-purple-900' },
+  { id: 'off', label: 'Off', desc: 'Clean default look', preview: 'bg-gray-100', icon: null },
+  { id: 'classic', label: 'Classic Matrix', desc: 'Green rain + lofi coder', preview: 'bg-green-900', icon: '</>' },
+  { id: 'neon', label: 'Neon Purple', desc: 'Purple rain + lofi coder', preview: 'bg-purple-900', icon: '</>' },
+  { id: 'pink', label: 'Pink Vibes', desc: 'Pink rain + lofi coder', preview: 'bg-pink-900', icon: '</>' },
 ];
 
 function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
@@ -116,12 +118,17 @@ function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
               >
                 <div className={`w-8 h-8 rounded-lg flex-shrink-0 ${opt.preview} ${
                   opt.id === 'classic' ? 'shadow-[inset_0_0_12px_rgba(0,255,65,0.4)]' :
-                  opt.id === 'neon' ? 'shadow-[inset_0_0_12px_rgba(200,0,255,0.4)]' : ''
+                  opt.id === 'neon' ? 'shadow-[inset_0_0_12px_rgba(200,0,255,0.4)]' :
+                  opt.id === 'pink' ? 'shadow-[inset_0_0_12px_rgba(255,105,180,0.4)]' : ''
                 }`}>
-                  {opt.id !== 'off' && (
+                  {opt.icon && (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className={`text-xs font-mono ${opt.id === 'classic' ? 'text-green-400' : 'text-pink-400'}`}>
-                        {'</>'}
+                      <span className={`text-xs font-mono ${
+                        opt.id === 'classic' ? 'text-green-400' :
+                        opt.id === 'neon' ? 'text-purple-400' :
+                        'text-pink-400'
+                      }`}>
+                        {opt.icon}
                       </span>
                     </div>
                   )}
@@ -174,11 +181,17 @@ function DashboardLayout({ children }) {
   const isOwner = user?.orgRole === 'OWNER';
 
   const isMatrix = matrixTheme !== 'off';
-  const bgClass = isMatrix ? (matrixTheme === 'neon' ? 'bg-[#0a0010]' : 'bg-[#0a0a0a]') : 'bg-gray-50';
-  const headerBg = isMatrix ? (matrixTheme === 'neon' ? 'bg-[#12001a]/90 border-purple-900/50' : 'bg-[#0d0d0d]/90 border-green-900/50') : 'bg-white border-gray-200';
+  const themeColors = {
+    classic: { bg: 'bg-[#0a0a0a]', header: 'bg-[#0d0d0d]/90 border-green-900/50', title: 'text-green-400', nav: 'bg-green-900/40 text-green-300', lofi: 'green' },
+    neon: { bg: 'bg-[#0a0010]', header: 'bg-[#12001a]/90 border-purple-900/50', title: 'text-purple-400', nav: 'bg-purple-900/40 text-purple-300', lofi: 'purple' },
+    pink: { bg: 'bg-[#1a0510]', header: 'bg-[#1a0810]/90 border-pink-900/50', title: 'text-pink-400', nav: 'bg-pink-900/40 text-pink-300', lofi: 'pink' },
+  };
+  const tc = themeColors[matrixTheme] || {};
+  const bgClass = isMatrix ? tc.bg : 'bg-gray-50';
+  const headerBg = isMatrix ? tc.header : 'bg-white border-gray-200';
   const headerText = isMatrix ? 'text-gray-200' : 'text-gray-600';
-  const headerTitle = isMatrix ? (matrixTheme === 'neon' ? 'text-purple-400' : 'text-green-400') : 'text-brand-700';
-  const activeNavBg = isMatrix ? (matrixTheme === 'neon' ? 'bg-purple-900/40 text-purple-300' : 'bg-green-900/40 text-green-300') : 'bg-brand-50 text-brand-700';
+  const headerTitle = isMatrix ? tc.title : 'text-brand-700';
+  const activeNavBg = isMatrix ? tc.nav : 'bg-brand-50 text-brand-700';
   const navHover = isMatrix ? 'hover:text-gray-200 hover:bg-white/5' : 'hover:text-gray-900 hover:bg-gray-50';
 
   const navItems = [
@@ -198,6 +211,7 @@ function DashboardLayout({ children }) {
       {isMatrix && (
         <Suspense fallback={null}>
           <MatrixBackground theme={matrixTheme} />
+          <LofiCoder variant={tc.lofi} />
         </Suspense>
       )}
       <header className={`${headerBg} border-b relative z-50 ${isMatrix ? 'backdrop-blur-md' : ''}`}>

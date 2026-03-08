@@ -8,14 +8,18 @@ const THEMES = {
     trail: (b) => `rgba(0, ${Math.floor(150 + b * 105)}, 0, `,
     flash: 'rgba(255, 255, 255, ',
     bg: 'rgba(0, 0, 0, 0.05)',
-    canvasBg: '#000000',
   },
   neon: {
     head: 'rgba(255, 140, 255, 0.95)',
     trail: (b) => `rgba(${Math.floor(120 + b * 80)}, 0, ${Math.floor(180 + b * 75)}, `,
     flash: 'rgba(255, 200, 255, ',
     bg: 'rgba(5, 0, 15, 0.05)',
-    canvasBg: '#0a0010',
+  },
+  pink: {
+    head: 'rgba(255, 180, 220, 0.95)',
+    trail: (b) => `rgba(${Math.floor(200 + b * 55)}, ${Math.floor(50 + b * 40)}, ${Math.floor(120 + b * 60)}, `,
+    flash: 'rgba(255, 230, 245, ',
+    bg: 'rgba(15, 0, 5, 0.05)',
   },
 };
 
