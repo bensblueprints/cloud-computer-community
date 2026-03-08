@@ -491,6 +491,157 @@ router.post("/reset-password", async (req, res, next) => {
   }
 });
 
+// Magic link - create account if needed, send login link via email
+router.post("/magic-link", authLimiter, async (req, res, next) => {
+  try {
+    const { name, email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: { org: true }
+    });
+
+    let isNew = false;
+
+    // Create account if doesn't exist
+    if (!user) {
+      if (!name) {
+        return res.status(400).json({ error: "Name is required for new accounts" });
+      }
+      const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
+      user = await prisma.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+          data: { name, email, passwordHash, orgRole: "OWNER" }
+        });
+        const org = await tx.organization.create({
+          data: {
+            name: `${name}'s Organization`,
+            ownerId: newUser.id,
+            plan: "FREE",
+            seatLimit: 1,
+            members: { connect: { id: newUser.id } }
+          }
+        });
+        await tx.user.update({
+          where: { id: newUser.id },
+          data: { orgId: org.id }
+        });
+        return tx.user.findUnique({
+          where: { id: newUser.id },
+          include: { org: true }
+        });
+      });
+      isNew = true;
+
+      // Queue abandoned cart check for new users
+      const { abandonedCartQueue } = require("../jobs/abandonedCart");
+      if (abandonedCartQueue) {
+        abandonedCartQueue.add("check-abandoned", { userId: user.id, email, name }, { delay: 15 * 60 * 1000 }).catch(err => console.error("Abandoned cart queue error:", err));
+      }
+    }
+
+    // Generate magic link token (reuse passwordResetToken fields)
+    const magicToken = crypto.randomBytes(32).toString("hex");
+    const tokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: magicToken,
+        passwordResetExpires: tokenExpires
+      }
+    });
+
+    // Send magic link email
+    const loginUrl = `https://cloudcode.space/magic-login?token=${magicToken}`;
+    const emailFrom = process.env.EMAIL_FROM || "noreply@cloudcode.space";
+    const displayName = user.name || name || "there";
+
+    await resend.emails.send({
+      from: `Cloud Computer <${emailFrom}>`,
+      to: email,
+      subject: isNew ? "Welcome to CloudCode - Your Skills Bundle + Login Link" : "Your CloudCode Login Link",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, #06b6d4, #2563eb); width: 56px; height: 56px; border-radius: 14px; line-height: 56px; font-size: 28px;">&#9729;</div>
+          </div>
+          <h1 style="color: #22d3ee; text-align: center; margin-bottom: 8px;">${isNew ? "Welcome to CloudCode!" : "Your Login Link"}</h1>
+          <p style="text-align: center; color: #94a3b8; margin-bottom: 32px;">Hi ${displayName}, click below to log in instantly — no password needed.</p>
+
+          <div style="text-align: center; margin-bottom: 32px;">
+            <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">Log In to CloudCode</a>
+          </div>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">&#127873; Your Free Skills Bundle</h2>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;">500+ Claude Code business skills — sales pages, SEO audits, email sequences, business plans, and more. All free with your account.</p>
+            <a href="https://cloudcode.space/downloads/claude-skills-bundle.json" style="display: inline-block; background: #334155; color: #e2e8f0; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Download Skills Bundle</a>
+          </div>
+
+          ${isNew ? `
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">&#128640; Start Your Free Trial</h2>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;">Get a full cloud computer with Claude Code, VS Code, Cursor, and a <strong style="color: #fbbf24;">free Go High Level CRM</strong>. 3-day free trial, then just $17/mo.</p>
+            <a href="https://cloudcode.space/dashboard/billing" style="display: inline-block; background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Choose Your Plan</a>
+          </div>
+          ` : ""}
+
+          <div style="text-align: center; padding-top: 16px; border-top: 1px solid #334155;">
+            <p style="color: #64748b; font-size: 12px;">This link expires in 30 minutes.</p>
+            <p style="color: #64748b; font-size: 12px;">CloudCode by Advanced Marketing | <a href="https://cloudcode.space" style="color: #22d3ee;">cloudcode.space</a></p>
+          </div>
+        </div>
+      `
+    });
+
+    res.json({ message: "Magic link sent", isNew });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Magic login - validate token and log user in
+router.get("/magic-login", async (req, res, next) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: "Token is required" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: { gt: new Date() }
+      },
+      include: { org: true }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired magic link" });
+    }
+
+    // Clear the token so it can't be reused
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        lastLoginAt: new Date()
+      }
+    });
+
+    setTokenCookie(res, user.id);
+    res.json({ user: { id: user.id, name: user.name, email: user.email, org: user.org } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Change password (for logged-in users)
 router.put("/change-password", auth, async (req, res, next) => {
   try {

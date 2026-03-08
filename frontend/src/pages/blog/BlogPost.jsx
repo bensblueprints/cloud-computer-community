@@ -15,13 +15,13 @@ function EmailSignup() {
     if (!email || !name) return;
     setStatus("loading");
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name, email, password: crypto.randomUUID().slice(0, 12) + "A1!" })
+        body: JSON.stringify({ name, email })
       });
-      if (res.ok || res.status === 409) {
+      if (res.ok) {
         setStatus("success");
       } else {
         const data = await res.json();
@@ -38,17 +38,18 @@ function EmailSignup() {
     return (
       <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30 rounded-2xl p-8 text-center">
         <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-white mb-2">You're In!</h3>
-        <p className="text-slate-400 mb-6">Download your complete skills bundle below.</p>
+        <h3 className="text-2xl font-bold text-white mb-2">Check Your Email!</h3>
+        <p className="text-slate-400 mb-4">We sent a magic login link and your skills bundle to <span className="text-white font-medium">{email}</span>.</p>
+        <p className="text-sm text-slate-400 mb-6">Click the link in the email to log in instantly — no password needed.</p>
         <a
           href="/downloads/claude-skills-bundle.json"
           download
           className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition"
         >
           <Download className="w-5 h-5" />
-          Download Skills Bundle
+          Download Skills Bundle Now
         </a>
-        <p className="text-xs text-slate-500 mt-4">Check your email for setup instructions!</p>
+        <p className="text-xs text-slate-500 mt-4">Your account is ready. Use the magic link to log in anytime.</p>
       </div>
     );
   }
@@ -68,7 +69,7 @@ function EmailSignup() {
         <input type="text" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} required className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50" />
         <input type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50" />
         <button type="submit" disabled={status === "loading"} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg font-bold hover:opacity-90 transition disabled:opacity-50">
-          {status === "loading" ? "Creating account..." : "Download Skills Bundle"}
+          {status === "loading" ? "Sending magic link..." : "Get Skills + Magic Login Link"}
         </button>
         {status === "error" && <p className="text-red-400 text-sm">{errorMsg}</p>}
       </form>
