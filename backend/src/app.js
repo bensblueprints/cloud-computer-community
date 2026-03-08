@@ -18,6 +18,7 @@ const orgRoutes = require('./routes/org');
 const billingRoutes = require('./routes/billing');
 const adminRoutes = require('./routes/admin');
 const provisionWorker = require('./jobs/provisionVM');
+const abandonedCartWorker = require('./jobs/abandonedCart');
 const traefikService = require('./services/TraefikService');
 const proxmoxService = require('./services/ProxmoxService');
 

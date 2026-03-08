@@ -75,20 +75,51 @@ router.post("/register", authLimiter, async (req, res, next) => {
     resend.emails.send({
       from: `Cloud Computer <${emailFrom}>`,
       to: email,
-      subject: "Welcome to Cloud Computer!",
+      subject: "Welcome to Cloud Computer - Your Free Gift Inside!",
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #0891b2;">Welcome to Cloud Computer!</h1>
-          <p>Hi ${name},</p>
-          <p>Your account has been created. Choose a plan to get your cloud server running in minutes:</p>
-          <div style="margin: 24px 0;">
-            <a href="https://app.cloudcode.space/dashboard/billing" style="background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Choose Your Plan</a>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #e2e8f0; padding: 32px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, #06b6d4, #2563eb); width: 56px; height: 56px; border-radius: 14px; line-height: 56px; font-size: 28px;">&#9729;</div>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">Every plan includes a free Go High Level CRM account with unlimited users.</p>
-          <p style="color: #6b7280; font-size: 14px;">3-day free trial on all plans. Cancel anytime.</p>
+          <h1 style="color: #22d3ee; text-align: center; margin-bottom: 8px;">Welcome to Cloud Computer!</h1>
+          <p style="text-align: center; color: #94a3b8; margin-bottom: 32px;">Hi ${name}, your account is ready. Here's how to get started:</p>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">🎁 Your Free Gift: 500 Claude Code Skills</h2>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;">Download your free PDF with 500 AI-powered coding skills to supercharge your development workflow.</p>
+            <a href="https://cloudcode.space/downloads/500-claude-code-skills.pdf" style="display: inline-block; background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Download Free PDF</a>
+          </div>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">🚀 Step 1: Start Your Free Trial</h2>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;">Choose a plan and get your cloud server running in minutes. Every plan includes a <strong style="color: #fbbf24;">free Go High Level CRM</strong> with unlimited users.</p>
+            <a href="https://app.cloudcode.space/dashboard/billing" style="display: inline-block; background: linear-gradient(to right, #06b6d4, #2563eb); color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Choose Your Plan - 3 Day Free Trial</a>
+          </div>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">⚡ Step 2: Set Up Go High Level</h2>
+            <p style="color: #cbd5e1; font-size: 14px;">Once subscribed, your Go High Level CRM account is automatically created. Log in at <a href="https://www.gohighlevel.com" style="color: #22d3ee;">gohighlevel.com</a> using your email to access your CRM with unlimited users, funnels, and automation.</p>
+          </div>
+
+          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <h2 style="color: #22d3ee; font-size: 18px; margin-top: 0;">👥 Step 3: Join Our Community</h2>
+            <p style="color: #cbd5e1; font-size: 14px;">Connect with other cloud computer users, get support, and share tips in our free community.</p>
+            <a href="https://cloudcode.space/community" style="display: inline-block; background: #334155; color: #e2e8f0; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Join the Community</a>
+          </div>
+
+          <div style="text-align: center; padding-top: 16px; border-top: 1px solid #334155;">
+            <p style="color: #64748b; font-size: 12px;">3-day free trial on all plans. Cancel anytime.</p>
+            <p style="color: #64748b; font-size: 12px;">Cloud Computer by Advanced Marketing | <a href="https://cloudcode.space" style="color: #22d3ee;">cloudcode.space</a></p>
+          </div>
         </div>
       `
     }).catch(err => console.error("Welcome email error:", err));
+
+    // Schedule abandoned cart check (15 min delay)
+    const { abandonedCartQueue } = require("../jobs/abandonedCart");
+    if (abandonedCartQueue) {
+      abandonedCartQueue.add("check-abandoned", { userId: user.id, email, name }, { delay: 15 * 60 * 1000 }).catch(err => console.error("Abandoned cart queue error:", err));
+    }
 
     setTokenCookie(res, user.id);
     res.status(201).json({ user: { id: user.id, name: user.name, email: user.email, org: user.org } });

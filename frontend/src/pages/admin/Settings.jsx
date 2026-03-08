@@ -70,6 +70,60 @@ export default function AdminSettings() {
           </label>
         </div>
 
+        <hr className="border-gray-700" />
+        <h3 className="text-lg font-semibold text-gray-200">Marketing Integrations</h3>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Klaviyo API Key</label>
+          <input
+            type="text"
+            value={settings.klaviyoApiKey || ''}
+            onChange={e => setSettings({ ...settings, klaviyoApiKey: e.target.value || null })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            placeholder="pk_..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Private API key for Klaviyo email automation</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">GHL Pipeline ID</label>
+          <input
+            type="text"
+            value={settings.ghlPipelineId || ''}
+            onChange={e => setSettings({ ...settings, ghlPipelineId: e.target.value || null })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            placeholder="Pipeline ID for lead automation"
+          />
+          <p className="text-xs text-gray-500 mt-1">Go High Level pipeline ID for customer tracking</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">GHL API Key</label>
+          <input
+            type="text"
+            value={settings.ghlApiKey || ''}
+            onChange={e => setSettings({ ...settings, ghlApiKey: e.target.value || null })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            placeholder="pit-..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Go High Level API key for pipeline automation</p>
+        </div>
+
+        <hr className="border-gray-700" />
+        <h3 className="text-lg font-semibold text-gray-200">SEO & Analytics</h3>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Google Search Console Verification</label>
+          <input
+            type="text"
+            value={settings.googleSearchConsole || ''}
+            onChange={e => setSettings({ ...settings, googleSearchConsole: e.target.value || null })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            placeholder="google-site-verification=..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Google Search Console meta tag verification code</p>
+        </div>
+
         <button
           onClick={handleSave}
           disabled={saving}

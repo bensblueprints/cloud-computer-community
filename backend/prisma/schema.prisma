@@ -118,6 +118,10 @@ model AppSettings {
   proxmoxTemplateId    Int     @default(100)
   smtpHost             String?
   smtpPort             Int?
+  klaviyoApiKey         String?
+  ghlPipelineId        String?
+  ghlApiKey            String?
+  googleSearchConsole  String?
 }
 
 enum Plan {

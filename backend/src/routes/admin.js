@@ -629,11 +629,15 @@ router.get('/settings', async (req, res, next) => {
 
 router.patch('/settings', auditLog('admin.settings.update'), async (req, res, next) => {
   try {
-    const { maintenanceMode, autoSuspendMinutes, proxmoxTemplateId } = req.body;
+    const { maintenanceMode, autoSuspendMinutes, proxmoxTemplateId, klaviyoApiKey, ghlPipelineId, ghlApiKey, googleSearchConsole } = req.body;
     const data = {};
     if (maintenanceMode !== undefined) data.maintenanceMode = maintenanceMode;
     if (autoSuspendMinutes) data.autoSuspendMinutes = autoSuspendMinutes;
     if (proxmoxTemplateId) data.proxmoxTemplateId = proxmoxTemplateId;
+    if (klaviyoApiKey !== undefined) data.klaviyoApiKey = klaviyoApiKey;
+    if (ghlPipelineId !== undefined) data.ghlPipelineId = ghlPipelineId;
+    if (ghlApiKey !== undefined) data.ghlApiKey = ghlApiKey;
+    if (googleSearchConsole !== undefined) data.googleSearchConsole = googleSearchConsole;
 
     const settings = await prisma.appSettings.update({ where: { id: 'singleton' }, data });
     res.json({ settings });
