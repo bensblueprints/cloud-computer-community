@@ -64,6 +64,12 @@ router.post("/register", authLimiter, async (req, res, next) => {
         }
       });
 
+      // Set orgId on user so downstream queries work
+      await tx.user.update({
+        where: { id: newUser.id },
+        data: { orgId: org.id }
+      });
+
       return tx.user.findUnique({
         where: { id: newUser.id },
         include: { org: true }

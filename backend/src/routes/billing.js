@@ -11,7 +11,7 @@
  * - STRIPE_WEBHOOK_SECRET
  * - STRIPE_PRICE_SOLO/TEAM/ARMY
  *
- * Last verified working: 2026-03-07
+ * Last verified working: 2026-03-08
  * ============================================================
  */
 
@@ -411,7 +411,13 @@ router.post("/test-account", async (req, res, next) => {
         }
       });
 
-      // 3. Create subscription (fake Stripe ID for testing)
+      // 3. Set orgId on user (members:connect doesn't set this)
+      await tx.user.update({
+        where: { id: newUser.id },
+        data: { orgId: newOrg.id }
+      });
+
+      // 4. Create subscription (fake Stripe ID for testing)
       const fakeStripeId = `test_sub_${Date.now()}`;
       const subscription = await tx.subscription.create({
         data: {
@@ -531,6 +537,21 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
         break;
       }
 
+      // Validate plan
+      if (!plan || !PLANS[plan]) {
+        console.error(`[Webhook] Invalid plan in metadata: ${plan}`);
+        break;
+      }
+
+      // Idempotency: check if we already processed this subscription
+      const existingSub = await prisma.subscription.findFirst({
+        where: { stripeId: session.subscription }
+      });
+      if (existingSub) {
+        console.log(`[Webhook] Subscription ${session.subscription} already processed, skipping`);
+        break;
+      }
+
       const subscription = await stripe.subscriptions.retrieve(session.subscription);
       const customer = await stripe.customers.retrieve(session.customer);
 
@@ -564,6 +585,12 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
                 seatLimit: PLANS[plan].seats,
                 members: { connect: { id: newUser.id } }
               }
+            });
+
+            // Set orgId on user (members:connect doesn't set this)
+            await tx.user.update({
+              where: { id: newUser.id },
+              data: { orgId: newOrg.id }
             });
 
             return { user: newUser, org: newOrg };
