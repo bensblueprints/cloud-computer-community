@@ -26,6 +26,7 @@ const abandonedCartWorker = require('./jobs/abandonedCart');
 const traefikService = require('./services/TraefikService');
 const proxmoxService = require('./services/ProxmoxService');
 
+const path = require('path');
 const prisma = new PrismaClient();
 const app = express();
 
@@ -58,6 +59,21 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/ollama', ollamaRoutes);
+
+// Skills bundle download - requires authentication
+app.get('/api/skills/download', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: 'Not authenticated' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    const filePath = path.join(__dirname, '..', 'public', 'claude-skills-ultimate-bundle.zip');
+    res.download(filePath, 'Claude Skills Ultimate Bundle.zip');
+  } catch (err) {
+    res.status(401).json({ error: 'Not authenticated' });
+  }
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

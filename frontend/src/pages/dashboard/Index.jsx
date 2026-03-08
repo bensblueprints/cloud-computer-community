@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Key, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal, Key, Copy, Check, Eye, EyeOff, Download, BookOpen } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -539,6 +539,40 @@ export default function DashboardIndex() {
           <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
         </Link>
       </div>
+
+      {/* Skills Download Card */}
+      {hasSubscription && (
+        <div className="mb-8 bg-gradient-to-r from-purple-50 to-cyan-50 border border-purple-200 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 text-lg">500+ Claude Code Skills</h3>
+              <p className="text-sm text-gray-600 mt-1 mb-4">
+                Your free bonus — 502 AI-powered skills for Claude Code covering marketing, development, business operations, and more.
+                Install them in your terminal and run commands like <code className="bg-white/80 px-1.5 py-0.5 rounded text-purple-700 text-xs">/sales-page</code> or <code className="bg-white/80 px-1.5 py-0.5 rounded text-purple-700 text-xs">/seo-audit</code>.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="/api/skills/download"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-5 py-2.5 rounded-lg font-medium text-sm hover:opacity-90 transition shadow-md"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Skills Bundle (.zip)
+                </a>
+                <Link
+                  to="/blog/claude"
+                  className="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-50 transition"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Browse All 502 Skills
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI API Key Section */}
       {hasSubscription && <AiApiKeyCard api={api} />}

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, Star, ArrowRight, Play, Mail, Gift, BookOpen, Bot, BarChart3, Sparkles, Download } from "lucide-react";
+import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, CheckCircle2, Star, ArrowRight, Play, Mail, Gift, BookOpen, Bot, BarChart3, Sparkles, Download, XCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -405,6 +405,66 @@ export default function Home() {
                 <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tool-by-Tool Cost Breakdown */}
+      <section className="py-24">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">What You Are Paying For Separately</h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">CloudCode replaces 12+ tools you are already paying for. Here is the breakdown.</p>
+          </div>
+
+          <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-12 gap-2 px-4 sm:px-8 py-4 bg-slate-800/50 text-sm font-semibold text-slate-400 border-b border-slate-800">
+              <div className="col-span-4">Tool</div>
+              <div className="col-span-3 hidden sm:block">Example</div>
+              <div className="col-span-3 sm:col-span-3 text-right">Their Price</div>
+              <div className="col-span-5 sm:col-span-2 text-right">CloudCode</div>
+            </div>
+
+            {[
+              { tool: 'CRM & Sales Pipeline', example: 'HubSpot / Salesforce', price: '$50 - $300' },
+              { tool: 'Funnel & Landing Pages', example: 'ClickFunnels', price: '$97 - $297' },
+              { tool: 'Email Marketing', example: 'Mailchimp / ConvertKit', price: '$20 - $100' },
+              { tool: 'SMS Marketing', example: 'Twilio / SlickText', price: '$50 - $200' },
+              { tool: 'Booking & Scheduling', example: 'Calendly Pro', price: '$12 - $20' },
+              { tool: 'Cloud Computer / VPS', example: 'AWS / DigitalOcean', price: '$50 - $200' },
+              { tool: 'IDE & Code Editor', example: 'Cursor Pro', price: '$20' },
+              { tool: 'AI Coding Tools', example: 'GitHub Copilot / ChatGPT', price: '$20 - $200' },
+              { tool: 'Reputation Management', example: 'Birdeye / Podium', price: '$50 - $100' },
+              { tool: 'Website Builder', example: 'Squarespace / Wix', price: '$16 - $40' },
+              { tool: 'Automation Platform', example: 'Zapier / Make', price: '$20 - $100' },
+              { tool: 'Community Platform', example: 'Circle / Mighty Networks', price: '$39 - $99' },
+            ].map((item, i) => (
+              <div key={i} className="grid grid-cols-12 gap-2 px-4 sm:px-8 py-4 border-b border-slate-800/50 hover:bg-slate-800/30 transition items-center">
+                <div className="col-span-4 text-sm font-medium text-slate-200">{item.tool}</div>
+                <div className="col-span-3 hidden sm:block text-sm text-slate-500">{item.example}</div>
+                <div className="col-span-3 sm:col-span-3 text-right">
+                  <span className="text-red-400 line-through text-sm">{item.price}</span>
+                </div>
+                <div className="col-span-5 sm:col-span-2 text-right">
+                  <span className="inline-flex items-center gap-1 text-emerald-400 text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4" /> Included
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            <div className="p-8 sm:p-10 bg-gradient-to-br from-slate-800 to-slate-900">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div>
+                  <p className="text-slate-400 text-lg">Total if purchased separately:</p>
+                  <p className="text-4xl sm:text-5xl font-bold text-red-400 line-through">$444 - $1,676/mo</p>
+                </div>
+                <div className="text-center sm:text-right">
+                  <p className="text-slate-400 text-lg">CloudCode price:</p>
+                  <p className="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">$17/mo</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
