@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, CheckCircle2, Star, ArrowRight, Play, Mail, Gift, BookOpen, Bot, BarChart3, Sparkles, Download, XCircle } from "lucide-react";
+import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, CheckCircle2, Star, ArrowRight, Mail, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -98,7 +98,6 @@ export default function Home() {
             <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">CloudCode</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#bonuses" className="text-sm text-slate-400 hover:text-white transition">Free Bonuses</a>
             <a href="#features" className="text-sm text-slate-400 hover:text-white transition">Features</a>
             <a href="#pricing" className="text-sm text-slate-400 hover:text-white transition">Pricing</a>
             <a href="#faq" className="text-sm text-slate-400 hover:text-white transition">FAQ</a>
@@ -128,36 +127,24 @@ export default function Home() {
         <div className="absolute top-60 right-1/3 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
 
         <div className="max-w-5xl mx-auto text-center px-4 relative">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-full px-5 py-2 text-sm mb-8 animate-pulse">
-            <Gift className="w-4 h-4 text-orange-400" />
-            <span className="text-orange-300 font-medium">FREE Go High Level CRM + 500+ Claude Code Skills with every plan</span>
-          </div>
-
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Cloud Computer +</span>
+            <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Your Cloud Desktop</span>
             <br />
-            <span className="bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 bg-clip-text text-transparent">Free CRM &</span>
-            <br />
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">AI Coding Skills</span>
+            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Ready in 2 Minutes</span>
           </h1>
 
           <p className="text-xl text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Get a powerful cloud desktop with Claude Code, VS Code, and all dev tools pre-installed.
-            <span className="text-orange-400 font-semibold"> Plus a free Go High Level CRM</span> (worth $97/mo) and
-            <span className="text-cyan-400 font-semibold"> 500+ Claude Code Skills PDF</span> with every plan.
+            A powerful cloud desktop with Claude Code, VS Code, and all dev tools pre-installed.
+            <span className="text-emerald-400 font-semibold"> Replace $1,000+/mo in SaaS tools</span> with one $17/mo subscription.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <a
               href="#pricing"
-              className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-slate-900 px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-2xl shadow-orange-500/25"
+              className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
             >
-              Claim Your Free Bonuses
+              Start Your Free Trial
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-            </a>
-            <a href="#bonuses" className="inline-flex items-center justify-center gap-2 bg-slate-800/50 border border-slate-700 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-slate-800 transition">
-              <Gift className="w-5 h-5 text-orange-400" />
-              See What's Included
             </a>
           </div>
 
@@ -193,116 +180,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Free Bonuses Section */}
-      <section id="bonuses" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-4 relative">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-1.5 text-sm mb-4">
-              <Gift className="w-4 h-4 text-orange-400" />
-              <span className="text-orange-300">Included FREE with every plan</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-white">Over </span>
-              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">$1,200/year</span>
-              <span className="text-white"> in Free Bonuses</span>
-            </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">Every CloudCode plan comes loaded with tools to build, market, and grow your business.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* GHL Bonus Card */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition"></div>
-              <div className="relative bg-slate-900/90 rounded-2xl border border-orange-500/30 p-8 hover:border-orange-500/50 transition">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
-                    <BarChart3 className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-orange-400 font-semibold uppercase tracking-wider">FREE BONUS #1</div>
-                    <h3 className="text-xl font-bold">Go High Level CRM</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-3xl font-bold text-orange-400">$97</span>
-                  <span className="text-slate-500 line-through text-lg">/month value</span>
-                  <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2 py-1 rounded-full ml-2">FREE</span>
-                </div>
-                <p className="text-slate-400 text-sm mb-5 leading-relaxed">
-                  Full Go High Level sub-account automatically created when you subscribe. Run your entire business from one platform.
-                </p>
-                <ul className="space-y-2">
-                  {["Unlimited users & contacts", "Sales funnels & landing pages", "Email & SMS marketing automation", "Appointment booking & calendars", "Pipeline & deal management", "Reputation management & reviews"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <CheckCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Claude Code Skills Card */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition"></div>
-              <div className="relative bg-slate-900/90 rounded-2xl border border-cyan-500/30 p-8 hover:border-cyan-500/50 transition">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                    <BookOpen className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">FREE BONUS #2</div>
-                    <h3 className="text-xl font-bold">500+ Claude Code Skills</h3>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-3xl font-bold text-cyan-400">$49</span>
-                  <span className="text-slate-500 line-through text-lg">value</span>
-                  <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2 py-1 rounded-full ml-2">FREE</span>
-                </div>
-                <p className="text-slate-400 text-sm mb-5 leading-relaxed">
-                  The ultimate AI coding reference. 500+ prompts, workflows, and techniques to 10x your productivity with Claude Code.
-                </p>
-                <ul className="space-y-2">
-                  {["Full-stack development prompts", "Debugging & error resolution", "Code review & refactoring", "Deployment & DevOps automation", "API design & integration", "Database design & optimization"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-5 flex items-center gap-2 bg-cyan-500/10 rounded-lg px-4 py-2.5 border border-cyan-500/20">
-                  <Download className="w-4 h-4 text-cyan-400" />
-                  <span className="text-sm text-cyan-300">Instant PDF download after signup</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bonus Value Summary */}
-          <div className="mt-12 max-w-3xl mx-auto text-center">
-            <div className="bg-gradient-to-r from-orange-500/10 via-yellow-500/10 to-cyan-500/10 border border-orange-500/20 rounded-2xl p-6">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-                <div>
-                  <div className="text-sm text-slate-400">Total bonus value</div>
-                  <div className="text-2xl font-bold text-orange-400">$1,213<span className="text-slate-500 text-lg">/year</span></div>
-                </div>
-                <div className="hidden md:block w-px h-12 bg-slate-700"></div>
-                <div>
-                  <div className="text-sm text-slate-400">Your price</div>
-                  <div className="text-2xl font-bold text-emerald-400">$0 <span className="text-slate-500 text-lg">extra</span></div>
-                </div>
-                <div className="hidden md:block w-px h-12 bg-slate-700"></div>
-                <a href="#pricing" className="bg-gradient-to-r from-orange-500 to-yellow-500 text-slate-900 px-6 py-3 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-orange-500/25">
-                  Claim Now
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Stats Bar */}
       <section className="py-12 border-y border-slate-800/50 bg-slate-900/30">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -321,69 +198,6 @@ export default function Home() {
           <div>
             <div className="text-3xl font-bold text-white">24/7</div>
             <div className="text-sm text-slate-500 mt-1">Support</div>
-          </div>
-        </div>
-      </section>
-
-      {/* What You Get Visual */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Everything In One Subscription</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">Cloud computer + CRM + AI skills. The complete stack for builders.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {/* Cloud Computer */}
-            <div className="relative group">
-              <div className="bg-slate-900/80 rounded-2xl border border-slate-800/50 p-8 text-center hover:border-cyan-500/30 transition h-full">
-                <div className="w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition">
-                  <Monitor className="w-10 h-10 text-cyan-400" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Cloud Computer</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-4">Full Ubuntu desktop with Claude Code, VS Code, Cursor, Docker, and 50+ dev tools pre-installed.</p>
-                <div className="inline-flex items-center gap-1 text-cyan-400 text-sm font-medium">
-                  <Sparkles className="w-4 h-4" />
-                  Ready in 2 minutes
-                </div>
-              </div>
-            </div>
-
-            {/* GHL CRM */}
-            <div className="relative group">
-              <div className="bg-slate-900/80 rounded-2xl border border-orange-500/30 p-8 text-center hover:border-orange-500/50 transition h-full">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-yellow-500 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">
-                  $97/mo VALUE - FREE
-                </div>
-                <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-red-600/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition">
-                  <BarChart3 className="w-10 h-10 text-orange-400" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Go High Level CRM</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-4">Unlimited users, funnels, email/SMS automation, appointment booking, pipelines, and more.</p>
-                <div className="inline-flex items-center gap-1 text-orange-400 text-sm font-medium">
-                  <Sparkles className="w-4 h-4" />
-                  Auto-configured on signup
-                </div>
-              </div>
-            </div>
-
-            {/* Claude Code Skills */}
-            <div className="relative group">
-              <div className="bg-slate-900/80 rounded-2xl border border-purple-500/30 p-8 text-center hover:border-purple-500/50 transition h-full">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  $49 VALUE - FREE
-                </div>
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-cyan-600/20 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition">
-                  <Bot className="w-10 h-10 text-purple-400" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">500+ AI Coding Skills</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-4">The definitive Claude Code reference. Prompts, workflows, and techniques for every coding task.</p>
-                <div className="inline-flex items-center gap-1 text-purple-400 text-sm font-medium">
-                  <Download className="w-4 h-4" />
-                  Instant PDF download
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -693,17 +507,13 @@ export default function Home() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-cyan-500/20 to-purple-500/20 rounded-3xl blur-3xl"></div>
             <div className="relative bg-slate-900/90 rounded-3xl border border-slate-800/50 p-12">
-              <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-1.5 text-sm mb-6">
-                <Gift className="w-4 h-4 text-orange-400" />
-                <span className="text-orange-300">Free CRM + 500+ AI Skills included</span>
-              </div>
               <h2 className="text-4xl font-bold mb-4">Ready to Build Something Amazing?</h2>
               <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
-                Cloud desktop + free Go High Level CRM + 500+ Claude Code Skills. Everything you need to build and grow.
+                Replace $1,000+/mo in SaaS tools with one powerful cloud desktop. Save over $13,000/year.
               </p>
               <a
                 href="#pricing"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-slate-900 px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-2xl shadow-orange-500/25"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-2xl shadow-cyan-500/25"
               >
                 Start Your Free Trial
                 <ArrowRight className="w-5 h-5" />
