@@ -207,69 +207,120 @@ function AiApiKeyCard({ api }) {
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Key className="w-4 h-4 text-purple-500" />
-        AI API (Mistral)
+        Free AI Models
       </h2>
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
         <p className="text-sm text-gray-500 mb-4">
-          Use this API key to access Mistral AI from your VM, scripts, or any app. OpenAI-compatible endpoints.
+          4 AI models included free with your plan. Use from your VM terminal, in your code, or via API. OpenAI-compatible — works with any OpenAI SDK.
         </p>
 
-        {/* API Key Display */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center justify-between">
-            <span>{visible ? apiKey?.apiKey : maskedKey}</span>
-            <button onClick={() => setVisible(!visible)} className="text-gray-400 hover:text-gray-600 ml-2">
-              {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-          <button
-            onClick={copyKey}
-            className="flex items-center gap-1.5 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition text-sm"
-          >
-            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copied ? 'Copied!' : 'Copy'}
-          </button>
-        </div>
-
-        {/* Endpoints */}
-        <div className="grid sm:grid-cols-2 gap-3 mb-4">
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-1">External Endpoint</p>
-            <p className="text-sm font-mono text-gray-800">https://cloudcode.space/api/ollama/v1</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-1">From Your VM (faster)</p>
-            <p className="text-sm font-mono text-gray-800">http://10.10.10.1:11434</p>
+        {/* Quick Start - Terminal */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 mb-4">
+          <p className="text-sm font-semibold text-purple-900 mb-1">Quickest way — open a terminal in your VM:</p>
+          <div className="bg-gray-900 rounded-lg p-3 font-mono text-sm mt-2">
+            <p className="text-green-400">ai "How do I set up a Node.js project?"</p>
+            <p className="text-gray-500 mt-1">ai chat &nbsp;&nbsp;&nbsp;# interactive mode</p>
+            <p className="text-gray-500">ai models &nbsp;# see all models</p>
           </div>
         </div>
 
-        {/* Quick Usage Example */}
-        <details className="mb-4">
-          <summary className="text-sm font-medium text-purple-600 cursor-pointer hover:text-purple-700">Quick Usage Examples</summary>
-          <div className="mt-3 space-y-3">
-            <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
-              <p className="text-gray-500"># From your VM (direct, no API key needed)</p>
-              <p>curl http://10.10.10.1:11434/api/generate \</p>
-              <p className="pl-4">-d '{`{"model":"mistral","prompt":"Hello!"}`}'</p>
+        {/* Code Examples - Tabbed */}
+        <details className="mb-4" open>
+          <summary className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-purple-700 mb-2">Use in Your Code</summary>
+          <div className="space-y-3">
+            {/* Node.js */}
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Node.js (OpenAI SDK — works out of the box)</p>
+              <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+                <p className="text-gray-500">// npm install openai</p>
+                <p>{`const OpenAI = require('openai');`}</p>
+                <p>{`const ai = new OpenAI({`}</p>
+                <p className="pl-4">{`baseURL: 'http://10.10.10.1:11434/v1',`}</p>
+                <p className="pl-4">{`apiKey: 'unused'  // no key needed from your VM`}</p>
+                <p>{`});`}</p>
+                <p className="mt-2">{`const response = await ai.chat.completions.create({`}</p>
+                <p className="pl-4">{`model: 'mistral',`}</p>
+                <p className="pl-4">{`messages: [{ role: 'user', content: 'Hello!' }]`}</p>
+                <p>{`});`}</p>
+                <p>{`console.log(response.choices[0].message.content);`}</p>
+              </div>
             </div>
-            <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
-              <p className="text-gray-500"># From anywhere (API key required)</p>
-              <p>curl https://cloudcode.space/api/ollama/v1/chat \</p>
-              <p className="pl-4">-H "Authorization: Bearer {visible ? apiKey?.apiKey : 'sk-cc-...'}" \</p>
-              <p className="pl-4">-d '{`{"model":"mistral","messages":[{"role":"user","content":"Hello!"}]}`}'</p>
+
+            {/* Python */}
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Python (OpenAI SDK)</p>
+              <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+                <p className="text-gray-500"># pip install openai</p>
+                <p>{`from openai import OpenAI`}</p>
+                <p>{`ai = OpenAI(base_url="http://10.10.10.1:11434/v1", api_key="unused")`}</p>
+                <p className="mt-2">{`response = ai.chat.completions.create(`}</p>
+                <p className="pl-4">{`model="mistral",`}</p>
+                <p className="pl-4">{`messages=[{"role": "user", "content": "Hello!"}]`}</p>
+                <p>{`)`}</p>
+                <p>{`print(response.choices[0].message.content)`}</p>
+              </div>
+            </div>
+
+            {/* curl */}
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">cURL (from VM terminal)</p>
+              <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+                <p>{`curl http://10.10.10.1:11434/v1/chat/completions \\`}</p>
+                <p className="pl-4">{`-H "Content-Type: application/json" \\`}</p>
+                <p className="pl-4">{`-d '{"model":"mistral","messages":[{"role":"user","content":"Hello!"}]}'`}</p>
+              </div>
             </div>
           </div>
         </details>
 
-        {/* Regenerate */}
+        {/* Available Models */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          {[
+            { name: 'mistral', size: '7B', desc: 'Best all-around' },
+            { name: 'llama3.2:3b', size: '3B', desc: 'Fast responses' },
+            { name: 'qwen2.5:3b', size: '3B', desc: 'Good at code' },
+            { name: 'gemma2:2b', size: '2B', desc: 'Fastest' },
+          ].map(m => (
+            <div key={m.name} className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 text-center">
+              <p className="text-sm font-semibold text-gray-800">{m.name}</p>
+              <p className="text-xs text-gray-400">{m.size} &middot; {m.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* External API Key (collapsible) */}
+        <details className="mb-3">
+          <summary className="text-sm font-medium text-purple-600 cursor-pointer hover:text-purple-700">API Key (for use outside your VM)</summary>
+          <div className="mt-3">
+            <p className="text-xs text-gray-500 mb-2">Use this key to access AI from outside your VM (e.g. your local machine, other servers).</p>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center justify-between">
+                <span className="truncate">{visible ? apiKey?.apiKey : maskedKey}</span>
+                <button onClick={() => setVisible(!visible)} className="text-gray-400 hover:text-gray-600 ml-2 flex-shrink-0">
+                  {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <button
+                onClick={copyKey}
+                className="flex items-center gap-1.5 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition text-sm flex-shrink-0"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 font-mono">Endpoint: https://cloudcode.space/api/ollama/v1</p>
+          </div>
+        </details>
+
+        {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Models: mistral, llama3.2, qwen2.5, gemma2 &middot; Unlimited usage with your plan</p>
+          <p className="text-xs text-gray-400">Unlimited usage &middot; No API key needed from your VM</p>
           <button
             onClick={regenerate}
             disabled={regenerating}
-            className="text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+            className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50"
           >
-            {regenerating ? 'Regenerating...' : 'Regenerate Key'}
+            {regenerating ? 'Regenerating...' : 'Regenerate API Key'}
           </button>
         </div>
       </div>
