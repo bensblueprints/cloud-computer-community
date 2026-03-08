@@ -1,68 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, X, ChevronRight } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight } from 'lucide-react';
 
-const PROVISION_STEPS = [
-  { key: 'Cloning template', label: 'Cloning server template', pct: 15 },
-  { key: 'Starting VM', label: 'Starting virtual machine', pct: 30 },
-  { key: 'Waiting for VM', label: 'Booting server', pct: 50 },
-  { key: 'Configuring internet', label: 'Configuring network', pct: 65 },
-  { key: 'Setting access', label: 'Setting up credentials', pct: 80 },
-  { key: 'Configuring network', label: 'Configuring routing', pct: 90 },
-  { key: 'complete', label: 'Server ready!', pct: 100 },
-];
-
-function ProvisioningCard({ vm, api }) {
-  const [step, setStep] = useState('Cloning template');
-  const [progress, setProgress] = useState(5);
-  const eventSourceRef = useRef(null);
-  const startTimeRef = useRef(Date.now());
+function ProvisioningCard({ vm }) {
+  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    // Connect to SSE for real-time provisioning updates
-    const es = new EventSource(`/api/vms/${vm.id}/sse`, { withCredentials: true });
-    eventSourceRef.current = es;
+    const created = new Date(vm.createdAt).getTime();
+    const update = () => setElapsed(Math.floor((Date.now() - created) / 1000));
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, [vm.createdAt]);
 
-    es.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.step) {
-          setStep(data.step);
-          const matched = PROVISION_STEPS.find(s => data.step.includes(s.key));
-          if (matched) setProgress(matched.pct);
-        }
-        if (data.status === 'complete') {
-          setProgress(100);
-          setStep('complete');
-        }
-      } catch {}
-    };
+  // Real progress based on elapsed time since creation (doesn't reset on reload)
+  const estimatedTotal = vm.templateType?.includes('army') ? 300 : vm.templateType?.includes('team') ? 180 : 120;
+  const progress = Math.min(95, Math.round((elapsed / estimatedTotal) * 100));
 
-    es.onerror = () => {
-      // If SSE fails, fall back to time-based estimation
-      es.close();
-    };
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
 
-    // Fallback: estimate progress based on time (full provision ~3-5 min)
-    const timer = setInterval(() => {
-      const elapsed = (Date.now() - startTimeRef.current) / 1000;
-      setProgress(prev => {
-        if (prev >= 95) return prev;
-        // Solo ~2min, Team ~3min, Army ~5min
-        const estimatedTotal = vm.templateType?.includes('army') ? 300 : vm.templateType?.includes('team') ? 180 : 120;
-        const estimated = Math.min(95, (elapsed / estimatedTotal) * 100);
-        return Math.max(prev, estimated);
-      });
-    }, 2000);
-
-    return () => {
-      es.close();
-      clearInterval(timer);
-    };
-  }, [vm.id]);
-
-  const currentStep = PROVISION_STEPS.find(s => step.includes(s.key)) || PROVISION_STEPS[0];
+  let stepLabel = 'Cloning server template...';
+  if (progress > 15) stepLabel = 'Starting virtual machine...';
+  if (progress > 35) stepLabel = 'Booting server...';
+  if (progress > 55) stepLabel = 'Configuring network...';
+  if (progress > 75) stepLabel = 'Setting up credentials...';
+  if (progress > 90) stepLabel = 'Final configuration...';
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -70,17 +34,18 @@ function ProvisioningCard({ vm, api }) {
         <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
           <Zap className="w-5 h-5 text-yellow-600 animate-pulse" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-semibold text-gray-900">Setting Up Your Server</h3>
           <p className="text-sm text-gray-500">VM {vm.vmid} &middot; {vm.templateType?.replace('ubuntu-', '').toUpperCase() || 'SOLO'}</p>
         </div>
+        <span className="text-sm font-mono text-gray-400">{minutes}:{seconds.toString().padStart(2, '0')}</span>
       </div>
 
       {/* Progress Bar */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm text-gray-600">{currentStep.label}</span>
-          <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
+          <span className="text-sm text-gray-600">{stepLabel}</span>
+          <span className="text-sm font-medium text-gray-900">{progress}%</span>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
           <div
@@ -90,12 +55,6 @@ function ProvisioningCard({ vm, api }) {
         </div>
       </div>
 
-      {/* Step indicators */}
-      <div className="flex items-center gap-1 mt-3">
-        {PROVISION_STEPS.slice(0, -1).map((s, i) => (
-          <div key={i} className={`flex-1 h-1 rounded-full ${progress >= s.pct ? 'bg-cyan-500' : 'bg-gray-200'}`} />
-        ))}
-      </div>
       <p className="text-xs text-gray-400 mt-3">This usually takes 2-5 minutes. You can leave this page and come back.</p>
     </div>
   );
@@ -365,7 +324,7 @@ export default function DashboardIndex() {
           </h2>
           <div className="space-y-4">
             {provisioningVMs.map(vm => (
-              <ProvisioningCard key={vm.id} vm={vm} api={api} />
+              <ProvisioningCard key={vm.id} vm={vm} />
             ))}
           </div>
         </div>
