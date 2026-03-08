@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import VMCard from '../../components/VMCard';
-import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap, Users, UserPlus, Trash2 } from 'lucide-react';
+import { Plus, AlertTriangle, X, Bug, RefreshCw, Cpu, Server, HardDrive, CheckCircle, Zap, Users, UserPlus, Trash2, ExternalLink } from 'lucide-react';
 
 function PasswordWarning({ onDismiss }) {
   const [copied, setCopied] = useState(false);
@@ -569,6 +569,27 @@ export default function DashboardIndex() {
                 onManageUsers={handleManageUsers}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Go High Level CRM Button */}
+      {org?.ghlLocationId && (
+        <div className="mb-10 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Go High Level CRM</h3>
+              <p className="text-sm text-gray-600 mt-1">Manage your contacts, pipelines, and automations</p>
+            </div>
+            <a
+              href={`https://app.gohighlevel.com/location/${org.ghlLocationId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open CRM
+            </a>
           </div>
         </div>
       )}
