@@ -210,7 +210,7 @@ router.get("/portal", auth, async (req, res, next) => {
   }
 });
 
-// Cancel subscription - gives 3 day grace period
+// Cancel subscription - immediately cancels and destroys VMs
 router.post("/cancel", auth, async (req, res, next) => {
   try {
     const org = await prisma.organization.findFirst({
@@ -222,27 +222,61 @@ router.post("/cancel", auth, async (req, res, next) => {
       return res.status(404).json({ error: "No active subscription" });
     }
 
-    // Cancel in Stripe at period end
-    await stripe.subscriptions.update(org.subscription.stripeId, {
-      cancel_at_period_end: true
-    });
+    // Cancel in Stripe immediately
+    try {
+      await stripe.subscriptions.cancel(org.subscription.stripeId);
+    } catch (stripeErr) {
+      console.error("[Cancel] Stripe cancel error:", stripeErr.message);
+    }
 
-    // Set cancel date to 3 days from now
-    const cancelAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-
-    await prisma.subscription.update({
-      where: { id: org.subscription.id },
-      data: {
-        status: "canceling",
-        cancelAt
+    // Destroy all VMs for this org from Proxmox
+    const ProxmoxService = require("../services/ProxmoxService");
+    const proxmox = new ProxmoxService();
+    const vms = await prisma.vM.findMany({
+      where: {
+        OR: [{ orgId: org.id }, { userId: req.userId }],
+        status: { not: "DELETED" }
       }
     });
 
-    res.json({
-      message: "Subscription cancelled",
-      cancelAt: cancelAt.toISOString(),
-      gracePeriodDays: 3
+    for (const vm of vms) {
+      try {
+        console.log(`[Cancel] Destroying VM ${vm.vmid} from Proxmox...`);
+        await proxmox.stopVM(vm.vmid).catch(() => {});
+        await proxmox.deleteVM(vm.vmid).catch(() => {});
+        console.log(`[Cancel] VM ${vm.vmid} destroyed`);
+      } catch (err) {
+        console.error(`[Cancel] Failed to destroy VM ${vm.vmid}:`, err.message);
+      }
+    }
+
+    // Mark all VMs as deleted in DB
+    await prisma.vM.updateMany({
+      where: {
+        OR: [{ orgId: org.id }, { userId: req.userId }],
+        status: { not: "DELETED" }
+      },
+      data: { status: "DELETED" }
     });
+
+    // Delete subscription record
+    await prisma.subscription.delete({
+      where: { id: org.subscription.id }
+    });
+
+    // Reset org plan
+    await prisma.organization.update({
+      where: { id: org.id },
+      data: { plan: "FREE", seatLimit: 1 }
+    });
+
+    // Suspend Go High Level sub-account
+    if (org.ghlLocationId && ghlService.isConfigured()) {
+      console.log(`[Cancel][GHL] Suspending sub-account: ${org.ghlLocationId}`);
+      await ghlService.suspendSubAccount(org.ghlLocationId).catch(() => {});
+    }
+
+    res.json({ message: "Subscription cancelled and VMs deleted" });
   } catch (err) {
     next(err);
   }
