@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, Globe, Link2 } from 'lucide-react';
+import useIsDark from '../../hooks/useIsDark';
 
 export default function Referrals() {
   const { api } = useAuth();
+  const dark = useIsDark();
   const [data, setData] = useState(null);
   const [codeData, setCodeData] = useState(null);
   const [selectedPage, setSelectedPage] = useState(() => {
@@ -121,32 +123,32 @@ export default function Referrals() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Affiliate Program</h2>
-        <p className="text-gray-500 mt-1">Earn 20% commission on every referral for 365 days. Paid via bank transfer at $100 threshold.</p>
+        <h2 className={`text-2xl font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>Affiliate Program</h2>
+        <p className={`${dark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Earn 20% commission on every referral for 365 days. Paid via bank transfer at $100 threshold.</p>
       </div>
 
       {/* Share Link */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
             <Gift className="w-5 h-5 text-brand-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Your Referral Link</h3>
-            <p className="text-xs text-gray-500">Share this link to earn 20% of every payment your referrals make</p>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Your Referral Link</h3>
+            <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Share this link to earn 20% of every payment your referrals make</p>
           </div>
         </div>
 
         {/* Landing Page Selector */}
         <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          <label className={`block text-xs font-medium ${dark ? 'text-gray-300' : 'text-gray-600'} mb-1.5`}>
             <Globe className="w-3.5 h-3.5 inline mr-1" />
             Send visitors to:
           </label>
           <select
             value={selectedPage}
             onChange={e => setSelectedPage(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            className={`w-full ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-700'} border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent`}
           >
             {LANDING_PAGES.map(p => (
               <option key={p.id} value={p.id}>{p.label}</option>
@@ -159,7 +161,7 @@ export default function Referrals() {
             type="text"
             readOnly
             value={shareUrl}
-            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 font-mono"
+            className={`flex-1 ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-700'} border rounded-lg px-4 py-3 text-sm font-mono`}
           />
           <button
             onClick={copyLink}
@@ -173,14 +175,14 @@ export default function Referrals() {
       </div>
 
       {/* Custom URL Builder */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
             <Link2 className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Custom Link Builder</h3>
-            <p className="text-xs text-gray-500">Paste any cloudcode.space URL to create a tracked referral link for it</p>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Custom Link Builder</h3>
+            <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Paste any cloudcode.space URL to create a tracked referral link for it</p>
           </div>
         </div>
         <div className="mb-3">
@@ -189,7 +191,7 @@ export default function Referrals() {
             value={customUrl}
             onChange={e => setCustomUrl(e.target.value)}
             placeholder="Paste a URL — e.g. cloudcode.space/blog/claude/sales-page or /for/developers"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className={`w-full ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-700'} border rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
           />
         </div>
         {customShareUrl && (
@@ -198,7 +200,7 @@ export default function Referrals() {
               type="text"
               readOnly
               value={customShareUrl}
-              className="flex-1 bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 text-sm text-purple-700 font-mono"
+              className={`flex-1 ${dark ? 'bg-purple-900/30 border-purple-700 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700'} border rounded-lg px-4 py-3 text-sm font-mono`}
             />
             <button
               onClick={copyCustomLink}
@@ -220,25 +222,25 @@ export default function Referrals() {
           { label: 'Total Earned', value: `$${(data?.totalEarned || 0).toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-100' },
           { label: 'Available Balance', value: `$${(data?.pendingBalance || 0).toFixed(2)}`, icon: DollarSign, color: 'text-amber-600 bg-amber-100' }
         ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={i} className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-5`}>
             <div className={`w-8 h-8 ${stat.color} rounded-lg flex items-center justify-center mb-3`}>
               <stat.icon className="w-4 h-4" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+            <p className={`text-2xl font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
+            <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Conversion Rate */}
       {(data?.totalClicks > 0 || data?.totalReferrals > 0) && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100 p-4 mb-6 flex items-center gap-4">
+        <div className={`${dark ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-purple-800' : 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-100'} rounded-xl border p-4 mb-6 flex items-center gap-4`}>
           <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Conversion Rate</p>
-            <p className="text-xs text-gray-600">
+            <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Conversion Rate</p>
+            <p className={`text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
               {data?.totalClicks > 0
                 ? `${((data.totalReferrals / data.totalClicks) * 100).toFixed(1)}% of link clicks convert to signups`
                 : 'Share your link to start tracking conversions'}
@@ -248,11 +250,11 @@ export default function Referrals() {
       )}
 
       {/* Payout Section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border p-6 mb-6`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">Request Payout</h3>
-            <p className="text-sm text-gray-500">Minimum threshold: ${codeData?.payoutThreshold || 100}. Paid via bank transfer.</p>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Request Payout</h3>
+            <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Minimum threshold: ${codeData?.payoutThreshold || 100}. Paid via bank transfer.</p>
           </div>
           <button
             onClick={requestPayout}
@@ -269,9 +271,9 @@ export default function Referrals() {
       </div>
 
       {/* Referrals List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Your Referrals</h3>
+      <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border overflow-hidden mb-6`}>
+        <div className={`px-6 py-4 border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>
+          <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Your Referrals</h3>
         </div>
         {data?.referrals?.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-400">
@@ -279,12 +281,12 @@ export default function Referrals() {
             <p>No referrals yet. Share your link to get started!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className={`divide-y ${dark ? 'divide-gray-800' : 'divide-gray-100'}`}>
             {data?.referrals?.map(r => (
               <div key={r.id} className="px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{r.referredUser.name}</p>
-                  <p className="text-xs text-gray-500">{r.referredUser.email} &middot; {r.referredUser.plan} plan</p>
+                  <p className={`font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>{r.referredUser.name}</p>
+                  <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{r.referredUser.email} &middot; {r.referredUser.plan} plan</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-emerald-600">${r.totalEarned.toFixed(2)}</p>
@@ -300,16 +302,16 @@ export default function Referrals() {
 
       {/* Payout History */}
       {data?.payouts?.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">Payout History</h3>
+        <div className={`${dark ? 'bg-gray-900/80 backdrop-blur border-gray-700' : 'bg-white border-gray-200'} rounded-xl border overflow-hidden`}>
+          <div className={`px-6 py-4 border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>
+            <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Payout History</h3>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className={`divide-y ${dark ? 'divide-gray-800' : 'divide-gray-100'}`}>
             {data.payouts.map(p => (
               <div key={p.id} className="px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">${p.amount.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</p>
+                  <p className={`font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>${p.amount.toFixed(2)}</p>
+                  <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(p.createdAt).toLocaleDateString()}</p>
                 </div>
                 <span className={`text-xs font-medium px-2 py-1 rounded ${
                   p.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
@@ -325,8 +327,8 @@ export default function Referrals() {
       )}
 
       {/* How It Works */}
-      <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">How It Works</h3>
+      <div className={`mt-8 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-xl border p-6`}>
+        <h3 className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'} mb-4`}>How It Works</h3>
         <div className="grid sm:grid-cols-4 gap-4">
           {[
             { step: '1', title: 'Pick a Landing Page', desc: 'Select which page to send your audience to from the dropdown above.' },
@@ -336,8 +338,8 @@ export default function Referrals() {
           ].map((item, i) => (
             <div key={i} className="text-center">
               <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2">{item.step}</div>
-              <p className="font-medium text-gray-900 text-sm">{item.title}</p>
-              <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+              <p className={`font-medium ${dark ? 'text-white' : 'text-gray-900'} text-sm`}>{item.title}</p>
+              <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{item.desc}</p>
             </div>
           ))}
         </div>
