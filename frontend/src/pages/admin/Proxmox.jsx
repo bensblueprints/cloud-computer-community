@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import AdminLayout from '../../components/AdminLayout';
 import StatsCard from '../../components/StatsCard';
-import { Cpu, HardDrive, Activity, Wifi, RefreshCw } from 'lucide-react';
+import { Cpu, HardDrive, Activity, Wifi, RefreshCw, Square, Trash2, Play } from 'lucide-react';
 
 export default function AdminProxmox() {
   const { api } = useAuth();
@@ -31,6 +31,20 @@ export default function AdminProxmox() {
     }
     return () => clearInterval(intervalRef.current);
   }, [autoRefresh]);
+
+  async function handleVMAction(vmid, action) {
+    try {
+      if (action === 'destroy') {
+        if (!confirm(`DESTROY Proxmox VM ${vmid}? This is irreversible.`)) return;
+        await api.delete(`/admin/proxmox/vms/${vmid}`);
+      } else if (action === 'stop') {
+        await api.post(`/admin/proxmox/vms/${vmid}/stop`);
+      }
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || `Failed to ${action} VM ${vmid}`);
+    }
+  }
 
   const formatBytes = (bytes) => {
     if (!bytes) return '0 B';
@@ -74,6 +88,7 @@ export default function AdminProxmox() {
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">CPU</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">RAM</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase">Uptime</th>
+              <th className="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
@@ -89,6 +104,20 @@ export default function AdminProxmox() {
                 <td className="px-4 py-3 text-sm text-gray-400">{vm.cpu ? `${Math.round(vm.cpu * 100)}%` : '—'}</td>
                 <td className="px-4 py-3 text-sm text-gray-400">{vm.mem ? formatBytes(vm.mem) : '—'}</td>
                 <td className="px-4 py-3 text-sm text-gray-500">{vm.uptime ? `${Math.floor(vm.uptime / 3600)}h` : '—'}</td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1 justify-end">
+                    {vm.status === 'running' && (
+                      <button onClick={() => handleVMAction(vm.vmid, 'stop')} className="p-1 text-yellow-400 hover:text-yellow-300" title="Stop">
+                        <Square className="w-4 h-4" />
+                      </button>
+                    )}
+                    {vm.vmid >= 500 && (
+                      <button onClick={() => handleVMAction(vm.vmid, 'destroy')} className="p-1 text-red-400 hover:text-red-300" title="Destroy">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

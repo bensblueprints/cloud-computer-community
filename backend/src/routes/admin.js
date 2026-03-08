@@ -105,18 +105,61 @@ router.delete('/users/:id', auditLog('admin.user.delete'), async (req, res, next
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
-      include: { vms: { where: { status: { not: 'DELETED' } } } }
+      include: {
+        vms: { where: { status: { not: 'DELETED' } } },
+        org: { include: { subscription: true, sharedVMs: { where: { status: { not: 'DELETED' } } } } }
+      }
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    // Delete personal VMs from Proxmox
     for (const vm of user.vms) {
+      try { await proxmoxService.stopVM(vm.vmid); } catch (e) { /* ignore */ }
       try { await proxmoxService.deleteVM(vm.vmid); } catch (e) { /* ignore */ }
       traefikService.deleteRoute(vm.vmid);
     }
 
-    await prisma.vM.updateMany({ where: { userId: user.id }, data: { status: 'DELETED' } });
-    await prisma.user.delete({ where: { id: user.id } });
-    res.json({ message: 'User deleted' });
+    // Delete org shared VMs from Proxmox (if user is the owner)
+    if (user.org && user.org.ownerId === user.id && user.org.sharedVMs) {
+      for (const vm of user.org.sharedVMs) {
+        try { await proxmoxService.stopVM(vm.vmid); } catch (e) { /* ignore */ }
+        try { await proxmoxService.deleteVM(vm.vmid); } catch (e) { /* ignore */ }
+        traefikService.deleteRoute(vm.vmid);
+      }
+    }
+
+    // Cancel Stripe subscription if exists
+    if (user.org?.subscription?.stripeId) {
+      const Stripe = require('stripe');
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      try { await stripe.subscriptions.cancel(user.org.subscription.stripeId); } catch (e) { console.log('[Admin] Stripe cancel:', e.message); }
+    }
+
+    // Delete GHL sub-account if exists
+    if (user.org?.ghlLocationId) {
+      const ghlService = require('../services/GHLService');
+      if (ghlService.isConfigured()) {
+        try { await ghlService.deleteSubAccount(user.org.ghlLocationId); } catch (e) { console.log('[Admin] GHL delete:', e.message); }
+      }
+    }
+
+    // Cascade delete all DB records
+    await prisma.$transaction([
+      prisma.vMUser.deleteMany({ where: { userId: user.id } }),
+      prisma.vM.updateMany({ where: { userId: user.id }, data: { status: 'DELETED' } }),
+      ...(user.org && user.org.ownerId === user.id ? [
+        prisma.vMUser.deleteMany({ where: { vm: { orgId: user.org.id } } }),
+        prisma.vM.updateMany({ where: { orgId: user.org.id }, data: { status: 'DELETED' } }),
+        prisma.subscription.deleteMany({ where: { orgId: user.org.id } }),
+        prisma.invite.deleteMany({ where: { orgId: user.org.id } }),
+        prisma.user.updateMany({ where: { orgId: user.org.id, id: { not: user.id } }, data: { orgId: null } }),
+        prisma.organization.delete({ where: { id: user.org.id } }),
+      ] : []),
+      prisma.auditLog.deleteMany({ where: { userId: user.id } }),
+      prisma.user.delete({ where: { id: user.id } }),
+    ]);
+
+    res.json({ message: 'User and all instances deleted' });
   } catch (err) {
     next(err);
   }
@@ -215,6 +258,35 @@ router.get('/proxmox/vms', async (req, res, next) => {
   try {
     const vms = await proxmoxService.listAllVMs();
     res.json({ vms });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Proxmox direct VM actions (by vmid, not database ID)
+router.post('/proxmox/vms/:vmid/stop', auditLog('admin.proxmox.stop'), async (req, res, next) => {
+  try {
+    await proxmoxService.stopVM(req.params.vmid);
+    res.json({ message: `Proxmox VM ${req.params.vmid} stopped` });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/proxmox/vms/:vmid', auditLog('admin.proxmox.destroy'), async (req, res, next) => {
+  try {
+    const vmid = parseInt(req.params.vmid);
+    // Stop first, then destroy
+    try { await proxmoxService.stopVM(vmid); } catch (e) { /* may already be stopped */ }
+    await proxmoxService.deleteVM(vmid);
+    // Also clean up database record and traefik route if they exist
+    const dbVm = await prisma.vM.findFirst({ where: { vmid } });
+    if (dbVm) {
+      await prisma.vMUser.deleteMany({ where: { vmId: dbVm.id } });
+      await prisma.vM.update({ where: { id: dbVm.id }, data: { status: 'DELETED' } });
+      traefikService.deleteRoute(vmid);
+    }
+    res.json({ message: `Proxmox VM ${vmid} destroyed` });
   } catch (err) {
     next(err);
   }
