@@ -197,8 +197,9 @@ export default function AdminUsers() {
             <div className="mt-8 space-y-2">
               <button onClick={async () => {
                 try {
-                  const res = await api.post(`/admin/impersonate/${selectedUser.id}`);
-                  window.location.href = 'https://app.cloudcode.space/dashboard';
+                  await api.post(`/admin/impersonate/${selectedUser.id}`);
+                  // Force full page reload to pick up new auth cookie
+                  window.location.replace('https://app.cloudcode.space/dashboard');
                 } catch (err) {
                   alert(err.response?.data?.error || 'Failed to impersonate user');
                 }
