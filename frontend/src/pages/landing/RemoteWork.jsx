@@ -61,30 +61,41 @@ export default function RemoteWork() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-sm text-amber-400 mb-6">
-          <Plane className="w-4 h-4" />
-          Work from literally anywhere
+      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-sm text-amber-400 mb-6">
+              <Plane className="w-4 h-4" />
+              Work from literally anywhere
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              Your office lives in the{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-cyan-400">cloud.</span>
+              <br />
+              <span className="text-slate-400 text-2xl sm:text-3xl">Work from Bali, Berlin, or your couch.</span>
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-8">
+              A full cloud desktop you can access from any browser on any device.
+              Your files, your apps, your entire workspace — always there, never lost.
+              No VPN, no syncing, no setup. Just log in.
+            </p>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-amber-500/25"
+            >
+              Start Working From Anywhere
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-sm text-slate-500 mt-3">Plans start at $17/mo. 3-day free trial.</p>
+          </div>
+          <div className="hidden lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop"
+              alt="Digital nomad working remotely from a beautiful location"
+              className="rounded-2xl border border-slate-800 shadow-2xl shadow-amber-500/10 w-full object-cover"
+            />
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-          Your office lives in the{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-cyan-400">cloud.</span>
-          <br />
-          <span className="text-slate-400 text-2xl sm:text-3xl">Work from Bali, Berlin, or your couch.</span>
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-          A full cloud desktop you can access from any browser on any device.
-          Your files, your apps, your entire workspace — always there, never lost.
-          No VPN, no syncing, no setup. Just log in.
-        </p>
-        <Link
-          to="/register"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-amber-500/25"
-        >
-          Start Working From Anywhere
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-sm text-slate-500 mt-3">Plans start at $17/mo. 3-day free trial.</p>
       </div>
 
       {/* Location badges */}
@@ -141,6 +152,15 @@ export default function RemoteWork() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Remote work lifestyle image */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
+        <img
+          src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=1200&h=500&fit=crop"
+          alt="Working remotely with laptop in a scenic location"
+          className="rounded-2xl border border-slate-800 w-full object-cover h-64 sm:h-80"
+        />
       </div>
 
       {/* Social proof */}

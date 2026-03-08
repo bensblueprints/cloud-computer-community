@@ -50,29 +50,40 @@ export default function Lightweight() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/30 rounded-full px-4 py-1.5 text-sm text-violet-400 mb-6">
-          <Gauge className="w-4 h-4" />
-          Desktop-class power from any device
+      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/30 rounded-full px-4 py-1.5 text-sm text-violet-400 mb-6">
+              <Gauge className="w-4 h-4" />
+              Desktop-class power from any device
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              Turn any device into a{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">powerhouse.</span>
+              <br />
+              <span className="text-slate-400 text-3xl sm:text-4xl">Your $200 laptop just got 32GB RAM.</span>
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-8">
+              CloudCode runs in your browser. Your device just displays the picture — all the heavy lifting happens on our servers.
+              Chromebook, old laptop, tablet — it does not matter. You get a fast, powerful desktop.
+            </p>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-violet-500/25"
+            >
+              Upgrade Your Device Now
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-sm text-slate-500 mt-3">Plans start at $17/mo. 3-day free trial.</p>
+          </div>
+          <div className="hidden lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&h=400&fit=crop"
+              alt="Laptop and tablet devices showing technology"
+              className="rounded-2xl border border-slate-800 shadow-2xl shadow-violet-500/10 w-full object-cover"
+            />
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-          Turn any device into a{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">powerhouse.</span>
-          <br />
-          <span className="text-slate-400 text-3xl sm:text-4xl">Your $200 laptop just got 32GB RAM.</span>
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-          CloudCode runs in your browser. Your device just displays the picture — all the heavy lifting happens on our servers.
-          Chromebook, old laptop, tablet — it does not matter. You get a fast, powerful desktop.
-        </p>
-        <Link
-          to="/register"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-violet-500/25"
-        >
-          Upgrade Your Device Now
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-sm text-slate-500 mt-3">Plans start at $17/mo. 3-day free trial.</p>
       </div>
 
       {/* Device grid */}
@@ -130,6 +141,15 @@ export default function Lightweight() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Devices image */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
+        <img
+          src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=500&fit=crop"
+          alt="Clean laptop workspace setup"
+          className="rounded-2xl border border-slate-800 w-full object-cover h-64 sm:h-80"
+        />
       </div>
 
       {/* Social proof */}

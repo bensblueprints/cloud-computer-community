@@ -47,29 +47,40 @@ export default function Developers() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-full px-4 py-1.5 text-sm text-slate-300 mb-6">
-          <Timer className="w-4 h-4 text-cyan-400" />
-          0 minutes to start coding
-        </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-          Your dev environment,{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">everywhere.</span>
-          <br />Pre-configured and ready to code.
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-          A full Ubuntu cloud desktop with Cursor IDE, Claude Code CLI, 4 AI models, and every tool you need.
-          Access it from any browser on any device. No setup. No installs. Just code.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
-          >
-            Start Coding Now
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <span className="text-sm text-slate-500">Plans start at $17/mo</span>
+      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-full px-4 py-1.5 text-sm text-slate-300 mb-6">
+              <Timer className="w-4 h-4 text-cyan-400" />
+              0 minutes to start coding
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              Your dev environment,{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">everywhere.</span>
+              <br />Pre-configured and ready to code.
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-8">
+              A full Ubuntu cloud desktop with Cursor IDE, Claude Code CLI, 4 AI models, and every tool you need.
+              Access it from any browser on any device. No setup. No installs. Just code.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-cyan-500/25"
+              >
+                Start Coding Now
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <span className="text-sm text-slate-500">Plans start at $17/mo</span>
+            </div>
+          </div>
+          <div className="hidden lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop"
+              alt="Developer coding on laptop"
+              className="rounded-2xl border border-slate-800 shadow-2xl shadow-cyan-500/10 w-full object-cover"
+            />
+          </div>
         </div>
       </div>
 
@@ -136,6 +147,15 @@ export default function Developers() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Dev workspace image */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
+        <img
+          src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=500&fit=crop"
+          alt="Modern developer workspace with multiple monitors"
+          className="rounded-2xl border border-slate-800 w-full object-cover h-64 sm:h-80"
+        />
       </div>
 
       {/* Social proof */}

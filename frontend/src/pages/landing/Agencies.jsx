@@ -52,29 +52,40 @@ export default function Agencies() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-1.5 text-sm text-indigo-400 mb-6">
-          <Building2 className="w-4 h-4" />
-          Everything to launch your agency
+      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-1.5 text-sm text-indigo-400 mb-6">
+              <Building2 className="w-4 h-4" />
+              Everything to launch your agency
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              Everything you need to{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">start an agency.</span>
+              <br />
+              <span className="text-slate-400 text-3xl sm:text-4xl">For $17/month.</span>
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-8">
+              Most agencies spend $500+/month on tools before landing their first client.
+              CloudCode gives you Go High Level CRM, a cloud workspace, AI assistants, and a community of agency builders — all in one subscription.
+            </p>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-indigo-500/25"
+            >
+              Launch Your Agency
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-sm text-slate-500 mt-3">3-day free trial. Cancel anytime.</p>
+          </div>
+          <div className="hidden lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop"
+              alt="Team collaborating in a modern agency workspace"
+              className="rounded-2xl border border-slate-800 shadow-2xl shadow-indigo-500/10 w-full object-cover"
+            />
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-          Everything you need to{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">start an agency.</span>
-          <br />
-          <span className="text-slate-400 text-3xl sm:text-4xl">For $17/month.</span>
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-          Most agencies spend $500+/month on tools before landing their first client.
-          CloudCode gives you Go High Level CRM, a cloud workspace, AI assistants, and a community of agency builders — all in one subscription.
-        </p>
-        <Link
-          to="/register"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-indigo-500/25"
-        >
-          Launch Your Agency
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-sm text-slate-500 mt-3">3-day free trial. Cancel anytime.</p>
       </div>
 
       {/* Stats */}
@@ -149,6 +160,15 @@ export default function Agencies() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Agency workspace image */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
+        <img
+          src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=500&fit=crop"
+          alt="Marketing agency team meeting and strategy session"
+          className="rounded-2xl border border-slate-800 w-full object-cover h-64 sm:h-80"
+        />
       </div>
 
       {/* Social proof */}

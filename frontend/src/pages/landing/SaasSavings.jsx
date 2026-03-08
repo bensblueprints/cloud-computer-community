@@ -48,30 +48,41 @@ export default function SaasSavings() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm text-emerald-400 mb-6">
-          <TrendingDown className="w-4 h-4" />
-          Save over $1,100/month
+      <div className="max-w-6xl mx-auto px-4 pt-20 pb-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm text-emerald-400 mb-6">
+              <TrendingDown className="w-4 h-4" />
+              Save over $1,100/month
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              Replace{' '}
+              <span className="text-red-400 line-through">$1,157/mo</span>{' '}
+              in subscriptions.
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Pay $17.</span>
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto lg:mx-0 mb-8">
+              CRM, funnel builder, email marketing, SMS, booking, cloud computer, IDE, AI tools, and more.
+              One subscription. Everything included. Stop juggling 12 different bills.
+            </p>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-emerald-500/25"
+            >
+              Start Saving Today
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-sm text-slate-500 mt-3">3-day free trial. Cancel anytime.</p>
+          </div>
+          <div className="hidden lg:block">
+            <img
+              src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=400&fit=crop"
+              alt="Business savings and financial planning"
+              className="rounded-2xl border border-slate-800 shadow-2xl shadow-emerald-500/10 w-full object-cover"
+            />
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-          Replace{' '}
-          <span className="text-red-400 line-through">$1,157/mo</span>{' '}
-          in subscriptions.
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Pay $17.</span>
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-          CRM, funnel builder, email marketing, SMS, booking, cloud computer, IDE, AI tools, and more.
-          One subscription. Everything included. Stop juggling 12 different bills.
-        </p>
-        <Link
-          to="/register"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-emerald-500/25"
-        >
-          Start Saving Today
-          <ArrowRight className="w-5 h-5" />
-        </Link>
-        <p className="text-sm text-slate-500 mt-3">3-day free trial. Cancel anytime.</p>
       </div>
 
       {/* Stats */}
@@ -154,6 +165,15 @@ export default function SaasSavings() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Business workspace image */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
+        <img
+          src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=500&fit=crop"
+          alt="Business analytics dashboard on laptop screen"
+          className="rounded-2xl border border-slate-800 w-full object-cover h-64 sm:h-80"
+        />
       </div>
 
       {/* Social proof */}
