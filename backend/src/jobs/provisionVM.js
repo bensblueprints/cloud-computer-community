@@ -87,19 +87,25 @@ const worker = new Worker("vm-provisioning", async (job) => {
     const internalIp = vmStatus.ip;
     console.log(`VM ${vmid} ready, IP: ${internalIp || "pending"}`);
 
-    // Step 3.5: Wait for guest agent, then configure networking (DNS)
+    // Step 3.5: Wait for guest agent, install network tools, configure networking
     emit(userId, vmId, "Configuring internet access...", "in_progress");
     console.log(`Waiting for guest agent on VM ${vmid} before networking config...`);
     let networkingDone = false;
     try {
       await proxmoxService.waitForGuestAgent(vmid, 120000);
       console.log(`Guest agent ready on VM ${vmid}, configuring networking...`);
+
+      // First: write resolv.conf so apt/internet works
       const netResult = await withRetry(
         () => proxmoxService.configureNetworking(vmid),
-        3, 5000, `configureNetworking(${vmid})`
+        3, 8000, `configureNetworking(${vmid})`
       );
       networkingDone = netResult?.success === true;
       console.log(`Networking configured for VM ${vmid}: ${networkingDone ? 'success' : 'partial'}`);
+
+      // Ensure qemu-guest-agent and networking tools are installed
+      // This runs in background - doesn't block provisioning
+      proxmoxService.safeExecInVM(vmid, "apt-get update -qq && apt-get install -y -qq qemu-guest-agent dnsutils net-tools curl > /dev/null 2>&1 &").catch(() => {});
     } catch (e) {
       console.log(`Networking config warning for VM ${vmid}: ${e.message} (will retry after provisioning)`);
     }
