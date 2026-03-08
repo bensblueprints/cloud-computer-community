@@ -87,17 +87,21 @@ const worker = new Worker("vm-provisioning", async (job) => {
     const internalIp = vmStatus.ip;
     console.log(`VM ${vmid} ready, IP: ${internalIp || "pending"}`);
 
-    // Step 3.5: Configure networking (DNS) so the VM has internet access
+    // Step 3.5: Wait for guest agent, then configure networking (DNS)
     emit(userId, vmId, "Configuring internet access...", "in_progress");
-    console.log(`Configuring networking for VM ${vmid}`);
+    console.log(`Waiting for guest agent on VM ${vmid} before networking config...`);
+    let networkingDone = false;
     try {
-      await withRetry(
+      await proxmoxService.waitForGuestAgent(vmid, 120000);
+      console.log(`Guest agent ready on VM ${vmid}, configuring networking...`);
+      const netResult = await withRetry(
         () => proxmoxService.configureNetworking(vmid),
         3, 5000, `configureNetworking(${vmid})`
       );
-      console.log(`Networking configured for VM ${vmid}`);
+      networkingDone = netResult?.success === true;
+      console.log(`Networking configured for VM ${vmid}: ${networkingDone ? 'success' : 'partial'}`);
     } catch (e) {
-      console.log(`Networking config warning for VM ${vmid}: ${e.message} (continuing...)`);
+      console.log(`Networking config warning for VM ${vmid}: ${e.message} (will retry after provisioning)`);
     }
 
     // Step 4: Set credentials (with retries - guest agent may not be ready immediately)
@@ -214,6 +218,18 @@ const worker = new Worker("vm-provisioning", async (job) => {
     });
     console.log(`Database updated for VM ${vmid}`);
 
+    // Step 6.5: Retry networking if it failed earlier (VM is fully up now)
+    if (!networkingDone) {
+      console.log(`[PostProvision] Retrying networking config for VM ${vmid}...`);
+      try {
+        await proxmoxService.waitForGuestAgent(vmid, 60000);
+        const retryResult = await proxmoxService.configureNetworking(vmid);
+        console.log(`[PostProvision] Networking retry result: ${retryResult?.success ? 'success' : 'failed'}`);
+      } catch (e) {
+        console.error(`[PostProvision] Networking retry failed for VM ${vmid}: ${e.message}`);
+      }
+    }
+
     // Step 7: Notify user
     emit(userId, vmId, "Your environment is ready!", "ready");
 
@@ -326,10 +342,49 @@ async function fixStuckVMUsers() {
   }
 }
 
-// Run background fixer every 5 minutes
+// Background fixer: Fix networking on recently provisioned VMs that might have missed DNS config
+async function fixVMNetworking() {
+  try {
+    // Find VMs that became RUNNING in the last 15 minutes (recently provisioned)
+    const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const recentVMs = await prisma.vM.findMany({
+      where: {
+        status: "RUNNING",
+        createdAt: { gt: fifteenMinAgo }
+      }
+    });
+
+    for (const vm of recentVMs) {
+      try {
+        // Quick check: can the VM resolve DNS?
+        const agentReady = await proxmoxService.isGuestAgentReady(vm.vmid);
+        if (!agentReady) continue;
+
+        // Test DNS resolution
+        try {
+          await proxmoxService.execInVM(vm.vmid, "host google.com");
+          // DNS works, skip this VM
+        } catch (e) {
+          // DNS broken, fix it
+          console.log(`[NetFix] VM ${vm.vmid} has broken DNS, fixing...`);
+          await proxmoxService.configureNetworking(vm.vmid);
+          console.log(`[NetFix] VM ${vm.vmid} networking fixed`);
+        }
+      } catch (e) {
+        // Silently skip VMs we can't reach
+      }
+    }
+  } catch (err) {
+    console.error("[NetFix] Background networking fixer error:", err.message);
+  }
+}
+
+// Run background fixers
 setInterval(fixStuckVMUsers, 5 * 60 * 1000);
+setInterval(fixVMNetworking, 3 * 60 * 1000);
 // Run once on startup after 30 seconds
 setTimeout(fixStuckVMUsers, 30 * 1000);
+setTimeout(fixVMNetworking, 60 * 1000);
 
 console.log("VM provisioning worker started with reliability improvements");
 

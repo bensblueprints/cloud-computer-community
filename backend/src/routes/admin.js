@@ -646,4 +646,16 @@ router.patch('/settings', auditLog('admin.settings.update'), async (req, res, ne
   }
 });
 
+// Fix VM networking (DNS) - admin can trigger manually
+router.post('/vms/:vmid/fix-network', auth, adminOnly, auditLog('fix_vm_network'), async (req, res, next) => {
+  try {
+    const vmid = parseInt(req.params.vmid);
+    console.log(`[Admin] Fixing networking for VM ${vmid}`);
+    const result = await proxmoxService.configureNetworking(vmid);
+    res.json({ success: result.success, message: result.success ? 'Networking fixed' : result.error });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

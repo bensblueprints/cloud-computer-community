@@ -236,6 +236,21 @@ class ProxmoxService {
     return res.data;
   }
 
+  // Write a file inside the VM using the QEMU guest agent file-write API
+  // This is much more reliable than exec for writing config files
+  async writeFileInVM(vmid, filePath, content) {
+    const agentReady = await this.isGuestAgentReady(vmid);
+    if (!agentReady) {
+      throw new Error(`Guest agent not ready on VM ${vmid} - cannot write file`);
+    }
+
+    const res = await this.client.post(
+      `/api2/json/nodes/${this.node}/qemu/${vmid}/agent/file-write`,
+      { file: filePath, content }
+    );
+    return res.data;
+  }
+
   async setRDPPassword(vmid, password) {
     try {
       return await this.execInVM(vmid, `echo "cloudcomputer:${password}" | chpasswd`);
@@ -263,39 +278,47 @@ class ProxmoxService {
   }
 
   // Configure DNS and networking on a freshly provisioned VM
-  // This ensures every VM can reach the internet regardless of template state
+  // Uses file-write API (reliable) + simple exec commands instead of complex bash heredocs
   async configureNetworking(vmid) {
     console.log(`Configuring networking for VM ${vmid}`);
     try {
-      // Set DNS resolvers directly in resolv.conf as immediate fix
-      await this.execInVM(vmid,
-        'bash -c \'echo -e "nameserver 1.1.1.1\\nnameserver 8.8.8.8\\nnameserver 1.0.0.1\\nnameserver 8.8.4.4" > /etc/resolv.conf\''
-      );
+      // Step 1: Write resolv.conf directly using file-write API (most reliable)
+      const resolvConf = "nameserver 1.1.1.1\nnameserver 8.8.8.8\nnameserver 1.0.0.1\nnameserver 8.8.4.4\n";
+      await this.writeFileInVM(vmid, "/etc/resolv.conf", resolvConf);
+      console.log(`[Net] resolv.conf written for VM ${vmid}`);
 
-      // Configure systemd-resolved with proper DNS servers
-      await this.execInVM(vmid,
-        'bash -c \'mkdir -p /etc/systemd/resolved.conf.d && echo -e "[Resolve]\\nDNS=1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4\\nFallbackDNS=9.9.9.9\\nDNSStubListener=no" > /etc/systemd/resolved.conf.d/dns.conf\''
-      );
+      // Step 2: Create systemd-resolved config dir and write DNS config
+      await this.execInVM(vmid, "mkdir -p /etc/systemd/resolved.conf.d");
+      const resolvedConf = "[Resolve]\nDNS=1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4\nFallbackDNS=9.9.9.9\nDNSStubListener=no\n";
+      await this.writeFileInVM(vmid, "/etc/systemd/resolved.conf.d/dns.conf", resolvedConf);
+      console.log(`[Net] systemd-resolved config written for VM ${vmid}`);
 
-      // Restart systemd-resolved to pick up new config
-      await this.execInVM(vmid, 'systemctl restart systemd-resolved').catch(() => {});
+      // Step 3: Restart systemd-resolved
+      try { await this.execInVM(vmid, "systemctl restart systemd-resolved"); } catch (e) { /* may not exist */ }
 
-      // Install the boot-time DNS fix script (persists across reboots)
-      await this.execInVM(vmid,
-        'bash -c \'cat > /usr/local/bin/fix-dns.sh << "SCRIPT"\n#!/bin/bash\nsleep 5\nif ! host google.com > /dev/null 2>&1; then\n  echo "nameserver 1.1.1.1" > /etc/resolv.conf\n  echo "nameserver 8.8.8.8" >> /etc/resolv.conf\n  systemctl restart systemd-resolved 2>/dev/null || true\nfi\nSCRIPT\nchmod +x /usr/local/bin/fix-dns.sh\''
-      );
+      // Step 4: Write boot-time DNS fix script
+      const fixDnsScript = '#!/bin/bash\nsleep 5\nif ! host google.com > /dev/null 2>&1; then\n  echo "nameserver 1.1.1.1" > /etc/resolv.conf\n  echo "nameserver 8.8.8.8" >> /etc/resolv.conf\n  echo "nameserver 1.0.0.1" >> /etc/resolv.conf\n  systemctl restart systemd-resolved 2>/dev/null || true\nfi\n';
+      await this.writeFileInVM(vmid, "/usr/local/bin/fix-dns.sh", fixDnsScript);
+      await this.execInVM(vmid, "chmod +x /usr/local/bin/fix-dns.sh");
 
-      // Create systemd service for the fix script
-      await this.execInVM(vmid,
-        'bash -c \'cat > /etc/systemd/system/fix-dns.service << "SVC"\n[Unit]\nDescription=Fix DNS on Boot\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/fix-dns.sh\nRemainAfterExit=yes\n[Install]\nWantedBy=multi-user.target\nSVC\nsystemctl daemon-reload && systemctl enable fix-dns.service\''
-      );
+      // Step 5: Write systemd service for boot-time fix
+      const fixDnsService = "[Unit]\nDescription=Fix DNS on Boot\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/fix-dns.sh\nRemainAfterExit=yes\n\n[Install]\nWantedBy=multi-user.target\n";
+      await this.writeFileInVM(vmid, "/etc/systemd/system/fix-dns.service", fixDnsService);
+      await this.execInVM(vmid, "systemctl daemon-reload");
+      await this.execInVM(vmid, "systemctl enable fix-dns.service");
+
+      // Step 6: Verify DNS works
+      try {
+        await this.execInVM(vmid, "host google.com");
+        console.log(`[Net] DNS verification passed for VM ${vmid}`);
+      } catch (e) {
+        console.log(`[Net] DNS verification failed for VM ${vmid}, but config is written`);
+      }
 
       console.log(`Networking configured for VM ${vmid}`);
       return { success: true };
     } catch (e) {
       console.error(`Failed to configure networking for VM ${vmid}:`, e.message);
-      // Don't throw - networking config failure shouldn't block provisioning
-      // The template-level fix should handle most cases
       return { success: false, error: e.message };
     }
   }
