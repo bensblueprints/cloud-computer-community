@@ -175,6 +175,9 @@ WantedBy=multi-user.target
 UNIT
 systemctl enable fix-dns.service
 
+# Add AI host alias so VMs can reach Ollama via ai.internal
+echo "10.10.10.1 ai.internal" >> /etc/hosts
+
 # Additional dev tools
 echo "Installing additional dev tools..."
 apt install -y git curl wget unzip htop nano vim build-essential
@@ -220,7 +223,7 @@ chown -R cloudcomputer:cloudcomputer /home/cloudcomputer/Desktop
 echo "[13/13] Installing AI command..."
 cat > /usr/local/bin/ai << 'AICMD'
 #!/bin/bash
-OLLAMA="http://10.10.10.1:11434"
+OLLAMA="http://ai.internal:11434"
 MODEL="${AI_MODEL:-mistral}"
 if [ "$1" = "models" ]; then
     echo "Available AI Models:"
@@ -241,7 +244,7 @@ if [ -z "$1" ]; then
     echo "  ai chat                   Interactive chat"; echo "  ai models                 List available models"; echo ""
     echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
     echo "Change model: export AI_MODEL=llama3.2:3b"; echo ""
-    echo "API Endpoint: http://10.10.10.1:11434"; exit 0
+    echo "API Endpoint: http://ai.internal:11434"; exit 0
 fi
 curl -s "$OLLAMA/api/generate" -d "{\"model\":\"$MODEL\",\"prompt\":\"$*\",\"stream\":true}" | while read -r l; do echo "$l" | python3 -c "import sys,json;print(json.load(sys.stdin).get('response',''),end='',flush=True)" 2>/dev/null; done; echo
 AICMD
@@ -264,7 +267,7 @@ FREE AI ACCESS (no API key needed from your VM):
   List models:       ai models
 
   Available models: Mistral 7B, Llama 3.2, Qwen 2.5, Gemma2
-  API endpoint: http://10.10.10.1:11434
+  API endpoint: http://ai.internal:11434
 
 IMPORTANT: Please change your password!
 Open a terminal and run: passwd

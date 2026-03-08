@@ -4,7 +4,7 @@
 #        ai chat  (interactive mode)
 #        ai models (list available models)
 
-OLLAMA="http://10.10.10.1:11434"
+OLLAMA="http://ai.internal:11434"
 MODEL="${AI_MODEL:-mistral}"
 
 if [ "$1" = "models" ]; then
@@ -49,8 +49,8 @@ if [ -z "$1" ]; then
     echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
     echo "Change model: export AI_MODEL=llama3.2:3b"
     echo ""
-    echo "API Endpoint: http://10.10.10.1:11434"
-    echo "  curl http://10.10.10.1:11434/api/generate -d '{\"model\":\"mistral\",\"prompt\":\"Hello\"}'"
+    echo "API Endpoint: http://ai.internal:11434"
+    echo "  curl http://ai.internal:11434/api/generate -d '{\"model\":\"mistral\",\"prompt\":\"Hello\"}'"
     exit 0
 fi
 

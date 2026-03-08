@@ -235,7 +235,7 @@ function AiApiKeyCard({ api }) {
                 <p className="text-gray-500">// npm install openai</p>
                 <p>{`const OpenAI = require('openai');`}</p>
                 <p>{`const ai = new OpenAI({`}</p>
-                <p className="pl-4">{`baseURL: 'http://10.10.10.1:11434/v1',`}</p>
+                <p className="pl-4">{`baseURL: 'http://ai.internal:11434/v1',`}</p>
                 <p className="pl-4">{`apiKey: 'unused'  // no key needed from your VM`}</p>
                 <p>{`});`}</p>
                 <p className="mt-2">{`const response = await ai.chat.completions.create({`}</p>
@@ -252,7 +252,7 @@ function AiApiKeyCard({ api }) {
               <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
                 <p className="text-gray-500"># pip install openai</p>
                 <p>{`from openai import OpenAI`}</p>
-                <p>{`ai = OpenAI(base_url="http://10.10.10.1:11434/v1", api_key="unused")`}</p>
+                <p>{`ai = OpenAI(base_url="http://ai.internal:11434/v1", api_key="unused")`}</p>
                 <p className="mt-2">{`response = ai.chat.completions.create(`}</p>
                 <p className="pl-4">{`model="mistral",`}</p>
                 <p className="pl-4">{`messages=[{"role": "user", "content": "Hello!"}]`}</p>
@@ -265,7 +265,7 @@ function AiApiKeyCard({ api }) {
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">cURL (from VM terminal)</p>
               <div className="bg-gray-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
-                <p>{`curl http://10.10.10.1:11434/v1/chat/completions \\`}</p>
+                <p>{`curl http://ai.internal:11434/v1/chat/completions \\`}</p>
                 <p className="pl-4">{`-H "Content-Type: application/json" \\`}</p>
                 <p className="pl-4">{`-d '{"model":"mistral","messages":[{"role":"user","content":"Hello!"}]}'`}</p>
               </div>
