@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, X, UserCog, Plus, LogIn } from 'lucide-react';
+import { Search, X, UserCog, Plus, LogIn, Mail } from 'lucide-react';
 
 export default function AdminUsers() {
   const { api } = useAuth();
@@ -13,7 +13,7 @@ export default function AdminUsers() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', plan: 'SOLO' });
+  const [createForm, setCreateForm] = useState({ name: '', email: '', plan: 'SOLO' });
   const [editEmail, setEditEmail] = useState('');
   const [emailSaving, setEmailSaving] = useState(false);
 
@@ -69,7 +69,7 @@ export default function AdminUsers() {
                 const res = await api.post('/admin/users', createForm);
                 alert(`User created! VM ${res.data.vm.vmid} provisioning...`);
                 setShowCreate(false);
-                setCreateForm({ name: '', email: '', password: '', plan: 'SOLO' });
+                setCreateForm({ name: '', email: '', plan: 'SOLO' });
                 fetchUsers();
               } catch (err) {
                 alert(err.response?.data?.error || 'Failed to create user');
@@ -89,11 +89,6 @@ export default function AdminUsers() {
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Password</label>
-                  <input type="text" required value={createForm.password} onChange={e => setCreateForm(f => ({...f, password: e.target.value}))}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" />
-                </div>
-                <div>
                   <label className="block text-sm text-gray-400 mb-1">Plan</label>
                   <select value={createForm.plan} onChange={e => setCreateForm(f => ({...f, plan: e.target.value}))}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm">
@@ -103,8 +98,9 @@ export default function AdminUsers() {
                   </select>
                 </div>
               </div>
+              <p className="mt-3 text-xs text-gray-400">A password setup email will be sent to the user.</p>
               <button type="submit" disabled={creating}
-                className="w-full mt-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50">
+                className="w-full mt-2 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50">
                 {creating ? 'Creating...' : 'Create User & Provision VM'}
               </button>
             </form>
@@ -246,6 +242,17 @@ export default function AdminUsers() {
               }}
                 className="w-full py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2">
                 <LogIn className="w-4 h-4" /> Login as User
+              </button>
+              <button onClick={async () => {
+                try {
+                  await api.post(`/admin/users/${selectedUser.id}/send-password-reset`);
+                  alert(`Password reset email sent to ${selectedUser.email}`);
+                } catch (err) {
+                  alert(err.response?.data?.error || 'Failed to send reset email');
+                }
+              }}
+                className="w-full py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2">
+                <Mail className="w-4 h-4" /> Send Password Reset
               </button>
               <button onClick={() => handleAction('update', { suspended: !selectedUser.suspended })}
                 className={`w-full py-2 rounded-lg text-sm font-medium ${selectedUser.suspended ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'}`}>

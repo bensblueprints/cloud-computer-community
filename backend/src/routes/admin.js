@@ -67,8 +67,8 @@ router.use(auth, adminOnly);
 router.post('/users', auditLog('admin.user.create'), async (req, res, next) => {
   try {
     const { name, email, password, plan } = req.body;
-    if (!name || !email || !password || !plan) {
-      return res.status(400).json({ error: 'name, email, password, and plan are required' });
+    if (!name || !email || !plan) {
+      return res.status(400).json({ error: 'name, email, and plan are required' });
     }
     const planKey = plan.toUpperCase();
     const PLANS = {
@@ -85,7 +85,10 @@ router.post('/users', auditLog('admin.user.create'), async (req, res, next) => {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    // If no password provided, generate a random one (user will set via email)
+    const crypto = require('crypto');
+    const tempPassword = password || crypto.randomBytes(32).toString('hex');
+    const passwordHash = await bcrypt.hash(tempPassword, 12);
 
     // Create user + org + subscription in transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -167,6 +170,40 @@ router.post('/users', auditLog('admin.user.create'), async (req, res, next) => {
       plan: planKey
     });
 
+    // Send password setup email if no password was provided
+    if (!password) {
+      const setupToken = crypto.randomBytes(32).toString('hex');
+      const setupExpires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
+      await prisma.user.update({
+        where: { id: result.user.id },
+        data: { passwordResetToken: setupToken, passwordResetExpires: setupExpires }
+      });
+      const setupUrl = `https://cloudcode.space/reset-password?token=${setupToken}`;
+      const { Resend } = require('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      try {
+        await resend.emails.send({
+          from: `Cloud Computer <${process.env.EMAIL_FROM || 'noreply@cloudcode.space'}>`,
+          to: email,
+          subject: 'Welcome to Cloud Computer - Set Up Your Password',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>Welcome to Cloud Computer!</h2>
+              <p>Hi ${name},</p>
+              <p>Your account has been created with the <strong>${planKey}</strong> plan. Your cloud server is being provisioned now.</p>
+              <p>Click the button below to set your password and get started:</p>
+              <a href="${setupUrl}" style="display: inline-block; background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0; font-weight: bold;">Set Your Password</a>
+              <p style="color: #666; font-size: 12px;">This link expires in 72 hours. If it expires, you can use the "Forgot Password" option on the login page.</p>
+              <p style="color: #666; font-size: 12px;">Cloud Computer - Your cloud desktop platform</p>
+            </div>
+          `
+        });
+        console.log(`[Admin] Password setup email sent to ${email}`);
+      } catch (emailErr) {
+        console.error(`[Admin] Failed to send setup email:`, emailErr.message);
+      }
+    }
+
     console.log(`[Admin] Created user ${email} with ${planKey} plan, VM ${newVmid} queued`);
 
     res.status(201).json({
@@ -206,6 +243,44 @@ router.get('/users', async (req, res, next) => {
     ]);
 
     res.json({ users, total, page: parseInt(page), pages: Math.ceil(total / limit) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/users/:id/send-password-reset', auditLog('admin.user.password_reset'), async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 72 * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: resetToken, passwordResetExpires: resetExpires }
+    });
+
+    const resetUrl = `https://cloudcode.space/reset-password?token=${resetToken}`;
+    const { Resend } = require('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: `Cloud Computer <${process.env.EMAIL_FROM || 'noreply@cloudcode.space'}>`,
+      to: user.email,
+      subject: 'Reset Your Password - Cloud Computer',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>Hi ${user.name},</p>
+          <p>A password reset was requested for your Cloud Computer account.</p>
+          <a href="${resetUrl}" style="display: inline-block; background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0; font-weight: bold;">Reset Password</a>
+          <p style="color: #666; font-size: 12px;">This link expires in 72 hours.</p>
+        </div>
+      `
+    });
+
+    console.log(`[Admin] Password reset email sent to ${user.email}`);
+    res.json({ success: true, message: `Password reset email sent to ${user.email}` });
   } catch (err) {
     next(err);
   }
