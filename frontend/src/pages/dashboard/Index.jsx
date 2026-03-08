@@ -208,10 +208,16 @@ function AiApiKeyCard({ api }) {
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Key className="w-4 h-4 text-purple-500" />
         Free AI Models
+        <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">BETA</span>
       </h2>
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+          <p className="text-xs text-amber-700">
+            <span className="font-semibold">Beta Service:</span> AI models are provided as a free bonus and are not guaranteed with your plan. You may experience performance issues during peak usage. For production workloads, we recommend using your own API keys (OpenAI, Anthropic, etc.).
+          </p>
+        </div>
         <p className="text-sm text-gray-500 mb-4">
-          4 AI models included free with your plan. Use from your VM terminal, in your code, or via API. OpenAI-compatible — works with any OpenAI SDK.
+          4 AI models included free. Use from your VM terminal, in your code, or via API. OpenAI-compatible — works with any OpenAI SDK.
         </p>
 
         {/* Quick Start - Terminal */}

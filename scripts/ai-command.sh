@@ -39,7 +39,7 @@ if [ "$1" = "chat" ]; then
 fi
 
 if [ -z "$1" ]; then
-    echo "CloudCode AI - Free AI on your cloud computer"
+    echo "CloudCode AI - Free AI on your cloud computer (BETA)"
     echo ""
     echo "Usage:"
     echo "  ai \"What is Docker?\"     Quick question"
@@ -49,8 +49,9 @@ if [ -z "$1" ]; then
     echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
     echo "Change model: export AI_MODEL=mistral"
     echo ""
-    echo "API Endpoint: http://ai.internal:11434"
-    echo "  curl http://ai.internal:11434/api/generate -d '{\"model\":\"mistral\",\"prompt\":\"Hello\"}'"
+    echo "Note: This is a beta service and not guaranteed with your plan."
+    echo "You may experience performance issues. For production use,"
+    echo "we recommend using your own API keys (OpenAI, Anthropic, etc.)."
     exit 0
 fi
 
