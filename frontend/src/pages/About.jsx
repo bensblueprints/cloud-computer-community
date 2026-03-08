@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
 import { Cloud, ArrowRight, Heart, Users, Zap, Server, Monitor, Terminal, Gift, CheckCircle } from "lucide-react";
 import { BlogNav, BlogFooter } from "./blog/BlogHeader";
+import SEO from '../components/SEO';
 
 export default function About() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="About CloudCode — Our Story"
+        description="CloudCode started because everyone deserves access to powerful dev tools and CRM software. Get a full cloud desktop, free Go High Level CRM, and 500+ AI skills for $17/mo."
+        path="/about"
+      />
       <BlogNav />
 
       {/* Hero */}

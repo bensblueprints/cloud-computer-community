@@ -3,6 +3,7 @@ import {
   Cloud, ArrowRight, Monitor, Smartphone, Tablet, Laptop,
   Cpu, HardDrive, Zap, Globe, CheckCircle2, Gauge, Wifi, MemoryStick
 } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 const features = [
   { icon: Globe, title: 'Works in Any Browser', desc: 'Chrome, Safari, Edge, Firefox. If it runs a browser, it runs your cloud desktop.', color: 'from-cyan-400 to-blue-500' },
@@ -31,6 +32,11 @@ const specs = [
 export default function Lightweight() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Lightweight Cloud Computer — Full Desktop in Any Browser"
+        description="Turn any device into a powerful workstation. CloudCode runs a full Ubuntu desktop with up to 32GB RAM in your browser. Perfect for Chromebooks, tablets, and old laptops."
+        path="/for/power"
+      />
       {/* Nav */}
       <nav className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

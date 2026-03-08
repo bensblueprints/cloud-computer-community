@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, ChevronRight, Zap, ArrowRight } from "lucide-react";
 import skills, { categories } from "../../data/skills";
 import { BlogNav, DevEnvironmentAd, BlogFooter } from "./BlogHeader";
+import SEO from '../../components/SEO';
 
 const ITEMS_PER_PAGE = 24;
 
@@ -34,6 +35,11 @@ export default function BlogIndex() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Claude Code Skills Library — Browse 500+ AI Skills by Category"
+        description="The largest collection of AI-powered business skills for Claude Code. Browse by category, search by keyword, and find the perfect skill for marketing, sales, legal, operations, and more."
+        path="/blog/claude"
+      />
       <BlogNav />
 
       {/* Hero */}

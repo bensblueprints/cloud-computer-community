@@ -3,6 +3,7 @@ import {
   Cloud, ArrowRight, CheckCircle2, XCircle, DollarSign,
   TrendingDown, Sparkles, Calculator, Layers, Zap
 } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 const comparisons = [
   { tool: 'CRM & Sales Pipeline', example: 'HubSpot / Salesforce', theirPrice: '$50 - $300', included: true },
@@ -29,6 +30,11 @@ const stats = [
 export default function SaasSavings() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Replace $1,000+/mo in SaaS Tools — CloudCode Savings Calculator"
+        description="Stop paying for 12+ separate SaaS subscriptions. CloudCode bundles CRM, cloud hosting, AI tools, code editors, and more into one $17/mo subscription. Save over $13,000/year."
+        path="/for/save"
+      />
       {/* Nav */}
       <nav className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

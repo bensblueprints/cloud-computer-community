@@ -4,6 +4,7 @@ import {
   Laptop, Lock, Wifi, MapPin, CheckCircle2, Plane,
   Coffee, Palmtree, Building
 } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 const features = [
   { icon: Globe, title: 'Access From Any Browser', desc: 'Your full desktop lives in the cloud. Open any browser and you are right where you left off.', color: 'from-cyan-400 to-blue-500' },
@@ -42,6 +43,11 @@ const checklist = [
 export default function RemoteWork() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Remote Work Cloud Desktop — Work From Anywhere"
+        description="Access your full development environment from any browser, any device, anywhere. CloudCode gives digital nomads and remote teams a secure cloud desktop that works on any connection."
+        path="/for/remote"
+      />
       {/* Nav */}
       <nav className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

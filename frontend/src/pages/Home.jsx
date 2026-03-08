@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Monitor, Zap, Shield, Users, Server, Code, Cloud, Cpu, HardDrive, CheckCircle, CheckCircle2, Star, ArrowRight, Mail, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import SEO, { organizationSchema, softwareSchema, faqSchema } from '../components/SEO';
 
 const features = [
   { icon: Monitor, title: "Ubuntu Desktop", desc: "Full XFCE desktop accessible from your browser. No installs, no VPN required." },
@@ -88,6 +89,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Cloud Desktop with Dev Tools & Free CRM"
+        description="CloudCode gives you a full cloud desktop with Claude Code, VS Code, Cursor, Docker, and a free Go High Level CRM. Replace $1,000+/mo in SaaS tools for just $17/mo. 3-day free trial."
+        path="/"
+        jsonLd={[organizationSchema(), softwareSchema(), faqSchema(faqs)]}
+      />
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">

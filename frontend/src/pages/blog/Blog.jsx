@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Zap, Code, Terminal, Rocket, ChevronRight } from "lucide-react";
 import skills, { categories } from "../../data/skills";
 import { BlogBanner, BlogNav, DevEnvironmentAd, BlogFooter } from "./BlogHeader";
+import SEO from '../../components/SEO';
 
 const blogSections = [
   {
@@ -39,6 +40,11 @@ const topCategories = Object.entries(categories)
 export default function Blog() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Blog & Claude Code Skills Library — 500+ AI-Powered Business Tools"
+        description="Explore 500+ ready-to-use Claude Code skills for marketing, sales, SEO, email, legal, and more. Generate professional documents in seconds with AI-powered slash commands."
+        path="/blog"
+      />
       <BlogNav />
 
       {/* Hero */}

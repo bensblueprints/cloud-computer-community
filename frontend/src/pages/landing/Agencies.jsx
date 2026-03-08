@@ -4,6 +4,7 @@ import {
   MessageSquare, Calendar, Globe, Bot, Megaphone, Zap,
   Sparkles, Building2, Target, TrendingUp
 } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 const tools = [
   { icon: Users, title: 'CRM & Pipeline Management', desc: 'Track every lead, deal, and client through custom pipelines. Never lose a prospect again.', color: 'from-blue-400 to-indigo-500' },
@@ -33,6 +34,11 @@ const stats = [
 export default function Agencies() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Cloud Desktop for Agencies — Free Go High Level CRM Included"
+        description="Launch your agency with CloudCode. Get a free Go High Level CRM ($297/mo value), cloud desktop, 500+ AI skills, and everything you need to run client work for just $17/mo."
+        path="/for/agencies"
+      />
       {/* Nav */}
       <nav className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

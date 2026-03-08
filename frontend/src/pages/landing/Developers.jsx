@@ -3,6 +3,7 @@ import {
   Cloud, ArrowRight, Code, Terminal, Monitor, Laptop, GitBranch,
   Cpu, Zap, Globe, CheckCircle2, Timer, Boxes, Braces
 } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 const features = [
   { icon: Code, title: 'Cursor IDE + VS Code', desc: 'Both editors pre-installed and configured. Open your project and start coding instantly.', color: 'from-cyan-400 to-blue-500' },
@@ -28,6 +29,11 @@ const tools = [
 export default function Developers() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title="Cloud Desktop for Developers — Cursor, VS Code, Claude Code Pre-installed"
+        description="A cloud development environment with Cursor IDE, VS Code, Claude Code, Node.js, Python, Docker, and 4 AI models built in. Start coding instantly from any browser for $17/mo."
+        path="/for/developers"
+      />
       {/* Nav */}
       <nav className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

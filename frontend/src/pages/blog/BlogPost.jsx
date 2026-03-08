@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from "react-router-dom";
 import { Copy, Check, ChevronRight, Zap, ArrowRight, Download, BookOpen, Terminal, Lightbulb, Users, CheckCircle, ExternalLink } from "lucide-react";
 import skills from "../../data/skills";
 import { BlogNav, BlogFooter, DevEnvironmentAd } from "./BlogHeader";
+import SEO, { articleSchema, breadcrumbSchema } from '../../components/SEO';
 
 function EmailSignup() {
   const [email, setEmail] = useState("");
@@ -179,6 +180,22 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      <SEO
+        title={skill.title}
+        description={skill.description}
+        path={`/blog/claude/${skill.slug}`}
+        type="article"
+        article={{ author: 'Benjamin Tate', category: skill.category, tags: skill.tags }}
+        jsonLd={[
+          articleSchema({ title: skill.title, description: skill.description, slug: skill.slug, category: skill.category, tags: skill.tags }),
+          breadcrumbSchema([
+            { name: 'Blog', url: '/blog' },
+            { name: 'Skills Library', url: '/blog/claude' },
+            { name: skill.category },
+            { name: skill.title },
+          ]),
+        ]}
+      />
       <BlogNav />
 
       <main className="pt-36 pb-20">
