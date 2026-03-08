@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, X, UserCog } from 'lucide-react';
+import { Search, X, UserCog, Plus } from 'lucide-react';
 
 export default function AdminUsers() {
   const { api } = useAuth();
@@ -11,6 +11,9 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', plan: 'SOLO' });
 
   useEffect(() => {
     fetchUsers();
@@ -47,15 +50,80 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout>
+      {/* Create User Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCreate(false)} />
+          <div className="relative bg-gray-800 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Create User + Provision VM</h3>
+              <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setCreating(true);
+              try {
+                const res = await api.post('/admin/users', createForm);
+                alert(`User created! VM ${res.data.vm.vmid} provisioning...`);
+                setShowCreate(false);
+                setCreateForm({ name: '', email: '', password: '', plan: 'SOLO' });
+                fetchUsers();
+              } catch (err) {
+                alert(err.response?.data?.error || 'Failed to create user');
+              } finally {
+                setCreating(false);
+              }
+            }}>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Name</label>
+                  <input type="text" required value={createForm.name} onChange={e => setCreateForm(f => ({...f, name: e.target.value}))}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Email</label>
+                  <input type="email" required value={createForm.email} onChange={e => setCreateForm(f => ({...f, email: e.target.value}))}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Password</label>
+                  <input type="text" required value={createForm.password} onChange={e => setCreateForm(f => ({...f, password: e.target.value}))}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Plan</label>
+                  <select value={createForm.plan} onChange={e => setCreateForm(f => ({...f, plan: e.target.value}))}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm">
+                    <option value="SOLO">Solo ($17/mo - 1 user, 2 vCPU, 8GB)</option>
+                    <option value="TEAM">Team ($79/mo - 5 users, 4 vCPU, 16GB)</option>
+                    <option value="ARMY">Army ($299/mo - 25 users, 8 vCPU, 32GB)</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" disabled={creating}
+                className="w-full mt-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50">
+                {creating ? 'Creating...' : 'Create User & Provision VM'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Users</h2>
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
-          <input
-            type="text" placeholder="Search users..." value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-purple-500 w-64"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
+            <input
+              type="text" placeholder="Search users..." value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-purple-500 w-64"
+            />
+          </div>
+          <button onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-purple-700">
+            <Plus className="w-4 h-4" /> Create User
+          </button>
         </div>
       </div>
 
