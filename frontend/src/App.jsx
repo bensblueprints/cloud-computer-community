@@ -40,6 +40,7 @@ const LandingAgencies = lazy(() => import('./pages/landing/Agencies'));
 const LandingRemoteWork = lazy(() => import('./pages/landing/RemoteWork'));
 const ReferralRedirect = lazy(() => import('./pages/ReferralRedirect'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+import MusicPlayer from './components/MusicPlayer';
 
 function Loading() {
   return (
@@ -240,6 +241,9 @@ function DashboardLayout({ children }) {
               </nav>
             </div>
             <div className="flex items-center gap-2">
+              <div className="relative">
+                <MusicPlayer dark={isMatrix} />
+              </div>
               <ThemePickerDropdown matrixTheme={matrixTheme} setMatrixTheme={setMatrixTheme} />
               <span className={`hidden sm:block text-sm ${headerText}`}>{user?.name}</span>
               <button
