@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Monitor, ExternalLink, Play, Square, RotateCcw, RefreshCw, Zap, Server, Users, ArrowUpCircle, ChevronRight, AlertTriangle, Terminal } from 'lucide-react';
 
 function ProvisioningCard({ vm }) {
   const [elapsed, setElapsed] = useState(0);
@@ -267,7 +267,7 @@ export default function DashboardIndex() {
       </div>
 
       {/* Quick Actions Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Server Console */}
         <Link
           to="/dashboard/server"
@@ -282,7 +282,26 @@ export default function DashboardIndex() {
           </div>
           <div>
             <p className="font-semibold text-gray-900 text-sm">Server Console</p>
-            <p className="text-xs text-gray-500">noVNC Desktop Access</p>
+            <p className="text-xs text-gray-500">noVNC Desktop</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
+        </Link>
+
+        {/* SSH Terminal */}
+        <Link
+          to="/dashboard/terminal"
+          className={`flex items-center gap-3 p-4 rounded-xl border transition ${
+            activeVMs.some(vm => vm.status === 'RUNNING')
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 hover:border-green-300'
+              : 'bg-gray-50 border-gray-200 opacity-60 pointer-events-none'
+          }`}
+        >
+          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <Terminal className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">SSH Terminal</p>
+            <p className="text-xs text-gray-500">Command Line</p>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
         </Link>

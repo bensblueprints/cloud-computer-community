@@ -15,6 +15,7 @@ const Team = lazy(() => import('./pages/dashboard/Team'));
 const Billing = lazy(() => import('./pages/dashboard/Billing'));
 const Profile = lazy(() => import('./pages/dashboard/Profile'));
 const Server = lazy(() => import('./pages/dashboard/Server'));
+const DashboardTerminal = lazy(() => import('./pages/dashboard/Terminal'));
 const Console = lazy(() => import('./pages/Console'));
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const AdminOverview = lazy(() => import('./pages/admin/Overview'));
@@ -72,6 +73,7 @@ function DashboardLayout({ children }) {
   const navItems = [
     { path: '/dashboard', label: 'My Servers' },
     { path: '/dashboard/server', label: 'Server' },
+    { path: '/dashboard/terminal', label: 'Terminal' },
     // Only show New Environment for SOLO plans, or TEAM/ARMY owners (but they share one VM)
     ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
     // Only show Team for TEAM/ARMY plans
@@ -187,6 +189,7 @@ export default function App() {
           <Route path="/dashboard/team" element={<ProtectedRoute><DashboardLayout><Team /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><Billing /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/server" element={<ProtectedRoute><DashboardLayout><Server /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/terminal" element={<ProtectedRoute><DashboardLayout><DashboardTerminal /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/console/:vmid" element={<ProtectedRoute><Console /></ProtectedRoute>} />
