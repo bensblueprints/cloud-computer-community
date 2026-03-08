@@ -162,6 +162,7 @@ export default function DashboardIndex() {
   const [vms, setVms] = useState([]);
   const [org, setOrg] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activatingCRM, setActivatingCRM] = useState(false);
   const pollIntervalRef = useRef(null);
 
   async function fetchVMs() {
@@ -200,6 +201,18 @@ export default function DashboardIndex() {
     }
     return () => { if (pollIntervalRef.current) clearInterval(pollIntervalRef.current); };
   }, [vms.map(vm => vm.status).join(',')]);
+
+  async function handleActivateCRM() {
+    setActivatingCRM(true);
+    try {
+      await api.post('/org/activate-crm');
+      await fetchOrg();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to activate CRM');
+    } finally {
+      setActivatingCRM(false);
+    }
+  }
 
   async function handleAction(vmId, action) {
     try {
@@ -283,6 +296,22 @@ export default function DashboardIndex() {
             </div>
             <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
           </a>
+        ) : hasSubscription ? (
+          <button
+            onClick={handleActivateCRM}
+            disabled={activatingCRM}
+            className="flex items-center gap-3 p-4 rounded-xl border bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 hover:border-indigo-300 transition disabled:opacity-50 text-left"
+          >
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <Zap className={`w-5 h-5 text-indigo-600 ${activatingCRM ? 'animate-pulse' : ''}`} />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">
+                {activatingCRM ? 'Activating...' : 'Activate CRM'}
+              </p>
+              <p className="text-xs text-gray-500">Free Go High Level Account</p>
+            </div>
+          </button>
         ) : (
           <div className="flex items-center gap-3 p-4 rounded-xl border bg-gray-50 border-gray-200 opacity-60">
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -290,7 +319,7 @@ export default function DashboardIndex() {
             </div>
             <div>
               <p className="font-semibold text-gray-500 text-sm">Go High Level</p>
-              <p className="text-xs text-gray-400">Setting up...</p>
+              <p className="text-xs text-gray-400">Subscribe to activate</p>
             </div>
           </div>
         )}

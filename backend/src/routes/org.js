@@ -29,6 +29,53 @@ router.get('/', auth, async (req, res, next) => {
   }
 });
 
+router.post('/activate-crm', auth, async (req, res, next) => {
+  try {
+    const org = await prisma.organization.findFirst({
+      where: { id: req.user.orgId },
+      include: { subscription: true }
+    });
+
+    if (!org) return res.status(404).json({ error: 'Organization not found' });
+
+    if (org.ghlLocationId) {
+      return res.status(400).json({ error: 'CRM already activated' });
+    }
+
+    const hasSubscription = org.subscription && ['active', 'trialing'].includes(org.subscription.status);
+    if (!hasSubscription) {
+      return res.status(403).json({ error: 'Active subscription required to activate CRM' });
+    }
+
+    const ghlService = require('../services/GHLService');
+    if (!ghlService.isConfigured()) {
+      return res.status(500).json({ error: 'CRM service not configured. Contact support.' });
+    }
+
+    const ghlResult = await ghlService.createSubAccount({
+      name: org.name,
+      email: req.user.email,
+      timezone: 'America/New_York'
+    });
+
+    if (!ghlResult.success) {
+      console.error('[CRM Activation] Failed:', ghlResult.error);
+      return res.status(500).json({ error: 'Failed to create CRM account. Contact support.' });
+    }
+
+    await prisma.organization.update({
+      where: { id: org.id },
+      data: { ghlLocationId: ghlResult.locationId }
+    });
+
+    console.log(`[CRM Activation] Created for org ${org.id}: ${ghlResult.locationId}`);
+    res.json({ success: true, ghlLocationId: ghlResult.locationId });
+  } catch (err) {
+    console.error('[CRM Activation] Error:', err);
+    next(err);
+  }
+});
+
 router.get('/members', auth, async (req, res, next) => {
   try {
     const members = await prisma.user.findMany({
