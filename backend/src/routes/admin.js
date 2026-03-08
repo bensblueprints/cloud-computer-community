@@ -197,7 +197,7 @@ router.get('/users', async (req, res, next) => {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
-        include: { org: true, vms: { where: { status: { not: 'DELETED' } } } },
+        include: { org: { include: { sharedVMs: { where: { status: { not: 'DELETED' } } } } }, vms: { where: { status: { not: 'DELETED' } } } },
         skip: (page - 1) * limit,
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' }
@@ -215,7 +215,7 @@ router.get('/users/:id', async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
-      include: { org: true, vms: true, auditLogs: { take: 10, orderBy: { createdAt: 'desc' } } }
+      include: { org: { include: { sharedVMs: { where: { status: { not: 'DELETED' } } } } }, vms: { where: { status: { not: 'DELETED' } } }, auditLogs: { take: 10, orderBy: { createdAt: 'desc' } } }
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ user });
@@ -226,11 +226,18 @@ router.get('/users/:id', async (req, res, next) => {
 
 router.patch('/users/:id', auditLog('admin.user.update'), async (req, res, next) => {
   try {
-    const { suspended, siteRole, resetPassword } = req.body;
+    const { suspended, siteRole, resetPassword, email } = req.body;
     const data = {};
     if (suspended !== undefined) data.suspended = suspended;
     if (siteRole) data.siteRole = siteRole;
     if (resetPassword) data.passwordHash = await bcrypt.hash(resetPassword, 12);
+    if (email) {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing && existing.id !== req.params.id) {
+        return res.status(409).json({ error: 'That email is already in use' });
+      }
+      data.email = email;
+    }
 
     const user = await prisma.user.update({ where: { id: req.params.id }, data });
     res.json({ user });

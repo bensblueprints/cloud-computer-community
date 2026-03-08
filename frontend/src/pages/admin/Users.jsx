@@ -14,6 +14,8 @@ export default function AdminUsers() {
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', plan: 'SOLO' });
+  const [editEmail, setEditEmail] = useState('');
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -28,6 +30,7 @@ export default function AdminUsers() {
   async function openDrawer(userId) {
     const res = await api.get(`/admin/users/${userId}`);
     setSelectedUser(res.data.user);
+    setEditEmail(res.data.user.email);
     setDrawerOpen(true);
   }
 
@@ -145,7 +148,7 @@ export default function AdminUsers() {
                 <td className="px-4 py-3 text-sm font-medium">{u.name}</td>
                 <td className="px-4 py-3 text-sm text-gray-400">{u.email}</td>
                 <td className="px-4 py-3 text-sm">{u.org?.plan || '—'}</td>
-                <td className="px-4 py-3 text-sm">{u.vms?.length || 0}</td>
+                <td className="px-4 py-3 text-sm">{(u.vms?.length || 0) + (u.org?.sharedVMs?.length || 0)}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${u.suspended ? 'bg-red-900/50 text-red-400' : 'bg-green-900/50 text-green-400'}`}>
                     {u.suspended ? 'Suspended' : 'Active'}
@@ -182,6 +185,38 @@ export default function AdminUsers() {
               </div>
             </div>
 
+            <div className="mb-4">
+              <label className="block text-xs text-gray-400 mb-1">Email</label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={e => setEditEmail(e.target.value)}
+                  className="flex-1 px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                {editEmail !== selectedUser.email && (
+                  <button
+                    onClick={async () => {
+                      setEmailSaving(true);
+                      try {
+                        await api.patch(`/admin/users/${selectedUser.id}`, { email: editEmail });
+                        await openDrawer(selectedUser.id);
+                        fetchUsers();
+                      } catch (err) {
+                        alert(err.response?.data?.error || 'Failed to update email');
+                      } finally {
+                        setEmailSaving(false);
+                      }
+                    }}
+                    disabled={emailSaving}
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    {emailSaving ? '...' : 'Save'}
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4 text-sm">
               <div><span className="text-gray-400">Role:</span> <span className="ml-2">{selectedUser.siteRole}</span></div>
               <div><span className="text-gray-400">Org:</span> <span className="ml-2">{selectedUser.org?.name || '—'}</span></div>
@@ -189,6 +224,11 @@ export default function AdminUsers() {
                 {selectedUser.vms?.map(vm => (
                   <div key={vm.id} className="ml-4 mt-1 text-xs text-gray-400">
                     VM {vm.vmid} — {vm.status} — {vm.subdomain}
+                  </div>
+                ))}
+                {selectedUser.org?.sharedVMs?.map(vm => (
+                  <div key={vm.id} className="ml-4 mt-1 text-xs text-gray-400">
+                    VM {vm.vmid} — {vm.status} — {vm.subdomain} <span className="text-purple-400">(shared)</span>
                   </div>
                 ))}
               </div>
