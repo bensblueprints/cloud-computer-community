@@ -62,11 +62,100 @@ function AdminRoute({ children }) {
   return <div className="dark">{children}</div>;
 }
 
+const MatrixBackground = lazy(() => import('./components/MatrixBackground'));
+
+const THEME_OPTIONS = [
+  { id: 'off', label: 'Off', desc: 'Clean default look', preview: 'bg-gray-100' },
+  { id: 'classic', label: 'Classic Matrix', desc: 'Green digital rain', preview: 'bg-green-900' },
+  { id: 'neon', label: 'Neon Matrix', desc: 'Pink & purple rain', preview: 'bg-purple-900' },
+];
+
+function ThemePickerDropdown({ matrixTheme, setMatrixTheme }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`p-2 rounded-lg transition ${
+          matrixTheme !== 'off'
+            ? 'text-purple-500 hover:text-purple-600 hover:bg-purple-50'
+            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+        }`}
+        title="Background theme"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <p className="text-sm font-semibold text-gray-900">Background Theme</p>
+            <p className="text-xs text-gray-500">Choose your vibe</p>
+          </div>
+          <div className="p-2 space-y-1">
+            {THEME_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => { setMatrixTheme(opt.id); setOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
+                  matrixTheme === opt.id
+                    ? 'bg-purple-50 border border-purple-200'
+                    : 'hover:bg-gray-50 border border-transparent'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex-shrink-0 ${opt.preview} ${
+                  opt.id === 'classic' ? 'shadow-[inset_0_0_12px_rgba(0,255,65,0.4)]' :
+                  opt.id === 'neon' ? 'shadow-[inset_0_0_12px_rgba(200,0,255,0.4)]' : ''
+                }`}>
+                  {opt.id !== 'off' && (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className={`text-xs font-mono ${opt.id === 'classic' ? 'text-green-400' : 'text-pink-400'}`}>
+                        {'</>'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{opt.label}</p>
+                  <p className="text-xs text-gray-500">{opt.desc}</p>
+                </div>
+                {matrixTheme === opt.id && (
+                  <svg className="w-4 h-4 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DashboardLayout({ children }) {
   const { user, logout, api } = useAuth();
   const location = useLocation();
   const [org, setOrg] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [matrixTheme, setMatrixTheme] = React.useState(() => {
+    try { return localStorage.getItem('cc-matrix-theme') || 'off'; } catch { return 'off'; }
+  });
+
+  React.useEffect(() => {
+    try { localStorage.setItem('cc-matrix-theme', matrixTheme); } catch {}
+  }, [matrixTheme]);
 
   React.useEffect(() => {
     api.get('/org').then(res => {
@@ -84,13 +173,19 @@ function DashboardLayout({ children }) {
   const isSharedPlan = plan === 'TEAM' || plan === 'ARMY';
   const isOwner = user?.orgRole === 'OWNER';
 
+  const isMatrix = matrixTheme !== 'off';
+  const bgClass = isMatrix ? (matrixTheme === 'neon' ? 'bg-[#0a0010]' : 'bg-[#0a0a0a]') : 'bg-gray-50';
+  const headerBg = isMatrix ? (matrixTheme === 'neon' ? 'bg-[#12001a]/90 border-purple-900/50' : 'bg-[#0d0d0d]/90 border-green-900/50') : 'bg-white border-gray-200';
+  const headerText = isMatrix ? 'text-gray-200' : 'text-gray-600';
+  const headerTitle = isMatrix ? (matrixTheme === 'neon' ? 'text-purple-400' : 'text-green-400') : 'text-brand-700';
+  const activeNavBg = isMatrix ? (matrixTheme === 'neon' ? 'bg-purple-900/40 text-purple-300' : 'bg-green-900/40 text-green-300') : 'bg-brand-50 text-brand-700';
+  const navHover = isMatrix ? 'hover:text-gray-200 hover:bg-white/5' : 'hover:text-gray-900 hover:bg-gray-50';
+
   const navItems = [
     { path: '/dashboard', label: 'My Servers' },
     { path: '/dashboard/server', label: 'Server' },
     { path: '/dashboard/terminal', label: 'Terminal' },
-    // Only show New Environment for SOLO plans, or TEAM/ARMY owners (but they share one VM)
     ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
-    // Only show Team for TEAM/ARMY plans
     ...(isSharedPlan ? [{ path: '/dashboard/team', label: 'Team' }] : []),
     { path: '/dashboard/crm', label: 'CRM' },
     { path: '/dashboard/billing', label: 'Billing' },
@@ -99,12 +194,17 @@ function DashboardLayout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
+    <div className={`min-h-screen ${bgClass} relative`}>
+      {isMatrix && (
+        <Suspense fallback={null}>
+          <MatrixBackground theme={matrixTheme} />
+        </Suspense>
+      )}
+      <header className={`${headerBg} border-b relative z-10 ${isMatrix ? 'backdrop-blur-md' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-8">
-              <h1 className="text-xl font-bold text-brand-700">Cloud Computer</h1>
+              <h1 className={`text-xl font-bold ${headerTitle}`}>Cloud Computer</h1>
               <nav className="hidden md:flex gap-1">
                 {navItems.map(item => (
                   <a
@@ -112,8 +212,8 @@ function DashboardLayout({ children }) {
                     href={item.path}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       location.pathname === item.path
-                        ? 'bg-brand-50 text-brand-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? activeNavBg
+                        : `${headerText} ${navHover}`
                     }`}
                   >
                     {item.label}
@@ -121,18 +221,19 @@ function DashboardLayout({ children }) {
                 ))}
               </nav>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:block text-sm text-gray-600">{user?.name}</span>
+            <div className="flex items-center gap-2">
+              <ThemePickerDropdown matrixTheme={matrixTheme} setMatrixTheme={setMatrixTheme} />
+              <span className={`hidden sm:block text-sm ${headerText}`}>{user?.name}</span>
               <button
                 onClick={logout}
-                className="hidden md:block text-sm text-gray-500 hover:text-gray-700"
+                className={`hidden md:block text-sm ${isMatrix ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Logout
               </button>
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                className={`md:hidden p-2 rounded-md ${isMatrix ? 'text-gray-400 hover:text-gray-200 hover:bg-white/10' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
@@ -150,7 +251,7 @@ function DashboardLayout({ children }) {
         </div>
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className={`md:hidden border-t ${isMatrix ? 'border-white/10 bg-black/80 backdrop-blur-md' : 'border-gray-200 bg-white'}`}>
             <nav className="px-4 py-3 space-y-1">
               {navItems.map(item => (
                 <a
@@ -158,17 +259,17 @@ function DashboardLayout({ children }) {
                   href={item.path}
                   className={`block px-3 py-2 rounded-md text-base font-medium ${
                     location.pathname === item.path
-                      ? 'bg-brand-50 text-brand-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? activeNavBg
+                      : `${headerText} ${navHover}`
                   }`}
                 >
                   {item.label}
                 </a>
               ))}
             </nav>
-            <div className="border-t border-gray-200 px-4 py-3">
+            <div className={`border-t ${isMatrix ? 'border-white/10' : 'border-gray-200'} px-4 py-3`}>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{user?.name}</span>
+                <span className={`text-sm ${headerText}`}>{user?.name}</span>
                 <button
                   onClick={logout}
                   className="text-sm text-red-500 hover:text-red-700 font-medium"
@@ -180,7 +281,7 @@ function DashboardLayout({ children }) {
           </div>
         )}
       </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {children}
       </main>
     </div>
