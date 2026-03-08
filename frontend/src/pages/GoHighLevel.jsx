@@ -80,10 +80,10 @@ export default function GoHighLevel() {
       </div>
 
       {/* Value Comparison */}
-      <div className="max-w-3xl mx-auto px-4 pb-16">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-          <h2 className="text-xl font-bold text-center mb-6">What You Would Pay Separately</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+      <div className="max-w-4xl mx-auto px-4 pb-16">
+        <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl p-8 sm:p-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">What You Would Pay Separately</h2>
+          <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {[
               { tool: 'CRM (HubSpot/Salesforce)', price: '$50-300/mo' },
               { tool: 'Email Marketing (Mailchimp)', price: '$20-100/mo' },
@@ -94,18 +94,20 @@ export default function GoHighLevel() {
               { tool: 'Website Builder', price: '$16-40/mo' },
               { tool: 'Automation (Zapier)', price: '$20-100/mo' },
             ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-sm text-slate-300">{item.tool}</span>
+              <div key={i} className="flex items-center justify-between py-4 px-4 border-b border-slate-800 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span className="text-base font-medium text-slate-200">{item.tool}</span>
                 </div>
-                <span className="text-sm text-slate-500 line-through">{item.price}</span>
+                <span className="text-lg font-semibold text-red-400 line-through">{item.price}</span>
               </div>
             ))}
           </div>
-          <div className="text-center mt-6 pt-4 border-t border-slate-800">
-            <p className="text-slate-500 text-sm">Total if purchased separately: <span className="line-through">$315-1,157/mo</span></p>
-            <p className="text-2xl font-bold text-emerald-400 mt-1">Included free with CloudCode</p>
+          <div className="text-center mt-10 pt-8 border-t-2 border-slate-700">
+            <p className="text-slate-400 text-lg">Total if purchased separately:</p>
+            <p className="text-3xl sm:text-5xl font-bold text-red-400 line-through mt-2">$315 - $1,157/mo</p>
+            <p className="text-3xl sm:text-5xl font-bold text-emerald-400 mt-4">Included FREE with CloudCode</p>
+            <p className="text-slate-500 text-base mt-3">Starting at just $17/mo</p>
           </div>
         </div>
       </div>

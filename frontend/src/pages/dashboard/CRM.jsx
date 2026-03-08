@@ -168,9 +168,9 @@ export default function CRM() {
       </div>
 
       {/* Value Comparison */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">What You Would Pay Separately</h2>
-        <div className="grid sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+      <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 border-gray-200 p-8 sm:p-10 mb-10">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">What You Would Pay Separately</h2>
+        <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {[
             { tool: 'CRM (HubSpot/Salesforce)', price: '$50-300/mo' },
             { tool: 'Email Marketing (Mailchimp)', price: '$20-100/mo' },
@@ -181,18 +181,20 @@ export default function CRM() {
             { tool: 'Website Builder (Wix/Squarespace)', price: '$16-40/mo' },
             { tool: 'Automation (Zapier)', price: '$20-100/mo' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <span className="text-sm text-gray-700">{item.tool}</span>
+            <div key={i} className="flex items-center justify-between py-4 px-4 border-b border-gray-100 bg-white rounded-lg">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <span className="text-base font-medium text-gray-800">{item.tool}</span>
               </div>
-              <span className="text-sm text-gray-400 line-through">{item.price}</span>
+              <span className="text-lg font-semibold text-red-400 line-through">{item.price}</span>
             </div>
           ))}
         </div>
-        <div className="text-center mt-6 pt-4 border-t border-gray-100">
-          <p className="text-gray-400 text-sm">Total if purchased separately: <span className="line-through">$315-1,157/mo</span></p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">Included free with your CloudCode plan</p>
+        <div className="text-center mt-8 pt-6 border-t-2 border-gray-200">
+          <p className="text-gray-500 text-lg">Total if purchased separately:</p>
+          <p className="text-3xl sm:text-4xl font-bold text-red-400 line-through mt-1">$315 - $1,157/mo</p>
+          <p className="text-3xl sm:text-4xl font-bold text-emerald-600 mt-3">Included FREE with CloudCode</p>
+          <p className="text-gray-400 text-sm mt-2">Starting at just $17/mo</p>
         </div>
       </div>
 
