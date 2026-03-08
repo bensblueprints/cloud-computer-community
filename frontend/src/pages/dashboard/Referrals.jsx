@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Copy, Check, DollarSign, Users, TrendingUp, Gift, ExternalLink, ArrowRight } from 'lucide-react';
+import { Copy, Check, DollarSign, Users, TrendingUp, Gift, MousePointerClick, ArrowRight, ChevronDown, Globe } from 'lucide-react';
 
 export default function Referrals() {
   const { api } = useAuth();
   const [data, setData] = useState(null);
   const [codeData, setCodeData] = useState(null);
+  const [landingPages, setLandingPages] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [selectedPage, setSelectedPage] = useState(() => {
+    try { return localStorage.getItem('cc-ref-dest') || 'register'; } catch { return 'register'; }
+  });
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [requesting, setRequesting] = useState(false);
@@ -14,16 +19,47 @@ export default function Referrals() {
   useEffect(() => {
     Promise.all([
       api.get('/referrals/my-code').then(r => r.data),
-      api.get('/referrals/stats').then(r => r.data)
-    ]).then(([code, stats]) => {
+      api.get('/referrals/stats').then(r => r.data),
+      api.get('/referrals/landing-pages').then(r => r.data),
+      import('../../data/skills.js').then(m => m.default || m.skills || []).catch(() => [])
+    ]).then(([code, stats, pages, skillsData]) => {
       setCodeData(code);
       setData(stats);
+      setLandingPages(pages.pages || []);
+      setSkills(Array.isArray(skillsData) ? skillsData : []);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
+  // Build the share URL based on selected landing page
+  const getShareUrl = () => {
+    if (!codeData?.code) return '';
+    const code = codeData.code;
+    const base = 'https://cloudcode.space';
+
+    // Find the selected page path
+    const page = landingPages.find(p => p.id === selectedPage);
+    const skill = skills.find(s => s.slug === selectedPage);
+
+    let dest = '/register';
+    if (page) dest = page.path;
+    else if (skill) dest = `/blog/claude/${skill.slug}`;
+
+    // Use the redirect route for tracking
+    if (dest === '/register') {
+      return `${base}/r/${code}`;
+    }
+    return `${base}/r/${code}?to=${encodeURIComponent(dest)}`;
+  };
+
+  const shareUrl = getShareUrl();
+
+  useEffect(() => {
+    try { localStorage.setItem('cc-ref-dest', selectedPage); } catch {}
+  }, [selectedPage]);
+
   const copyLink = () => {
-    if (codeData?.shareUrl) {
-      navigator.clipboard.writeText(codeData.shareUrl);
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -35,7 +71,6 @@ export default function Referrals() {
     try {
       const res = await api.post('/referrals/request-payout');
       setPayoutMsg(`Payout request for $${res.data.payout.amount} submitted!`);
-      // Refresh stats
       const stats = await api.get('/referrals/stats');
       setData(stats.data);
     } catch (err) {
@@ -52,6 +87,15 @@ export default function Referrals() {
       </div>
     );
   }
+
+  // Build dropdown options
+  const allOptions = [
+    { group: 'Pages', items: landingPages },
+    ...(skills.length > 0 ? [{
+      group: `Skills Pages (${skills.length})`,
+      items: skills.map(s => ({ id: s.slug, label: s.title, path: `/blog/claude/${s.slug}` }))
+    }] : [])
+  ];
 
   return (
     <div>
@@ -71,11 +115,33 @@ export default function Referrals() {
             <p className="text-xs text-gray-500">Share this link to earn 20% of every payment your referrals make</p>
           </div>
         </div>
+
+        {/* Landing Page Selector */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <Globe className="w-3.5 h-3.5 inline mr-1" />
+            Send visitors to:
+          </label>
+          <select
+            value={selectedPage}
+            onChange={e => setSelectedPage(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            {allOptions.map(group => (
+              <optgroup key={group.group} label={group.group}>
+                {group.items.map(item => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
         <div className="flex gap-2">
           <input
             type="text"
             readOnly
-            value={codeData?.shareUrl || ''}
+            value={shareUrl}
             className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 font-mono"
           />
           <button
@@ -90,8 +156,9 @@ export default function Referrals() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
+          { label: 'Link Clicks', value: data?.totalClicks || 0, icon: MousePointerClick, color: 'text-purple-600 bg-purple-100' },
           { label: 'Total Referrals', value: data?.totalReferrals || 0, icon: Users, color: 'text-blue-600 bg-blue-100' },
           { label: 'Active', value: data?.activeReferrals || 0, icon: TrendingUp, color: 'text-emerald-600 bg-emerald-100' },
           { label: 'Total Earned', value: `$${(data?.totalEarned || 0).toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-100' },
@@ -106,6 +173,23 @@ export default function Referrals() {
           </div>
         ))}
       </div>
+
+      {/* Conversion Rate */}
+      {(data?.totalClicks > 0 || data?.totalReferrals > 0) && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100 p-4 mb-6 flex items-center gap-4">
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Conversion Rate</p>
+            <p className="text-xs text-gray-600">
+              {data?.totalClicks > 0
+                ? `${((data.totalReferrals / data.totalClicks) * 100).toFixed(1)}% of link clicks convert to signups`
+                : 'Share your link to start tracking conversions'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Payout Section */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
@@ -187,11 +271,12 @@ export default function Referrals() {
       {/* How It Works */}
       <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6">
         <h3 className="font-semibold text-gray-900 mb-4">How It Works</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-4 gap-4">
           {[
-            { step: '1', title: 'Share Your Link', desc: 'Send your unique referral link to friends, clients, or your audience.' },
-            { step: '2', title: 'They Sign Up & Pay', desc: 'When they subscribe to any plan, you earn 20% of every payment they make.' },
-            { step: '3', title: 'Get Paid', desc: 'Once you hit $100, request a payout. We pay via bank transfer.' }
+            { step: '1', title: 'Pick a Landing Page', desc: 'Select which page to send your audience to from the dropdown above.' },
+            { step: '2', title: 'Share Your Link', desc: 'Copy and share your unique referral link to friends, clients, or your audience.' },
+            { step: '3', title: 'They Sign Up & Pay', desc: 'When they subscribe to any plan, you earn 20% of every payment they make.' },
+            { step: '4', title: 'Get Paid', desc: 'Once you hit $100, request a payout. We pay via bank transfer.' }
           ].map((item, i) => (
             <div key={i} className="text-center">
               <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2">{item.step}</div>
@@ -201,7 +286,7 @@ export default function Referrals() {
           ))}
         </div>
         <div className="mt-4 text-xs text-gray-400 text-center">
-          Commission: 20% of all payments &middot; Valid for 365 days per referral &middot; Minimum payout: $100
+          Commission: 20% of all payments &middot; Valid for 365 days per referral &middot; Minimum payout: $100 &middot; Click tracking included
         </div>
       </div>
     </div>

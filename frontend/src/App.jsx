@@ -38,6 +38,7 @@ const LandingSaasSavings = lazy(() => import('./pages/landing/SaasSavings'));
 const LandingLightweight = lazy(() => import('./pages/landing/Lightweight'));
 const LandingAgencies = lazy(() => import('./pages/landing/Agencies'));
 const LandingRemoteWork = lazy(() => import('./pages/landing/RemoteWork'));
+const ReferralRedirect = lazy(() => import('./pages/ReferralRedirect'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Loading() {
@@ -302,9 +303,24 @@ function DashboardLayout({ children }) {
   );
 }
 
+function RefCapture() {
+  const [searchParams] = React.useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return [params];
+  }, []);
+  React.useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (ref) {
+      try { localStorage.setItem('cc-ref', ref); } catch {}
+    }
+  }, []);
+  return null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
+      <RefCapture />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -350,6 +366,7 @@ export default function App() {
           <Route path="/admin/billing" element={<AdminRoute><AdminBilling /></AdminRoute>} />
           <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
 
+          <Route path="/r/:code" element={<ReferralRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

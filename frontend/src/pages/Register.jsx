@@ -14,7 +14,7 @@ export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get('plan');
-  const ref = searchParams.get('ref');
+  const ref = searchParams.get('ref') || (() => { try { return localStorage.getItem('cc-ref'); } catch { return null; } })();
 
   // Validate referral code on mount
   useEffect(() => {

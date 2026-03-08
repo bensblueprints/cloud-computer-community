@@ -69,6 +69,11 @@ router.get("/stats", auth, async (req, res, next) => {
       orderBy: { createdAt: "desc" }
     });
 
+    // Count referral link clicks from AuditLog
+    const totalClicks = await prisma.auditLog.count({
+      where: { userId: req.userId, action: "REFERRAL_CLICK" }
+    });
+
     const totalEarned = referrals.reduce((sum, r) => sum + r.totalEarned, 0);
     const totalPaid = payouts.filter(p => p.status === "PAID").reduce((sum, p) => sum + p.amount, 0);
     const pendingBalance = totalEarned - totalPaid;
@@ -76,6 +81,7 @@ router.get("/stats", auth, async (req, res, next) => {
     const pendingReferrals = referrals.filter(r => r.status === "PENDING").length;
 
     res.json({
+      totalClicks,
       totalReferrals: referrals.length,
       activeReferrals,
       pendingReferrals,
@@ -167,6 +173,57 @@ router.post("/request-payout", auth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// Track a referral link click (public, no auth needed)
+router.post("/track/:code", async (req, res, next) => {
+  try {
+    const { code } = req.params;
+    const { dest } = req.body; // destination page
+
+    const user = await prisma.user.findFirst({
+      where: { referralCode: code },
+      select: { id: true, referralCode: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Invalid referral code" });
+    }
+
+    // Log click in AuditLog (no schema change needed)
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "REFERRAL_CLICK",
+        target: code,
+        metadata: {
+          dest: dest || "/register",
+          ip: req.headers["x-forwarded-for"] || req.ip,
+          ua: req.headers["user-agent"] || "",
+          ts: new Date().toISOString()
+        }
+      }
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get available landing pages for referral links (auth required)
+router.get("/landing-pages", auth, async (req, res) => {
+  const pages = [
+    { id: "register", label: "Registration Page", path: "/register" },
+    { id: "home", label: "Homepage", path: "/" },
+    { id: "for-developers", label: "For Developers", path: "/for/developers" },
+    { id: "for-save", label: "SaaS Savings", path: "/for/save" },
+    { id: "for-power", label: "Lightweight & Powerful", path: "/for/power" },
+    { id: "for-agencies", label: "For Agencies", path: "/for/agencies" },
+    { id: "for-remote", label: "Remote Work", path: "/for/remote" },
+    { id: "blog-claude", label: "Skills Blog Index", path: "/blog/claude" },
+  ];
+  res.json({ pages });
 });
 
 // Validate a referral code (public, no auth needed)
