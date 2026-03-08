@@ -225,10 +225,13 @@ export default function Blog() {
             One command installs all {skills.length} skills instantly.
           </p>
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 max-w-lg mx-auto mb-8">
-            <p className="text-sm text-slate-400 mb-3">Install all skills with one command:</p>
-            <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm text-emerald-400">
-              claude mcp add skills-ultimate-bundle -- npx -y @anthropic-ai/claude-code-mcp@latest
+            <p className="text-sm text-slate-400 mb-1">Created by <span className="text-white font-medium">Benjamin Tate</span></p>
+            <p className="text-sm text-slate-400 mb-3">Download the bundle, extract to your plugins folder, and enable:</p>
+            <div className="bg-slate-950 rounded-lg p-3 font-mono text-xs text-emerald-400 space-y-1">
+              <div>mkdir -p ~/.claude/plugins/local-marketplace</div>
+              <div>unzip skills-ultimate-bundle.zip -d ~/.claude/plugins/local-marketplace/</div>
             </div>
+            <p className="text-xs text-slate-500 mt-2">Then add <code className="text-cyan-400">"skills-ultimate-bundle@local-skills": true</code> to your settings.json</p>
           </div>
           <Link
             to="/register?ref=blog"

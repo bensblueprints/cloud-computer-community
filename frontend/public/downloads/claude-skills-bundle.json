@@ -1,13 +1,16 @@
 {
   "name": "CloudCode Skills Ultimate Bundle",
   "version": "1.0.0",
-  "description": "500+ AI-powered skills for Claude Code CLI. Each skill generates professional documents, strategies, plans, and more.",
+  "author": "Benjamin Tate",
+  "description": "500+ AI-powered skills for Claude Code CLI by Benjamin Tate. Each skill generates professional documents, strategies, plans, and more.",
   "website": "https://cloudcode.space/blog/claude",
   "install_instructions": {
-    "step_1": "Install Claude Code CLI if you haven't already: npm install -g @anthropic-ai/claude-code",
-    "step_2": "Add the skills bundle MCP server: claude mcp add skills-ultimate-bundle -- npx -y @anthropic-ai/claude-code-mcp@latest",
-    "step_3": "Open Claude Code in your terminal: claude",
-    "step_4": "Use any skill by typing its slash command, e.g.: /blog-post, /sales-page, /seo-audit"
+    "step_1": "Install Claude Code CLI: npm install -g @anthropic-ai/claude-code",
+    "step_2": "Create the plugins directory: mkdir -p ~/.claude/plugins/local-marketplace (macOS/Linux) or mkdir %USERPROFILE%\\.claude\\plugins\\local-marketplace (Windows)",
+    "step_3": "Download and extract the skills-ultimate-bundle.zip into the local-marketplace folder",
+    "step_4": "Enable the plugin by adding {\"enabledPlugins\": {\"skills-ultimate-bundle@local-skills\": true}} to your ~/.claude/settings.json",
+    "step_5": "Open Claude Code in your terminal: claude",
+    "step_6": "Use any skill by typing its slash command, e.g.: /blog-post, /sales-page, /seo-audit"
   },
   "categories": {
     "Marketing & Advertising": ["ab-test-plan", "ad-creative-brief", "ad-performance-report", "ad-spend-calculator", "attribution-model", "cause-marketing-campaign", "co-marketing-plan", "competitor-analysis", "conversion-funnel-analysis", "facebook-ad-campaign", "flash-sale-campaign", "google-ads-campaign", "google-business-profile", "influencer-campaign-brief", "influencer-outreach", "linkedin-ad-campaign", "lookalike-audience-plan", "market-research", "market-sizing", "media-buy-plan", "retargeting-strategy", "seasonal-campaign"],

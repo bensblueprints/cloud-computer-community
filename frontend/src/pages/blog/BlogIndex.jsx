@@ -163,8 +163,9 @@ export default function BlogIndex() {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Get All {skills.length}+ Skills <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Free</span>
           </h2>
+          <p className="text-sm text-slate-500 mb-2">Created by <span className="text-white font-medium">Benjamin Tate</span></p>
           <p className="text-slate-400 mb-8">
-            Sign up for a free CloudCode account and download the complete skills bundle with one-click install instructions.
+            Sign up for a free CloudCode account and download the complete skills bundle with install instructions.
           </p>
           <Link
             to="/register?ref=skills"

@@ -235,28 +235,60 @@ export default function BlogPost() {
               <section className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
                   <Download className="w-5 h-5 text-cyan-400" />
-                  <h2 className="text-xl font-bold">Install This Skill</h2>
+                  <h2 className="text-xl font-bold">Install All 500+ Skills</h2>
                 </div>
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-5">
+                  <p className="text-sm text-slate-400">
+                    Created by <span className="text-white font-medium">Benjamin Tate</span>.
+                    Sign up for a free account above to download the complete bundle, or follow the manual install steps below.
+                  </p>
+
                   <div>
-                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 1: Install Claude Code</h4>
+                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 1: Install Claude Code CLI</h4>
                     <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm">
                       <span className="text-emerald-400">npm install -g @anthropic-ai/claude-code</span>
                     </div>
                   </div>
+
                   <div>
-                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 2: Install the Skills Bundle</h4>
-                    <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm">
-                      <span className="text-emerald-400">claude mcp add skills-ultimate-bundle -- npx -y @anthropic-ai/claude-code-mcp@latest</span>
+                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 2: Download the Skills Bundle</h4>
+                    <p className="text-xs text-slate-500 mb-2">Sign up above to get the download link, then extract to your Claude plugins folder:</p>
+                    <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm space-y-1">
+                      <div><span className="text-slate-500"># macOS / Linux:</span></div>
+                      <div><span className="text-emerald-400">mkdir -p ~/.claude/plugins/local-marketplace</span></div>
+                      <div><span className="text-emerald-400">unzip skills-ultimate-bundle.zip -d ~/.claude/plugins/local-marketplace/</span></div>
+                      <div className="mt-2"><span className="text-slate-500"># Windows:</span></div>
+                      <div><span className="text-emerald-400">mkdir %USERPROFILE%\.claude\plugins\local-marketplace</span></div>
+                      <div><span className="text-slate-500"># Extract zip into that folder</span></div>
                     </div>
                   </div>
+
                   <div>
-                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 3: Use the Skill</h4>
+                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 3: Enable the Plugin</h4>
+                    <p className="text-xs text-slate-500 mb-2">Add this to your <code className="text-cyan-400">~/.claude/settings.json</code>:</p>
                     <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm">
-                      <span className="text-slate-400"># In Claude Code, type:</span>
-                      <br />
-                      <span className="text-cyan-400">/{skill.slug}</span>
+                      <div><span className="text-slate-500">{'{'}</span></div>
+                      <div><span className="text-yellow-400">  "enabledPlugins"</span><span className="text-slate-500">: {'{'}</span></div>
+                      <div><span className="text-yellow-400">    "skills-ultimate-bundle@local-skills"</span><span className="text-slate-500">:</span> <span className="text-emerald-400">true</span></div>
+                      <div><span className="text-slate-500">  {'}'}</span></div>
+                      <div><span className="text-slate-500">{'}'}</span></div>
                     </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-cyan-400 mb-2">Step 4: Use Any Skill</h4>
+                    <div className="bg-slate-950 rounded-lg p-3 font-mono text-sm space-y-1">
+                      <div><span className="text-slate-500"># Open Claude Code and type any skill command:</span></div>
+                      <div><span className="text-emerald-400">$ claude</span></div>
+                      <div><span className="text-cyan-400 text-lg font-semibold">/{skill.slug}</span></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-4">
+                    <p className="text-xs text-slate-400">
+                      All 500+ skills install at once. After setup, type <code className="text-cyan-400">/{'{'}skill-name{'}'}</code> in Claude Code to use any skill instantly.
+                      Skills include: sales pages, SEO audits, email sequences, business plans, legal documents, and much more.
+                    </p>
                   </div>
                 </div>
               </section>
