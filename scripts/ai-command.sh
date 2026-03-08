@@ -17,7 +17,7 @@ for m in data.get('models',[]):
     print(f'  - {m[\"name\"]} ({size})')
 " 2>/dev/null || curl -s "$OLLAMA/api/tags"
     echo ""
-    echo "Set default: export AI_MODEL=llama3.2:3b"
+    echo "Set default: export AI_MODEL=mistral"
     exit 0
 fi
 
@@ -47,7 +47,7 @@ if [ -z "$1" ]; then
     echo "  ai models                 List available models"
     echo ""
     echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
-    echo "Change model: export AI_MODEL=llama3.2:3b"
+    echo "Change model: export AI_MODEL=mistral"
     echo ""
     echo "API Endpoint: http://ai.internal:11434"
     echo "  curl http://ai.internal:11434/api/generate -d '{\"model\":\"mistral\",\"prompt\":\"Hello\"}'"

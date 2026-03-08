@@ -228,7 +228,7 @@ MODEL="${AI_MODEL:-mistral}"
 if [ "$1" = "models" ]; then
     echo "Available AI Models:"
     curl -s "$OLLAMA/api/tags" | python3 -c "import sys,json;[print(f'  - {m[\"name\"]} ({m[\"details\"][\"parameter_size\"]})') for m in json.load(sys.stdin).get('models',[])]" 2>/dev/null
-    echo ""; echo "Set default: export AI_MODEL=llama3.2:3b"; exit 0
+    echo ""; echo "Set default: export AI_MODEL=mistral"; exit 0
 fi
 if [ "$1" = "chat" ]; then
     echo "CloudCode AI Chat (model: $MODEL) - Ctrl+C to quit"; echo "---"
@@ -243,7 +243,7 @@ if [ -z "$1" ]; then
     echo "Usage:"; echo "  ai \"What is Docker?\"     Quick question"
     echo "  ai chat                   Interactive chat"; echo "  ai models                 List available models"; echo ""
     echo "Models: mistral (default), llama3.2:3b, qwen2.5:3b, gemma2:2b"
-    echo "Change model: export AI_MODEL=llama3.2:3b"; echo ""
+    echo "Change model: export AI_MODEL=mistral"; echo ""
     echo "API Endpoint: http://ai.internal:11434"; exit 0
 fi
 curl -s "$OLLAMA/api/generate" -d "{\"model\":\"$MODEL\",\"prompt\":\"$*\",\"stream\":true}" | while read -r l; do echo "$l" | python3 -c "import sys,json;print(json.load(sys.stdin).get('response',''),end='',flush=True)" 2>/dev/null; done; echo
