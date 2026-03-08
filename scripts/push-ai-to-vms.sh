@@ -1,5 +1,5 @@
 #!/bin/bash
-# Push AI command + updated welcome to all running customer VMs
+# Push AI command + hosts entry to all running customer VMs
 # Run from Proxmox host: bash /root/cloud-computer-community/scripts/push-ai-to-vms.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -12,13 +12,7 @@ fi
 
 # Get all running QEMU VMs with VMID >= 1000 (customer VMs)
 echo "Finding running customer VMs..."
-RUNNING_VMS=$(pvesh get /nodes/proxmox/qemu --output-format json 2>/dev/null | python3 -c "
-import sys,json
-data=json.load(sys.stdin)
-for vm in data:
-    if vm.get('status')=='running' and int(vm['vmid'])>=1000:
-        print(vm['vmid'])
-" 2>/dev/null)
+RUNNING_VMS=$(qm list 2>/dev/null | awk '$3 == "running" && $1 >= 1000 {print $1}')
 
 if [ -z "$RUNNING_VMS" ]; then
     echo "No running customer VMs found."
@@ -27,58 +21,17 @@ fi
 
 echo "Running VMs: $RUNNING_VMS"
 
-WELCOME_TEXT='Welcome to Cloud Computer!
-
-Your cloud desktop comes pre-installed with:
-  - Google Chrome & Firefox
-  - Telegram Desktop
-  - Cursor IDE
-  - Claude Code CLI (run: claude in terminal)
-  - AI Models (run: ai in terminal)
-
-FREE AI ACCESS (no API key needed from your VM):
-  Quick question:    ai "What is Docker?"
-  Interactive chat:  ai chat
-  List models:       ai models
-
-  Available models: Mistral 7B, Llama 3.2, Qwen 2.5, Gemma2
-  API endpoint: http://10.10.10.1:11434
-
-  Use in your code:
-    curl http://10.10.10.1:11434/api/generate -d '"'"'{"model":"mistral","prompt":"Hello"}'"'"'
-
-IMPORTANT: Please change your password!
-Open a terminal and run: passwd
-
-For support visit: https://cloudcode.space'
+AI_B64=$(base64 -w0 "$AI_CMD")
 
 for VMID in $RUNNING_VMS; do
     echo "--- VM $VMID ---"
 
-    # Check if guest agent is responsive
-    if ! pvesh get /nodes/proxmox/qemu/$VMID/agent/info > /dev/null 2>&1; then
-        echo "  Skipped (guest agent not available)"
-        continue
-    fi
+    # Install ai command via base64
+    qm guest exec $VMID -- bash -c "echo $AI_B64 | base64 -d > /usr/local/bin/ai && chmod +x /usr/local/bin/ai && echo ai_installed" 2>/dev/null | grep -q "ai_installed" && echo "  ai command: OK" || echo "  ai command: FAILED"
 
-    # Copy ai command
-    AI_CONTENT=$(cat "$AI_CMD" | base64 -w0)
-    pvesh create /nodes/proxmox/qemu/$VMID/agent/exec \
-        --command "bash" \
-        --input-data "echo '$AI_CONTENT' | base64 -d > /usr/local/bin/ai && chmod +x /usr/local/bin/ai && echo 'ai command installed'" \
-        > /dev/null 2>&1
+    # Add ai.internal hosts entry
+    qm guest exec $VMID -- bash -c "grep -q ai.internal /etc/hosts || echo '10.10.10.1 ai.internal' >> /etc/hosts && echo hosts_ok" 2>/dev/null | grep -q "hosts_ok" && echo "  hosts: OK" || echo "  hosts: FAILED"
 
-    # Update welcome text
-    pvesh create /nodes/proxmox/qemu/$VMID/agent/exec \
-        --command "bash" \
-        --input-data "cat > /home/cloudcomputer/Desktop/WELCOME.txt << 'ENDWELCOME'
-$WELCOME_TEXT
-ENDWELCOME
-chown cloudcomputer:cloudcomputer /home/cloudcomputer/Desktop/WELCOME.txt 2>/dev/null
-echo 'Welcome updated'" \
-        > /dev/null 2>&1
-
-    echo "  Done"
     sleep 1
 done
 
