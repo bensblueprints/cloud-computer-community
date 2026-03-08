@@ -70,7 +70,7 @@ function DashboardLayout({ children }) {
   const isOwner = user?.orgRole === 'OWNER';
 
   const navItems = [
-    { path: '/dashboard', label: 'My Environments' },
+    { path: '/dashboard', label: 'My Servers' },
     { path: '/dashboard/server', label: 'Server' },
     // Only show New Environment for SOLO plans, or TEAM/ARMY owners (but they share one VM)
     ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),

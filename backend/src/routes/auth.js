@@ -123,6 +123,9 @@ router.get("/me", auth, async (req, res, next) => {
       where: { id: req.userId },
       include: { org: { include: { subscription: true } } }
     });
+    // Prevent browser caching so impersonate/masquerade works correctly
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
     res.json({
       user: {
         id: user.id,
