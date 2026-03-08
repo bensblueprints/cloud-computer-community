@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { AlertTriangle, Trash2, CreditCard, Lock } from 'lucide-react';
+import { AlertTriangle, Trash2, CreditCard, Lock, Info } from 'lucide-react';
 
 export default function Profile() {
   const { user, api, logout } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [saved, setSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -24,7 +25,7 @@ export default function Profile() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      await api.put('/auth/profile', { name });
+      await api.put('/auth/profile', { name, email });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -111,10 +112,18 @@ export default function Profile() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
-              value={user?.email || ''}
-              disabled
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
             />
+            {email !== user?.email && (
+              <div className="flex items-start gap-2 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-700">
+                  Changing your email here does not update your Go High Level CRM login. You will need to update your GHL email separately from within the GHL dashboard.
+                </p>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>

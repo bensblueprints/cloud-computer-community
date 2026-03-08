@@ -201,11 +201,22 @@ router.get("/me", auth, async (req, res, next) => {
 // Update profile
 router.put("/profile", auth, async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const { name, email } = req.body;
+    const updateData = {};
+
+    if (name) updateData.name = name;
+
+    if (email && email !== req.user.email) {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing) {
+        return res.status(409).json({ error: "That email is already in use" });
+      }
+      updateData.email = email;
+    }
 
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { name },
+      data: updateData,
       include: { org: true }
     });
 
