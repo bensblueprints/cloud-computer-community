@@ -266,13 +266,24 @@ wss.on('connection', async (ws, req) => {
 
     ws.on('close', () => {
       console.log(`WebSocket: Client disconnected for VM ${vmid}`);
+      clearInterval(pingInterval);
       proxmoxWs.close();
     });
 
     ws.on('error', (err) => {
       console.error(`WebSocket: Client error for VM ${vmid}:`, err.message);
+      clearInterval(pingInterval);
       proxmoxWs.close();
     });
+
+    // Keepalive ping every 20 seconds to prevent Traefik/proxy idle timeout
+    const pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      } else {
+        clearInterval(pingInterval);
+      }
+    }, 20000);
 
   } catch (err) {
     console.error('WebSocket: Connection error:', err);
@@ -460,8 +471,14 @@ wss2.on('connection', async (ws, req) => {
     proxmoxWs.on('close', () => ws.close());
 
     ws.on('message', (data) => proxmoxWs.readyState === WebSocket.OPEN && proxmoxWs.send(data));
-    ws.on('close', () => proxmoxWs.close());
-    ws.on('error', () => proxmoxWs.close());
+    ws.on('close', () => { clearInterval(pi); proxmoxWs.close(); });
+    ws.on('error', () => { clearInterval(pi); proxmoxWs.close(); });
+
+    // Keepalive ping every 20 seconds
+    const pi = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.ping();
+      else clearInterval(pi);
+    }, 20000);
 
   } catch (err) {
     console.error('WS2 error:', err);

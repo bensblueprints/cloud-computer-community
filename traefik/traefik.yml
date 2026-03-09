@@ -21,6 +21,9 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
+    transport:
+      respondingTimeouts:
+        idleTimeout: "3600s"
 
 certificatesResolvers:
   letsencrypt:

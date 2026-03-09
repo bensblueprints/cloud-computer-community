@@ -12,6 +12,8 @@ export default function DashboardServer() {
   const [status, setStatus] = useState('idle');
   const canvasRef = useRef(null);
   const rfbRef = useRef(null);
+  const reconnectTimer = useRef(null);
+  const reconnectAttempts = useRef(0);
 
   useEffect(() => {
     fetchVMs();
@@ -65,8 +67,22 @@ export default function DashboardServer() {
       rfb.scaleViewport = true;
       rfb.resizeSession = true;
 
-      rfb.addEventListener('connect', () => setStatus('connected'));
-      rfb.addEventListener('disconnect', () => setStatus('disconnected'));
+      rfb.addEventListener('connect', () => {
+        setStatus('connected');
+        reconnectAttempts.current = 0;
+      });
+      rfb.addEventListener('disconnect', () => {
+        setStatus('disconnected');
+        // Auto-reconnect after a short delay (max 5 attempts with backoff)
+        if (reconnectAttempts.current < 5) {
+          const delay = Math.min(2000 * Math.pow(1.5, reconnectAttempts.current), 15000);
+          reconnectAttempts.current++;
+          setStatus('connecting');
+          reconnectTimer.current = setTimeout(() => {
+            if (selectedVM) connectToVM(selectedVM);
+          }, delay);
+        }
+      });
       rfb.addEventListener('credentialsrequired', () => {
         rfb.sendCredentials({ password });
       });
@@ -97,6 +113,7 @@ export default function DashboardServer() {
   useEffect(() => {
     return () => {
       if (rfbRef.current) rfbRef.current.disconnect();
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
     };
   }, []);
 
@@ -197,9 +214,12 @@ export default function DashboardServer() {
           {status === 'disconnected' && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/80">
               <div className="text-center">
-                <p className="text-white text-lg mb-4">Connection lost</p>
-                <button onClick={handleReconnect} className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
-                  Reconnect
+                <p className="text-white text-lg mb-2">Connection lost</p>
+                <p className="text-gray-400 text-sm mb-4">
+                  {reconnectAttempts.current < 5 ? 'Auto-reconnecting...' : 'Max retries reached'}
+                </p>
+                <button onClick={() => { reconnectAttempts.current = 0; handleReconnect(); }} className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
+                  Reconnect Now
                 </button>
               </div>
             </div>
