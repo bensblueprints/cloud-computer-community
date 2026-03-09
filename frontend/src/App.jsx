@@ -43,6 +43,10 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Offer = lazy(() => import('./pages/Offer'));
 const DownloadPage = lazy(() => import('./pages/Download'));
 const AdminProducts = lazy(() => import('./pages/admin/Products'));
+const CreativeLibrary = lazy(() => import('./pages/CreativeLibrary'));
+const TemplatesPage = lazy(() => import('./pages/Templates'));
+const AdsPage = lazy(() => import('./pages/Ads'));
+const QuickLaunch = lazy(() => import('./pages/QuickLaunch'));
 import MusicPlayer from './components/MusicPlayer';
 
 function Loading() {
@@ -203,7 +207,11 @@ function DashboardLayout({ children }) {
   const navHover = isMatrix ? 'hover:text-gray-200 hover:bg-white/5' : 'hover:text-gray-900 hover:bg-gray-50';
 
   const navItems = [
-    { path: '/dashboard', label: 'My Servers' },
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/dashboard/quick-launch', label: 'Quick Launch', highlight: true },
+    { path: '/dashboard/ads', label: 'Ads' },
+    { path: '/dashboard/creative-library', label: 'Creative Library' },
+    { path: '/dashboard/templates', label: 'Templates' },
     { path: '/dashboard/server', label: 'Server' },
     { path: '/dashboard/terminal', label: 'Terminal' },
     ...(hasSubscription && !isSharedPlan ? [{ path: '/dashboard/new', label: 'New Environment' }] : []),
@@ -235,6 +243,8 @@ function DashboardLayout({ children }) {
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       location.pathname === item.path
                         ? activeNavBg
+                        : item.highlight
+                        ? 'text-green-600 hover:text-green-700 hover:bg-green-50 font-semibold'
                         : `${headerText} ${navHover}`
                     }`}
                   >
@@ -361,6 +371,10 @@ export default function App() {
           <Route path="/dashboard/referrals" element={<ProtectedRoute><DashboardLayout><Referrals /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/crm" element={<ProtectedRoute><DashboardLayout><DashboardCRM /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/quick-launch" element={<ProtectedRoute><DashboardLayout><QuickLaunch /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/ads" element={<ProtectedRoute><DashboardLayout><AdsPage /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/creative-library" element={<ProtectedRoute><DashboardLayout><CreativeLibrary /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/templates" element={<ProtectedRoute><DashboardLayout><TemplatesPage /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/console/:vmid" element={<ProtectedRoute><Console /></ProtectedRoute>} />
 
