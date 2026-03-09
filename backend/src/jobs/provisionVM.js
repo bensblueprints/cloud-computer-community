@@ -103,6 +103,11 @@ const worker = new Worker("vm-provisioning", async (job) => {
       networkingDone = netResult?.success === true;
       console.log(`Networking configured for VM ${vmid}: ${networkingDone ? 'success' : 'partial'}`);
 
+      // Disable XFCE power management so VMs stay awake 24/7
+      proxmoxService.disablePowerManagement(vmid).catch(e => {
+        console.log(`Power management disable warning for VM ${vmid}: ${e.message}`);
+      });
+
       // Ensure qemu-guest-agent and networking tools are installed
       // This runs in background - doesn't block provisioning
       proxmoxService.safeExecInVM(vmid, "apt-get update -qq && apt-get install -y -qq qemu-guest-agent dnsutils net-tools curl > /dev/null 2>&1 &").catch(() => {});

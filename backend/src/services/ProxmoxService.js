@@ -248,6 +248,41 @@ class ProxmoxService {
     return res.data;
   }
 
+  // Disable XFCE power management and screen blanking so VMs stay awake 24/7
+  async disablePowerManagement(vmid) {
+    console.log(`Disabling power management on VM ${vmid}`);
+    try {
+      // Disable XFCE power manager settings via xfconf
+      const xfconfCmds = [
+        'sudo -u cloudcode DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -s 0',
+        'sudo -u cloudcode DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -s 0',
+        'sudo -u cloudcode DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -s 0',
+        'sudo -u cloudcode DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled -s false',
+        'sudo -u cloudcode DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/inactivity-on-ac -s 0',
+      ];
+      for (const cmd of xfconfCmds) {
+        await this.safeExecInVM(vmid, cmd);
+      }
+
+      // Create autostart entry to disable screen blanking on every boot
+      await this.safeExecInVM(vmid, 'mkdir -p /home/cloudcode/.config/autostart');
+      const autostartContent = '[Desktop Entry]\nType=Application\nName=Disable Screen Blanking\nExec=sh -c "sleep 5 && xset s off && xset -dpms && xset s noblank"\nHidden=false\nNoDisplay=true\nX-GNOME-Autostart-enabled=true\n';
+      try {
+        await this.writeFileInVM(vmid, '/home/cloudcode/.config/autostart/disable-screensaver.desktop', autostartContent);
+        await this.safeExecInVM(vmid, 'chown -R 1000:1000 /home/cloudcode/.config/autostart');
+      } catch (e) { /* non-critical */ }
+
+      // Kill xscreensaver if running
+      await this.safeExecInVM(vmid, 'pkill -9 xscreensaver');
+
+      console.log(`Power management disabled on VM ${vmid}`);
+      return { success: true };
+    } catch (e) {
+      console.error(`Failed to disable power management on VM ${vmid}:`, e.message);
+      return { success: false, error: e.message };
+    }
+  }
+
   async setRDPPassword(vmid, password) {
     try {
       return await this.execInVM(vmid, `echo "cloudcomputer:${password}" | chpasswd`);
