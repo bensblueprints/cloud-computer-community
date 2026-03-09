@@ -20,8 +20,7 @@ const billingRoutes = require('./routes/billing');
 const adminRoutes = require('./routes/admin');
 const referralRoutes = require('./routes/referrals');
 const offersRoutes = require('./routes/offers');
-const metaRoutes = require('./routes/meta');
-const templateRoutes = require('./routes/templates');
+// const ollamaRoutes = require('./routes/ollama'); // Removed - replaced with Groq guide on dashboard
 const { Client: SSHClient } = require('ssh2');
 const provisionWorker = require('./jobs/provisionVM');
 const abandonedCartWorker = require('./jobs/abandonedCart');
@@ -61,8 +60,6 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/offers', offersRoutes);
-app.use('/api/meta', metaRoutes);
-app.use('/api/templates', templateRoutes);
 
 // Skills bundle download - requires authentication
 app.get('/api/skills/download', async (req, res) => {
