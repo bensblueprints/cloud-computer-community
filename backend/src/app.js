@@ -19,7 +19,9 @@ const orgRoutes = require('./routes/org');
 const billingRoutes = require('./routes/billing');
 const adminRoutes = require('./routes/admin');
 const referralRoutes = require('./routes/referrals');
-// const ollamaRoutes = require('./routes/ollama'); // Removed - replaced with Groq guide on dashboard
+const offersRoutes = require('./routes/offers');
+const metaRoutes = require('./routes/meta');
+const templateRoutes = require('./routes/templates');
 const { Client: SSHClient } = require('ssh2');
 const provisionWorker = require('./jobs/provisionVM');
 const abandonedCartWorker = require('./jobs/abandonedCart');
@@ -38,7 +40,7 @@ app.use(cors({
 }));
 // Skip JSON parsing for Stripe webhook (needs raw body for signature verification)
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/billing/webhook') {
+  if (req.originalUrl === '/api/billing/webhook' || req.originalUrl === '/api/offers/webhook') {
     next();
   } else {
     express.json()(req, res, next);
@@ -58,7 +60,9 @@ app.use('/api/org', orgRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/referrals', referralRoutes);
-// app.use('/api/ollama', ollamaRoutes); // Removed - users now use Groq directly
+app.use('/api/offers', offersRoutes);
+app.use('/api/meta', metaRoutes);
+app.use('/api/templates', templateRoutes);
 
 // Skills bundle download - requires authentication
 app.get('/api/skills/download', async (req, res) => {

@@ -251,6 +251,34 @@ class GHLService {
   }
 
   /**
+   * Create a contact in the main CRM (not a sub-account)
+   */
+  async createContact({ email, name, source, tags }) {
+    try {
+      const nameParts = (name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const payload = {
+        companyId: this.companyId,
+        email,
+        firstName,
+        lastName,
+        tags: tags || [],
+        source: source || 'offer-purchase'
+      };
+
+      console.log(`[GHL] Creating contact: ${email}`);
+      const response = await this.client.post('/contacts/', payload);
+      console.log(`[GHL] Contact created: ${response.data?.contact?.id || response.data?.id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('[GHL] Failed to create contact:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Check if GHL integration is configured
    */
   isConfigured() {

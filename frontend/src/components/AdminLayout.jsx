@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, Server, Activity, CreditCard, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Server, Activity, CreditCard, Package, Settings, LogOut } from 'lucide-react';
 
 const navItems = [
   { path: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/admin/vms', label: 'Virtual Machines', icon: Server },
   { path: '/admin/proxmox', label: 'Proxmox', icon: Activity },
   { path: '/admin/billing', label: 'Billing', icon: CreditCard },
+  { path: '/admin/products', label: 'Products', icon: Package },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

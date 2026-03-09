@@ -40,6 +40,9 @@ const LandingAgencies = lazy(() => import('./pages/landing/Agencies'));
 const LandingRemoteWork = lazy(() => import('./pages/landing/RemoteWork'));
 const ReferralRedirect = lazy(() => import('./pages/ReferralRedirect'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Offer = lazy(() => import('./pages/Offer'));
+const DownloadPage = lazy(() => import('./pages/Download'));
+const AdminProducts = lazy(() => import('./pages/admin/Products'));
 import MusicPlayer from './components/MusicPlayer';
 
 function Loading() {
@@ -370,7 +373,10 @@ export default function App() {
           <Route path="/admin/proxmox" element={<AdminRoute><AdminProxmox /></AdminRoute>} />
           <Route path="/admin/billing" element={<AdminRoute><AdminBilling /></AdminRoute>} />
           <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+          <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
 
+          <Route path="/offer/:price" element={<Offer />} />
+          <Route path="/download" element={<DownloadPage />} />
           <Route path="/r/:code" element={<ReferralRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

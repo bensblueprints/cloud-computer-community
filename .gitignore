@@ -5,3 +5,4 @@ build/
 traefik/letsencrypt/acme.json
 *.log
 .DS_Store
+backend/uploads/

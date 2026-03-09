@@ -8,8 +8,27 @@ const auditLog = require('../middleware/auditLog');
 const proxmoxService = require('../services/ProxmoxService');
 const traefikService = require('../services/TraefikService');
 
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Multer setup for product file uploads
+const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'products');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  }),
+  limits: { fileSize: 500 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/zip' || file.originalname.endsWith('.zip')) cb(null, true);
+    else cb(new Error('Only .zip files allowed'));
+  }
+});
 
 // Admin login
 router.post('/auth/login', async (req, res, next) => {
@@ -744,6 +763,70 @@ router.post('/vms/:vmid/fix-network', auth, adminOnly, auditLog('fix_vm_network'
   } catch (err) {
     next(err);
   }
+});
+
+// ========== Product Management ==========
+
+// List products with purchase counts
+router.get('/products', async (req, res, next) => {
+  try {
+    const products = await prisma.product.findMany({
+      include: { _count: { select: { purchases: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ products });
+  } catch (err) { next(err); }
+});
+
+// Create product
+router.post('/products', async (req, res, next) => {
+  try {
+    const { name, description, price, stripePriceId } = req.body;
+    if (!name || !price) return res.status(400).json({ error: 'name and price required' });
+    const product = await prisma.product.create({
+      data: { name, description, price: parseInt(price), stripePriceId }
+    });
+    res.status(201).json({ product });
+  } catch (err) { next(err); }
+});
+
+// Update product
+router.patch('/products/:id', async (req, res, next) => {
+  try {
+    const { name, description, price, stripePriceId, active } = req.body;
+    const data = {};
+    if (name !== undefined) data.name = name;
+    if (description !== undefined) data.description = description;
+    if (price !== undefined) data.price = parseInt(price);
+    if (stripePriceId !== undefined) data.stripePriceId = stripePriceId;
+    if (active !== undefined) data.active = active;
+    const product = await prisma.product.update({ where: { id: req.params.id }, data });
+    res.json({ product });
+  } catch (err) { next(err); }
+});
+
+// Upload product file
+router.post('/products/:id/upload', upload.single('file'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const product = await prisma.product.update({
+      where: { id: req.params.id },
+      data: { fileName: req.file.originalname, filePath: req.file.path }
+    });
+    res.json({ product });
+  } catch (err) { next(err); }
+});
+
+// List purchases for a product
+router.get('/products/:id/purchases', async (req, res, next) => {
+  try {
+    const purchases = await prisma.purchase.findMany({
+      where: { productId: req.params.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+    res.json({ purchases });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

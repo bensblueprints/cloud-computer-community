@@ -214,3 +214,32 @@ enum PayoutStatus {
   PAID
   REJECTED
 }
+
+model Product {
+  id            String     @id @default(uuid())
+  name          String
+  description   String?
+  fileName      String?
+  filePath      String?
+  price         Int        // cents (500 = $5)
+  stripePriceId String?
+  active        Boolean    @default(true)
+  purchases     Purchase[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Purchase {
+  id              String   @id @default(uuid())
+  email           String
+  name            String   @default("")
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  stripeSessionId String   @unique
+  amountPaid      Int
+  downloadToken   String   @unique @default(uuid())
+  downloadCount   Int      @default(0)
+  maxDownloads    Int      @default(5)
+  bumpAdded       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
